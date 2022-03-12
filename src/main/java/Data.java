@@ -7,7 +7,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @author nilimajha
  */
 public class Data {
-    private HashMap<String, ArrayList<byte[]>> topicToMessageMap;
+    private HashMap<String, MessageInfo> topicToMessageMap;
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     /**
@@ -43,9 +43,9 @@ public class Data {
     public boolean addMessage(String topic, byte[] messageByteArray) {
         this.lock.writeLock().lock();         // acquiring write lock on topicToMessageMap
         if (!this.topicToMessageMap.containsKey(topic)) {
-            this.topicToMessageMap.put(topic, new ArrayList<byte[]>());
+            this.topicToMessageMap.put(topic, new MessageInfo(topic));
         }
-        this.topicToMessageMap.get(topic).add(messageByteArray);
+        this.topicToMessageMap.get(topic).addNewMessage(messageByteArray);
         this.lock.writeLock().unlock();      // realising write lock on topicToMessageMap
         return true;
     }
@@ -53,17 +53,26 @@ public class Data {
     /**
      * gets the message of given messageId and the given topic from the topicToMessageMap
      * @param topic
-     * @param messageId
+     * @param offsetNumber
      * @return message
      */
-    public byte[] getMessage(String topic, int messageId) {
+    public ArrayList<byte[]> getMessage(String topic, int offsetNumber) {
         // might need to make this synchronised block.
         this.lock.readLock().lock();        // acquire read lock on topicToMessageMap
-        byte[] message = null;
-        if (this.topicToMessageMap.get(topic).size() >= messageId) {
-            message = this.topicToMessageMap.get(topic).get(messageId);
+        ArrayList<byte[]> messageBatch = null;
+        if (this.isTopicAvailable(topic)) {
+            messageBatch = this.topicToMessageMap.get(topic).getMessage(offsetNumber);
         }
         this.lock.readLock().unlock();     // realising read lock on topicToMessageMap
-        return message;
+        return messageBatch;
     }
+
+    /**
+     * getter for topicToMessageMap
+     * @return
+     */
+    public HashMap<String, MessageInfo> getTopicToMessageMap() {
+        return topicToMessageMap;
+    }
+
 }
