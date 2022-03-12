@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package tutorial;
+
+option java_package = "proto";
+option java_outer_classname = "Packet";
+
+message PacketDetails {
+  string to = 1;
+  string from = 2;
+  string type = 3;
+  bytes message = 4;
+}

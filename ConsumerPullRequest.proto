@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package tutorial;
+
+option java_package = "proto";
+option java_outer_classname = "ConsumerPullRequest";
+
+message ConsumerPullRequestDetails {
+  string topic = 1;
+  int32 offset = 2;
+}

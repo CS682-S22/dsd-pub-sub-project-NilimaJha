@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package tutorial;
+
+option java_package = "proto";
+option java_outer_classname = "PublisherPublishMessage";
+
+message PublisherPublishMessageDetails {
+  string topic = 1;
+  bytes message = 2;
+}
