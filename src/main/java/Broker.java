@@ -75,21 +75,15 @@ public class Broker implements Runnable {
                     e.printStackTrace();
                 }
                 //creating new connection object adding it to the map and assigning to the threadPool.????
-                Connection newConnection;
+                Connection newConnection = null;
                 try {
                     newConnection = new Connection(socketChannel.getRemoteAddress().toString(), socketChannel);
+                    // give this connection to requestProcessor
+                    RequestProcessor requestProcessor = new RequestProcessor(newConnection);
+                    threadPool.execute(requestProcessor);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                // give this connection to requestProcessor
-                // request processor will receive message and
-                // if it is post type then it will check for topic and will append it to the
-                // if it is get type then it will decode message and will extract type and message id and then will send next
-                // 10 message at a time
-                // if it is of type subscribe then requestProcessor will
-                // -check if the topic is available if      yes ->then subscribe successful and
-                //                                          no  ->then invalid topic subscribe unsuccessful and closing connection
-                //           - if the topic is valid then check if the message id is available? if yes send to consumer pool and will continuously check if the
             }
         }
     }
