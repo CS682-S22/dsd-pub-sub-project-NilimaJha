@@ -1,5 +1,7 @@
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import model.BrokerConfig;
+import model.ConfigInformation;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -82,7 +84,7 @@ public class Utility {
     }
 
     /**
-     * reads configFile and returns ConfigInformation class obj
+     * reads configFile and returns model.ConfigInformation class obj
      * which contains all the information of the producer or consumer
      * whose name is provided.
      * @param fileName

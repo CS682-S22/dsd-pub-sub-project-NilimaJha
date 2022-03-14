@@ -1,5 +1,7 @@
+package model;
+
 /**
- * Class to keep all the information from BrokerConfig file.
+ * Class to keep all the information from model.BrokerConfig file.
  */
 public class BrokerConfig {
     private String Name;

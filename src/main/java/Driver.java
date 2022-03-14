@@ -1,3 +1,7 @@
+import model.BrokerConfig;
+import model.ConfigInformation;
+import model.Constants;
+
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -17,7 +21,7 @@ public class Driver {
         //producer fileName topic brokerIP brokerPort
         // -name PRODUCER-1 -configFile ProducerInfoConfig.json
         //broker ip port
-        // -name BROKER-1 -configFile BrokerConfig.json
+        // -name BROKER-1 -configFile model.BrokerConfig.json
         //consumer outputFileName topicName
         // -name CONSUMER-1 -configFile ConsumerInfoConfig.json
 

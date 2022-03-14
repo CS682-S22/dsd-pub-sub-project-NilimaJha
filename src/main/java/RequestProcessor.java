@@ -1,5 +1,8 @@
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
+import model.Constants;
+import model.Data;
+import model.DataInitializer;
 import proto.*;
 
 import java.util.ArrayList;
@@ -16,7 +19,7 @@ public class RequestProcessor implements Runnable {
     private String pushBasedConsumerTopic = null;
 
     /**
-     * Constructor that initialises Connection class object and also Data
+     * Constructor that initialises Connection class object and also model.Data
      * @param connection
      */
     public RequestProcessor(Connection connection) {

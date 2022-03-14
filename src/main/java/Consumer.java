@@ -1,4 +1,5 @@
 import com.google.protobuf.InvalidProtocolBufferException;
+import model.Constants;
 import proto.ConsumerPullRequest;
 import proto.InitialMessage;
 import proto.MessageFromBroker;
@@ -160,7 +161,7 @@ public class Consumer {
                     for (int index = 0; index < messageFromBrokerDetails.getActualMessageCount(); index++) {
                         byte[] actualMessageBytes = messageFromBrokerDetails.getActualMessage(index).toByteArray();
                         this.messageFromBroker.put(actualMessageBytes);
-                        if (this.consumerType == Constants.CONSUMER_TYPE_PULL) {
+                        if (this.consumerType == model.Constants.CONSUMER_TYPE_PULL) {
                             this.offset += actualMessageBytes.length; // incrementing offset value to the next message offset
                         }
                     }
