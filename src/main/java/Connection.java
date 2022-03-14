@@ -45,7 +45,6 @@ public class Connection {
         byte[] messageByte = null;
         int totalDataToRead = 0;
 
-
         if (this.incomingMessage == null) {
             this.incomingMessage = connectionSocket.read(buffer);
         }
