@@ -51,12 +51,14 @@ public class Consumer {
      */
     public void startConsumer() {
         connectToBroker();
-        if (this.consumerType == Constants.CONSUMER_TYPE_PULL) {
+        if (this.consumerType.equals(Constants.CONSUMER_PULL)) {
             while (this.newConnection.connectionSocket.isOpen()) {
+                System.out.printf("\n[Pulling message from broker]\n");
                 pullMessageFromBroker(); // fetching data from broker
             }
         } else {
             while (this.newConnection.connectionSocket.isOpen()) {
+                System.out.printf("\n[Receiving message from broker]\n");
                 receiveMessageFromBroker(); // receiving data from broker
             }
         }
@@ -74,13 +76,18 @@ public class Consumer {
             e.printStackTrace();
         }
         InetSocketAddress peerAddress = new InetSocketAddress(this.brokerIP, this.brokerPortNumber);
+        System.out.printf("\n[Connecting To Broker]\n");
         Future<Void> futureSocket = clientSocket.connect(peerAddress);
         try {
             futureSocket.get();
+            System.out.printf("\n[Connection Successful]\n");
             this.newConnection = new Connection(this.brokerIP, clientSocket);
-            //send initial message;
+            //send initial message
+            System.out.printf("\n[Creating Initial packet]\n");
             byte[] initialMessagePacket = createInitialMessagePacket();
+            System.out.printf("\n[Sending Initial packet]\n");
             this.newConnection.send(initialMessagePacket); //sending initial packet
+            System.out.printf("\n[Initial packet Sending Successful]\n");
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
@@ -96,12 +103,14 @@ public class Consumer {
         InitialMessage.InitialMessageDetails initialMessageDetails;
         if (this.consumerType.equals(Constants.CONSUMER_PULL)) {
             initialMessageDetails = InitialMessage.InitialMessageDetails.newBuilder()
-                    .setConnectionFrom(Constants.CONSUMER)
+                    .setConnectionSender(Constants.CONSUMER)
+                    .setName(this.consumerName)
                     .setConsumerType(Constants.CONSUMER_PULL)
                     .build();
         } else {
             initialMessageDetails = InitialMessage.InitialMessageDetails.newBuilder()
-                    .setConnectionFrom(Constants.CONSUMER)
+                    .setConnectionSender(Constants.CONSUMER)
+                    .setName(this.consumerName)
                     .setConsumerType(Constants.CONSUMER_PUSH)
                     .setTopic(this.topic)
                     .setInitialOffset(this.offset)
@@ -120,7 +129,8 @@ public class Consumer {
      * method creates pull request message.
      * @return byte[]
      */
-    public byte[] createPullRequestMessage() {
+    private byte[] createPullRequestMessage() {
+        System.out.printf("\nSending pull request for offset number %d\n", this.offset);
         ConsumerPullRequest.ConsumerPullRequestDetails consumerPullRequestDetails = ConsumerPullRequest.ConsumerPullRequestDetails.newBuilder()
                 .setTopic(this.topic)
                 .setOffset(this.offset)
@@ -133,19 +143,22 @@ public class Consumer {
      * t first it sends pull message to the broker
      * and then receives message sent by broker.
      */
-    public void pullMessageFromBroker() {
+    private void pullMessageFromBroker() {
         byte[] requestMessage = createPullRequestMessage();
-        this.newConnection.send(requestMessage);
-        byte[] responseFromBroker = this.newConnection.receive();
-        extractMessageFromBrokerMessage(responseFromBroker);
+        System.out.printf("\n[SEND]Send pull request to Broker\n");
+        this.newConnection.send(requestMessage); // sending pull request to the broker
+        receiveMessageFromBroker();
     }
 
     /**
      * method receive message from broker.
      */
-    public void receiveMessageFromBroker() {
+    private void receiveMessageFromBroker() {
         byte[] brokerMessage = this.newConnection.receive();
-        extractMessageFromBrokerMessage(brokerMessage);
+        if (brokerMessage != null) {
+            System.out.printf("\n[RECEIVE]Received message from Broker\n");
+            extractMessageFromBrokerMessage(brokerMessage);
+        }
     }
 
     /**
@@ -157,11 +170,13 @@ public class Consumer {
             MessageFromBroker.MessageFromBrokerDetails messageFromBrokerDetails;
             try {
                 messageFromBrokerDetails = MessageFromBroker.MessageFromBrokerDetails.parseFrom(brokerMessage);
-                if (messageFromBrokerDetails.getType() == "MESSAGE") {
+                if (messageFromBrokerDetails.getType().equals(Constants.MESSAGE)) {
+                    System.out.printf("\n[RECEIVE] Total message received from broker in one response = %d.\n", messageFromBrokerDetails.getActualMessageCount());
                     for (int index = 0; index < messageFromBrokerDetails.getActualMessageCount(); index++) {
                         byte[] actualMessageBytes = messageFromBrokerDetails.getActualMessage(index).toByteArray();
                         this.messageFromBroker.put(actualMessageBytes);
-                        if (this.consumerType == model.Constants.CONSUMER_TYPE_PULL) {
+                        System.out.printf("\nReceived Message size: %d\n", actualMessageBytes.length);
+                        if (this.consumerType.equals(model.Constants.CONSUMER_PULL)) {
                             this.offset += actualMessageBytes.length; // incrementing offset value to the next message offset
                         }
                     }

@@ -45,6 +45,7 @@ public class Data {
     public boolean addMessage(String topic, byte[] messageByteArray) {
         this.lock.writeLock().lock();         // acquiring write lock on topicToMessageMap
         if (!this.topicToMessageMap.containsKey(topic)) {
+            System.out.printf("[Adding Topic '%s']\n", topic);
             this.topicToMessageMap.put(topic, new MessageInfo(topic));
         }
         this.topicToMessageMap.get(topic).addNewMessage(messageByteArray);

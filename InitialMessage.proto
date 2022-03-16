@@ -6,8 +6,9 @@ option java_package = "proto";
 option java_outer_classname = "InitialMessage";
 
 message InitialMessageDetails {
-  string connectionFrom = 1;
-  string consumerType = 2;
-  string topic = 3;
-  int32 initialOffset = 4;
+  string connectionSender = 1;
+  string name = 2;
+  string consumerType = 3;
+  string topic = 4;
+  int32 initialOffset = 5;
 }

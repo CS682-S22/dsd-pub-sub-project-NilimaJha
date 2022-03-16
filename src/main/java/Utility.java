@@ -71,14 +71,23 @@ public class Utility {
         if (index > 0 && index < fileName.length() - 1) {
             extension = fileName.substring(index);
         }
-        System.out.println("extension = " + extension);
         return extension;
     }
 
+    /**
+     *
+     * @param args
+     * @return
+     */
     public static String getNameFromArgs (String[] args) {
         return args[1];
     }
 
+    /**
+     *
+     * @param args
+     * @return
+     */
     public static String getConfigFilename (String[] args) {
         return args[3];
     }
@@ -138,6 +147,7 @@ public class Utility {
      * @param outputFileName
      */
     public static FileOutputStream fileWriterInitializer (String outputFileName) {
+        System.out.printf("\n[Inside FileWriterInitializer] [outputFileName : %s] \n", outputFileName);
         File outputFile = new File(outputFileName);
         FileOutputStream fileWriter = null;
         if(outputFile.exists()){
@@ -149,6 +159,27 @@ public class Utility {
             e.printStackTrace();
         }
         return fileWriter;
+    }
+
+    /**
+     * initialises the FileInputStream named fileWriter of the class and deletes the file if already exist.
+     * @param outputFileName
+     */
+    public static BufferedWriter fileWriterInitializer2 (String outputFileName) {
+        System.out.printf("\n[Inside FileWriterInitializer] [outputFileName : %s] \n", outputFileName);
+        File outputFile = new File(outputFileName);
+        BufferedWriter bufferedWriter = null;
+        if(outputFile.exists()){
+            outputFile.delete();
+        }  //deleting file if exist
+        try {
+            bufferedWriter = new BufferedWriter(new FileWriter(outputFileName, true));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return bufferedWriter;
     }
 
     /**

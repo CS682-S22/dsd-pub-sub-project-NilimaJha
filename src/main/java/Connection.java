@@ -72,8 +72,10 @@ public class Connection {
                         break;
                     }
                 }
+//                System.out.printf("\n[R] [THREAD ID : %s] Read successful !!! \n" , Thread.currentThread().getId());
+
             } else {
-                System.out.printf("\n[R] [THREAD ID : %s] End of Stream ... No more data !!! \n" , Thread.currentThread().getId());
+//                System.out.printf("\n[R] [THREAD ID : %s] End of Stream ... No more data !!! \n" , Thread.currentThread().getId());
             }
         } catch (TimeoutException e) {
             System.out.printf("\n[R] [THREAD ID : %s] TIMEOUT encountered \n" , Thread.currentThread().getId());

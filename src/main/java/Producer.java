@@ -48,13 +48,18 @@ public class Producer {
             e.printStackTrace();
         }
         InetSocketAddress peerAddress = new InetSocketAddress(this.brokerIP, this.brokerPortNumber);
+        System.out.printf("\n[Connecting To Broker]\n");
         Future<Void> futureSocket = clientSocket.connect(peerAddress);
         try {
             futureSocket.get();
+            System.out.printf("\n[Connection Successful]\n");
             this.newConnection = new Connection(this.brokerIP, clientSocket);
-            //send initial message;
+            //send initial message
+            System.out.printf("\n[Creating Initial packet]\n");
             byte[] initialMessagePacket = createInitialMessagePacket();
+            System.out.printf("\n[Sending Initial packet]\n");
             this.newConnection.send(initialMessagePacket); //sending initial packet
+            System.out.printf("\n[Initial packet Sending Successful]\n");
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
@@ -68,7 +73,8 @@ public class Producer {
      */
     private byte[] createInitialMessagePacket() {
         InitialMessage.InitialMessageDetails initialMessageDetails = InitialMessage.InitialMessageDetails.newBuilder()
-                .setConnectionFrom(Constants.PRODUCER)
+                .setConnectionSender(Constants.PRODUCER)
+                .setName(this.producerName)
                 .build();
         Packet.PacketDetails packetDetails = Packet.PacketDetails.newBuilder()
                 .setTo(this.brokerIP)

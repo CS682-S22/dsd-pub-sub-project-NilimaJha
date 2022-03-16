@@ -3,9 +3,12 @@ import model.ConfigInformation;
 import model.Constants;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  *
@@ -31,19 +34,23 @@ public class Driver {
             System.exit(0);
         }
         //parseArgs
-        String hostType = Utility.getNameFromArgs(args);
+        String hostName = Utility.getNameFromArgs(args);
+        String hostType = hostName.split("-")[0];
         String configFileName = Utility.getConfigFilename(args);
 
         if (hostType.equals(Constants.BROKER)) {
-            BrokerConfig brokerConfig = Utility.extractBrokerConfigInfo(configFileName, hostType);
+            BrokerConfig brokerConfig = Utility.extractBrokerConfigInfo(configFileName, hostName);
             Broker broker = new Broker(brokerConfig.getName(), brokerConfig.getBrokerIP(), brokerConfig.getBrokerPort());
             broker.run();
         } else if (hostType.equals(Constants.PRODUCER)) {
-            ConfigInformation configInformation = Utility.extractConsumerOrPublisherConfigInfo(configFileName, hostType);
+            ConfigInformation configInformation = Utility.extractConsumerOrPublisherConfigInfo(configFileName, hostName);
             Producer producer = new Producer(configInformation.getName(), configInformation.getBrokerIP(), configInformation.getBrokerPort());
+            producer.startProducer();
 
+            System.out.printf("\n[Now Sending Actual data]\n");
             try (BufferedReader bufferedReader = Utility.fileReaderInitializer(configInformation.getFileName())) {
                 String eachLine = bufferedReader.readLine();
+                System.out.printf("\n[eachLine : %s]\n", eachLine);
                 String topic = null;
                 while (eachLine != null) {
                     if (configInformation.getFileName().equals("Apache.log")) {
@@ -61,6 +68,7 @@ public class Driver {
                         topic = "Mac";
                     }
 
+                    System.out.printf("\n[Now Sending Actual data] [Topic : %s]\n", topic);
                     producer.send(topic, eachLine.getBytes());    // send data
 
                     if (configInformation.getFileName().equals("Apache.log")) {
@@ -76,16 +84,22 @@ public class Driver {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } else {
-            ConfigInformation configInformation = Utility.extractConsumerOrPublisherConfigInfo(configFileName, hostType);
+        } else { //Consumer
+            ConfigInformation configInformation = Utility.extractConsumerOrPublisherConfigInfo(configFileName, hostName);
+            System.out.printf("\nConsumer Started\n");
             Consumer consumer = new Consumer(configInformation.getName(), configInformation.getType(), configInformation.getBrokerIP(), configInformation.getBrokerPort(), configInformation.getTopicName(), 0);
 
+            ExecutorService pool = Executors.newFixedThreadPool(1); //thread pool of size 15
+            pool.execute(consumer :: startConsumer);    // assigning consumer thread
             try (FileOutputStream fileWriter = Utility.fileWriterInitializer(configInformation.getFileName())) {
                 // Continue to pull messages...forever
                 while(true) {
                     byte[] message = consumer.poll(Duration.ofMillis(100));
                     // writing data on file.
-                    fileWriter.write(message);
+                    if (message != null) {
+                        fileWriter.write(message);
+                        fileWriter.write((byte)'\n');
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();

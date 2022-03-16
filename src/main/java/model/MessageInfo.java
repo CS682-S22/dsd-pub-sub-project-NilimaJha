@@ -24,7 +24,7 @@ public class MessageInfo {
         this.flushedMessageOffset = new ArrayList<>();
         this.inMemoryMessageOffset = new ArrayList<>();
         this.inMemoryMessage = new ArrayList<>();
-        this.topicFileName = topic + ".txt";
+        this.topicFileName = topic + ".log";
         fileWriterInitializer(this.topicFileName);
         fileReaderInitializer(this.topicFileName);
     }
@@ -73,10 +73,11 @@ public class MessageInfo {
         this.lastOffSet += message.length;
         if (this.inMemoryMessageOffset.size() == Constants.TOTAL_IN_MEMORY_MESSAGE_SIZE) {
             flushOnFile();
+            // clearing in-memory buffer of the published message.
+            this.inMemoryMessageOffset.clear();
+            this.inMemoryMessage.clear();
         }
-        // clearing in-memory  buffer of the published message.
-        this.inMemoryMessageOffset.clear();
-        this.inMemoryMessage.clear();
+
         // release write lock on inMemoryOffset Arraylist and inMemoryMessage ArrayList.
         this.lock1.writeLock().unlock();
         return true;
@@ -114,39 +115,47 @@ public class MessageInfo {
         // get the current offset index in the flushedMessageOffset ArrayList
         int index = this.flushedMessageOffset.indexOf(offSet);
         // offset is not available
-        if (index == -1) {
+        if (index == -1 && currentOffset > this.flushedMessageOffset.get(this.flushedMessageOffset.size() - 1)) {
+            System.out.printf("\n[Thread Id : %s] [offset number %d is not available. String last Offset number available %d]\n", Thread.currentThread().getId(), offSet, this.flushedMessageOffset.get(this.flushedMessageOffset.size() - 1));
+            this.lock2.readLock().unlock();
+            return messageBatch;
+        } else if (index == -1) {
+            System.out.printf("\n[Thread Id : %s] [offset number %d is not available. String last Offset number available %d]\n", Thread.currentThread().getId(), offSet, this.flushedMessageOffset.get(this.flushedMessageOffset.size() - 1));
             this.lock2.readLock().unlock();
             return messageBatch;
         } else {
+            System.out.printf("\n[Thread Id : %s] [offset number is available.]\n", Thread.currentThread().getId());
             messageBatch = new ArrayList<>();
         }
-        while (count < 10 && currentOffset <= this.flushedMessageOffset.get(this.flushedMessageOffset.size() - 1)) {
+        while (count < Constants.MESSAGE_BATCH_SIZE && currentOffset <= this.flushedMessageOffset.get(this.flushedMessageOffset.size() - 1)) {
             // read one message at a time and append it on the messageBatch arrayList
-            byte[] eachMessage = new byte[0];
-            if (index == this.flushedMessageOffset.size() - 1) {
+            synchronized (this) { // making this block of code synchronised so that at a time only one thread can use FileInputStream named fileReader
+                byte[] eachMessage = new byte[0];
+                if (index == this.flushedMessageOffset.size() - 1) {
+                    try {
+                        this.fileReader.getChannel().position(currentOffset);
+                        eachMessage = new byte[this.fileReader.available()];
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    eachMessage = new byte[this.flushedMessageOffset.get(index + 1) - currentOffset];
+                }
+
                 try {
-                    eachMessage = new byte[this.fileReader.available() - currentOffset];
+                    this.fileReader.getChannel().position(currentOffset);
+                    fileReader.read(eachMessage);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            } else {
-                eachMessage = new byte[this.flushedMessageOffset.get(index + 1) - currentOffset];
-            }
-
-            try {
-                this.fileReader.getChannel().position(offSet);
-                fileReader.read(eachMessage);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            messageBatch.add(eachMessage);
-            count++;
-            if (index == this.flushedMessageOffset.size() - 1) {
-                currentOffset = this.flushedMessageOffset.get(index) + 1;
+                messageBatch.add(eachMessage);
+                count++;
+                if (index == this.flushedMessageOffset.size() - 1) {
+                    currentOffset = this.flushedMessageOffset.get(index) + eachMessage.length;
+                } else {
+                    currentOffset = this.flushedMessageOffset.get(index + 1);
+                }
                 index++;
-            } else {
-                index++;
-                currentOffset = this.flushedMessageOffset.get(index);
             }
         }
         this.lock2.readLock().unlock();
