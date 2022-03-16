@@ -1,9 +1,8 @@
 package model;
 
-import model.Data;
-
 /**
- * model.DataInitializer class make sure that only one instance of the model.Data class is created.
+ * model.DataInitializer class make sure that
+ * only one instance of the model.Data class is created.
  * @author nilimajha
  */
 public class DataInitializer {

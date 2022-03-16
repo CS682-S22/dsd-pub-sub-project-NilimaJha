@@ -78,7 +78,7 @@ public class Connection {
 //                System.out.printf("\n[R] [THREAD ID : %s] End of Stream ... No more data !!! \n" , Thread.currentThread().getId());
             }
         } catch (TimeoutException e) {
-            System.out.printf("\n[R] [THREAD ID : %s] TIMEOUT encountered \n" , Thread.currentThread().getId());
+//            System.out.printf("\n[R] [THREAD ID : %s] TIMEOUT encountered \n" , Thread.currentThread().getId());
             return messageQueue.poll();
         } catch (InterruptedException e) {
             System.out.println("\nExecution Interrupted for Thread Thread [" + Thread.currentThread().getId() + "]\n");

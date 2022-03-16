@@ -45,19 +45,19 @@ public class Broker implements Runnable {
         AsynchronousServerSocketChannel serverSocket = null;
         try {
             serverSocket = AsynchronousServerSocketChannel.open();
-            serverSocket.bind(new InetSocketAddress(this.hostIP, this.portNumber));
+            serverSocket.bind(new InetSocketAddress(hostIP, portNumber));
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         // keeps on running when shutdown is false
-        while (!this.shutdown) {
-            System.out.printf("%s[BROKER] BrokerServer is listening on %s, port : %s \n", this.hostName ,this.hostIP , this.portNumber);
+        while (!shutdown) {
+            System.out.printf("%s[BROKER] BrokerServer is listening on %s, port : %s \n", hostName ,hostIP , portNumber);
             Future<AsynchronousSocketChannel> acceptFuture = serverSocket.accept();
             AsynchronousSocketChannel socketChannel = null;
             try {
                 socketChannel = acceptFuture.get();
-                if (this.shutdown) {
+                if (shutdown) {
                     return;
                 }
             } catch (InterruptedException e) {

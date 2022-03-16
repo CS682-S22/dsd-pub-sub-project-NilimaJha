@@ -47,18 +47,18 @@ public class Producer {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        InetSocketAddress peerAddress = new InetSocketAddress(this.brokerIP, this.brokerPortNumber);
+        InetSocketAddress peerAddress = new InetSocketAddress(brokerIP, brokerPortNumber);
         System.out.printf("\n[Connecting To Broker]\n");
         Future<Void> futureSocket = clientSocket.connect(peerAddress);
         try {
             futureSocket.get();
             System.out.printf("\n[Connection Successful]\n");
-            this.newConnection = new Connection(this.brokerIP, clientSocket);
+            newConnection = new Connection(brokerIP, clientSocket);
             //send initial message
             System.out.printf("\n[Creating Initial packet]\n");
             byte[] initialMessagePacket = createInitialMessagePacket();
             System.out.printf("\n[Sending Initial packet]\n");
-            this.newConnection.send(initialMessagePacket); //sending initial packet
+            newConnection.send(initialMessagePacket); //sending initial packet
             System.out.printf("\n[Initial packet Sending Successful]\n");
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -74,11 +74,11 @@ public class Producer {
     private byte[] createInitialMessagePacket() {
         InitialMessage.InitialMessageDetails initialMessageDetails = InitialMessage.InitialMessageDetails.newBuilder()
                 .setConnectionSender(Constants.PRODUCER)
-                .setName(this.producerName)
+                .setName(producerName)
                 .build();
         Packet.PacketDetails packetDetails = Packet.PacketDetails.newBuilder()
-                .setTo(this.brokerIP)
-                .setFrom(this.producerName)
+                .setTo(brokerIP)
+                .setFrom(producerName)
                 .setType(Constants.INITIAL)
                 .setMessage(initialMessageDetails.toByteString())
                 .build();
@@ -97,7 +97,7 @@ public class Producer {
                 .setTopic(topic)
                 .setMessage(ByteString.copyFrom(data))
                 .build();
-        boolean sent = this.newConnection.send(publisherPublishMessageDetails.toByteArray());
+        boolean sent = newConnection.send(publisherPublishMessageDetails.toByteArray());
         return sent;
     }
 
@@ -106,7 +106,7 @@ public class Producer {
      */
     public void close() {
         try {
-            this.newConnection.connectionSocket.close();
+            newConnection.connectionSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

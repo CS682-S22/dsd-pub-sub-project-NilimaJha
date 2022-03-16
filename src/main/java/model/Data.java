@@ -25,12 +25,12 @@ public class Data {
      * @return true/false
      */
     public boolean isTopicAvailable(String topic) {
-        this.lock.readLock().lock();          // acquire read lock on topicToMessageMap
-        if (this.topicToMessageMap.containsKey(topic)) {
-            this.lock.readLock().unlock();    // realising read lock on topicToMessageMap
+        lock.readLock().lock();          // acquire read lock on topicToMessageMap
+        if (topicToMessageMap.containsKey(topic)) {
+            lock.readLock().unlock();    // realising read lock on topicToMessageMap
             return true;
         }
-        this.lock.readLock().unlock();        // realising read lock on topicToMessageMap
+        lock.readLock().unlock();        // realising read lock on topicToMessageMap
         return false;
     }
 
@@ -43,13 +43,13 @@ public class Data {
      * @return true
      */
     public boolean addMessage(String topic, byte[] messageByteArray) {
-        this.lock.writeLock().lock();         // acquiring write lock on topicToMessageMap
-        if (!this.topicToMessageMap.containsKey(topic)) {
+        lock.writeLock().lock();         // acquiring write lock on topicToMessageMap
+        if (!topicToMessageMap.containsKey(topic)) {
             System.out.printf("[Adding Topic '%s']\n", topic);
-            this.topicToMessageMap.put(topic, new MessageInfo(topic));
+            topicToMessageMap.put(topic, new MessageInfo(topic));
         }
-        this.topicToMessageMap.get(topic).addNewMessage(messageByteArray);
-        this.lock.writeLock().unlock();      // realising write lock on topicToMessageMap
+        topicToMessageMap.get(topic).addNewMessage(messageByteArray);
+        lock.writeLock().unlock();      // realising write lock on topicToMessageMap
         return true;
     }
 
@@ -60,13 +60,12 @@ public class Data {
      * @return message
      */
     public ArrayList<byte[]> getMessage(String topic, int offsetNumber) {
-        // might need to make this synchronised block.
-        this.lock.readLock().lock();        // acquire read lock on topicToMessageMap
+        lock.readLock().lock();        // acquire read lock on topicToMessageMap
         ArrayList<byte[]> messageBatch = null;
-        if (this.isTopicAvailable(topic)) {
-            messageBatch = this.topicToMessageMap.get(topic).getMessage(offsetNumber);
+        if (isTopicAvailable(topic)) {
+            messageBatch = topicToMessageMap.get(topic).getMessage(offsetNumber);
         }
-        this.lock.readLock().unlock();     // realising read lock on topicToMessageMap
+        lock.readLock().unlock();     // realising read lock on topicToMessageMap
         return messageBatch;
     }
 
