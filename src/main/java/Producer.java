@@ -1,5 +1,7 @@
 import com.google.protobuf.ByteString;
 import model.Constants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Logger;
 import proto.InitialMessage;
 import proto.Packet;
 import proto.PublisherPublishMessage;
@@ -11,13 +13,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
- *
+ * Producer class to produce message on the broker on any specific topic.
+ * @author nilimajha
  */
 public class Producer {
+    private static final Logger LOGGER = (Logger) LogManager.getLogger(Producer.class);
     private String producerName;
     private String brokerIP;
     private int brokerPortNumber;
-    private Connection newConnection;
+    private Connection connection;
 
     /**
      * constructor for producer class attributes
@@ -31,45 +35,49 @@ public class Producer {
     }
 
     /**
-     *
+     * method set up connection with broker.
      */
     public void startProducer() {
         connectToBroker();
     }
 
     /**
-     *
+     * method creates a connection socket and connects with the broker running at the given ip and port.
+     * and sends the initial setup packet to the broker.
      */
-    public void connectToBroker() {
+    public boolean connectToBroker() {
+        boolean connected = false;
         AsynchronousSocketChannel clientSocket = null;
         try {
             clientSocket = AsynchronousSocketChannel.open();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("[Thread Id : " + Thread.currentThread().getId() + "] Caught IOException : " + e);
         }
-        InetSocketAddress peerAddress = new InetSocketAddress(brokerIP, brokerPortNumber);
-        System.out.printf("\n[Connecting To Broker]\n");
-        Future<Void> futureSocket = clientSocket.connect(peerAddress);
+        InetSocketAddress brokerAddress = new InetSocketAddress(brokerIP, brokerPortNumber);
+        Future<Void> futureSocket = clientSocket.connect(brokerAddress);
         try {
             futureSocket.get();
-            System.out.printf("\n[Connection Successful]\n");
-            newConnection = new Connection(brokerIP, clientSocket);
+            LOGGER.info("[Thread Id : " + Thread.currentThread().getId() + "] Connected to Broker.");
+            System.out.printf("\n[Thread Id : %s] Connected to Broker.\n", Thread.currentThread().getId());
+            connection = new Connection(clientSocket);
             //send initial message
-            System.out.printf("\n[Creating Initial packet]\n");
+            LOGGER.debug("[Thread Id : " + Thread.currentThread().getId() + "] Creating Initial packet.");
             byte[] initialMessagePacket = createInitialMessagePacket();
-            System.out.printf("\n[Sending Initial packet]\n");
-            newConnection.send(initialMessagePacket); //sending initial packet
-            System.out.printf("\n[Initial packet Sending Successful]\n");
+            connection.send(initialMessagePacket); //sending initial packet
+            LOGGER.debug("[Thread Id : " + Thread.currentThread().getId() + "] [SENT] Sent Initial packet.");
+            System.out.printf("\n[Thread Id : %s] [SENT] Sent Initial packet\n", Thread.currentThread().getId());
+            connected = true;
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            LOGGER.error("[Thread Id : " + Thread.currentThread().getId() + "] Caught InterruptedException : " + e);
         } catch (ExecutionException e) {
-            e.printStackTrace();
+            LOGGER.error("[Thread Id : " + Thread.currentThread().getId() + "] Caught ExecutionException : " + e);
         }
+        return connected;
     }
 
     /**
-     *
-     * @return
+     * creates the initial set message packet to be sent to the broker.
+     * @return byte array of the initialMessage packet.
      */
     private byte[] createInitialMessagePacket() {
         InitialMessage.InitialMessageDetails initialMessageDetails = InitialMessage.InitialMessageDetails.newBuilder()
@@ -97,16 +105,18 @@ public class Producer {
                 .setTopic(topic)
                 .setMessage(ByteString.copyFrom(data))
                 .build();
-        boolean sent = newConnection.send(publisherPublishMessageDetails.toByteArray());
+        LOGGER.info("[Thread Id : " + Thread.currentThread().getId() + "] [SENDING] Sending message of topic " + topic + "to the broker.");
+        System.out.printf("\n[Thread Id : %s] [SENDING] Sending message of topic %s to the broker.\n", Thread.currentThread().getId(), topic);
+        boolean sent = connection.send(publisherPublishMessageDetails.toByteArray());
         return sent;
     }
 
     /**
-     *
+     * closes the producer by closing the connection socket.
      */
     public void close() {
         try {
-            newConnection.connectionSocket.close();
+            connection.connectionSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

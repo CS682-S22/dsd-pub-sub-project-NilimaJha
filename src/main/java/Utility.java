@@ -9,20 +9,21 @@ import java.nio.file.Paths;
 import java.util.List;
 
 /**
- *
+ * Utility class contains various helper methods.
+ * @author nilimajha
  */
 public class Utility {
 
     /**
      * method check the validity of the argument provided.
      * @param args
-     * @return
+     * @return true/false
      */
     public static boolean argsIsValid (String[] args) {
         boolean isValid = false;
-        if (args.length == 4) {
-            if (args[0].equals("-name") && args[2].equals("-configFile")) {
-                if (nameIsValid(args[1]) && fileNameIsValid(args[3])) {
+        if (args.length == 6) {
+            if (args[0].equals("-type") && args[2].equals("-name") && args[4].equals("-configFile")) {
+                if (typeIsValid(args[1]) && fileNameIsValid(args[5])) {
                     isValid = true;
                 }
             }
@@ -31,14 +32,13 @@ public class Utility {
     }
 
     /**
-     *
-     * @param name
-     * @return
+     * check the validity of the type provided in the argument.
+     * @param type
+     * @return true/false
      */
-    public static boolean nameIsValid (String name) {
+    public static boolean typeIsValid (String type) {
         boolean nameIsValid = false;
-        String[] namePart = name.split("-");
-        if (namePart[0].equals("PRODUCER") || namePart[0].equals("CONSUMER") || namePart[0].equals("BROKER")) {
+        if (type.equals("PRODUCER") || type.equals("CONSUMER") || type.equals("BROKER")) {
             nameIsValid = true;
         }
         return nameIsValid;
@@ -79,7 +79,7 @@ public class Utility {
      * @param args
      * @return
      */
-    public static String getNameFromArgs (String[] args) {
+    public static String getTypeFromArgs (String[] args) {
         return args[1];
     }
 
@@ -88,8 +88,17 @@ public class Utility {
      * @param args
      * @return
      */
-    public static String getConfigFilename (String[] args) {
+    public static String getNameFromArgs (String[] args) {
         return args[3];
+    }
+
+    /**
+     *
+     * @param args
+     * @return
+     */
+    public static String getConfigFilename (String[] args) {
+        return args[5];
     }
 
     /**

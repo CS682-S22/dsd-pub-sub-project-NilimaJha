@@ -1,5 +1,8 @@
 package model;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Logger;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
@@ -11,6 +14,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @author nilimajha
  */
 public class MessageInfo {
+    private static final Logger LOGGER = (Logger) LogManager.getLogger(MessageInfo.class);
     private ArrayList<Integer> flushedMessageOffset;
     private ArrayList<Integer> inMemoryMessageOffset;
     private ArrayList<byte[]> inMemoryMessage;
@@ -107,7 +111,8 @@ public class MessageInfo {
         // clearing in-memory buffer of the published message.
         inMemoryMessageOffset.clear();
         inMemoryMessage.clear();
-        System.out.printf("\n[Thread Id : %s] [Awake by Timeout or Notified by other thread.] [Total element in buffer after flushing : %d]\n", Thread.currentThread().getId(), this.inMemoryMessageOffset.size());
+        System.out.printf("\n[Thread Id : %s] [Flushing in-memory data to file %s]\n", Thread.currentThread().getId(), topicSegmentFileName);
+        LOGGER.debug("[Thread Id : " + Thread.currentThread().getId() + "] [Flushing in-memory data to file " + topicSegmentFileName + "]");
         // realising write lock on the file and flushedMessageOffset ArrayList
         lock2.writeLock().unlock();
     }
@@ -126,17 +131,17 @@ public class MessageInfo {
         int index = flushedMessageOffset.indexOf(offSet);
         // offset is not available
         if (index == -1 && currentOffset > flushedMessageOffset.get(flushedMessageOffset.size() - 1)) {
-            System.out.printf("\n[Thread Id : %s] [offset number %d is not available. String last Offset number available %d]\n", Thread.currentThread().getId(), offSet, flushedMessageOffset.get(flushedMessageOffset.size() - 1));
+            LOGGER.debug("[Thread Id : %s] [offset number %d is not available. Last Offset number available is %d]", Thread.currentThread().getId(), offSet, flushedMessageOffset.get(flushedMessageOffset.size() - 1));
             lock2.readLock().unlock();
             return messageBatch;
         } else if (index == -1) {
-            System.out.printf("\n[Thread Id : %s] [offset number %d is not available. String last Offset number available %d]\n", Thread.currentThread().getId(), offSet, flushedMessageOffset.get(flushedMessageOffset.size() - 1));
+            LOGGER.debug("[Thread Id : %s] [offset number %d is not a valid offset number.]", Thread.currentThread().getId(), offSet);
             lock2.readLock().unlock();
             return messageBatch;
         } else {
-            System.out.printf("\n[Thread Id : %s] [offset number is available.]\n", Thread.currentThread().getId());
             messageBatch = new ArrayList<>();
         }
+
         while (count < Constants.MESSAGE_BATCH_SIZE && currentOffset <= flushedMessageOffset.get(flushedMessageOffset.size() - 1)) {
             // read one message at a time and append it on the messageBatch arrayList
             synchronized (this) { // making this block of code synchronised so that at a time only one thread can use FileInputStream named fileReader
@@ -144,9 +149,9 @@ public class MessageInfo {
                 if (index == flushedMessageOffset.size() - 1) {
                     try {
                         fileReader.getChannel().position(currentOffset);
-                        eachMessage = new byte[fileReader.available()];
+                        eachMessage = new byte[fileReader.available()]; // getting the size of the current last message.
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        LOGGER.error("Caught IOException : %s", e);
                     }
                 } else {
                     eachMessage = new byte[flushedMessageOffset.get(index + 1) - currentOffset];
@@ -156,7 +161,7 @@ public class MessageInfo {
                     fileReader.getChannel().position(currentOffset);
                     fileReader.read(eachMessage);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOGGER.error("Caught IOException : %s", e);
                 }
                 messageBatch.add(eachMessage);
                 count++;
@@ -180,37 +185,20 @@ public class MessageInfo {
     private void flushIfNeeded() {
         while (topicIsAvailable) {
             try {
-                System.out.printf("\n[Thread Id : %s] [sleeping for 6000 milli sec] \n", Thread.currentThread().getId());
+                LOGGER.debug("[Thread Id : " + Thread.currentThread().getId() + "] [sleeping for 6000 milli sec]");
                 Thread.sleep(Constants.FLUSH_FREQUENCY);
-                System.out.printf("\n[Thread Id : %s] [Awake after 6000 ms] \n", Thread.currentThread().getId());
+                LOGGER.debug("[Thread Id : " + Thread.currentThread().getId() + "] [Awake after 6000 ms]");
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                LOGGER.error("Caught InterruptedException : " + e);
             }
             // acquire write lock on inMemoryOffset Arraylist and inMemoryMessage ArrayList
             lock1.writeLock().lock();
-            System.out.printf("\nChecking if flushing is needed[Total element in buffer : %d] \n", inMemoryMessageOffset.size());
+            LOGGER.debug("[Thread Id : " + Thread.currentThread().getId() + "] Checking if flushing is needed [Total element in buffer : " + inMemoryMessageOffset.size() + "]");
             if (inMemoryMessageOffset.size() != 0) {
-                System.out.printf("\nFlushing on File. [Total element in buffer : %d] \n", inMemoryMessageOffset.size());
                 flushOnFile();
             }
             // release write lock on inMemoryOffset Arraylist and inMemoryMessage ArrayList.
             lock1.writeLock().lock();
-//            synchronized (object) {
-//                try {
-//                    System.out.printf("\n[Thread Id : %s] [sleeping for 6000 milli sec] \n", Thread.currentThread().getId());
-//                    object.wait(6000);
-//                    System.out.printf("\n[Thread Id : %s] [Awake after 6000 ms] \n", Thread.currentThread().getId());
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//                lock1.writeLock().lock();
-//                System.out.printf("\nChecking if flushing is needed[Total element in buffer : %d] \n", inMemoryMessageOffset.size());
-//                if (inMemoryMessageOffset.size() != 0) {
-//                    System.out.printf("\nFlushing on File. [Total element in buffer : %d] \n", inMemoryMessageOffset.size());
-//                    flushOnFile();
-//                }
-//                lock1.writeLock().lock();
-//            }
         }
     }
 

@@ -1,9 +1,10 @@
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Logger;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -16,7 +17,7 @@ import java.util.concurrent.Future;
  * @author nilimajha
  */
 public class Broker implements Runnable {
-    HashMap<String, ArrayList<byte[]>> topicToMessageMap;
+    private static final Logger LOGGER = (Logger) LogManager.getLogger(Broker.class);
     private boolean shutdown = false;
     private String hostName;
     private String hostIP;
@@ -47,43 +48,38 @@ public class Broker implements Runnable {
             serverSocket = AsynchronousServerSocketChannel.open();
             serverSocket.bind(new InetSocketAddress(hostIP, portNumber));
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("Caught IOException : " + e.getMessage());
         }
 
         // keeps on running when shutdown is false
         while (!shutdown) {
-            System.out.printf("%s[BROKER] BrokerServer is listening on %s, port : %s \n", hostName ,hostIP , portNumber);
+            LOGGER.info("[Thread Id : "+ Thread.currentThread().getId() + "] [" + hostName + "] BrokerServer is listening on " + hostIP + ", port : " + portNumber);
+            System.out.printf("[Thread Id : %s] [%s] BrokerServer is listening on %s, port : %s \n", Thread.currentThread().getId(), hostName ,hostIP , portNumber);
             Future<AsynchronousSocketChannel> acceptFuture = serverSocket.accept();
             AsynchronousSocketChannel socketChannel = null;
             try {
                 socketChannel = acceptFuture.get();
                 if (shutdown) {
+                    LOGGER.info("[Thread Id : " + Thread.currentThread().getId() + "] [" + hostName + "] BrokerServer is shutdown.");
                     return;
                 }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
+            } catch (InterruptedException | ExecutionException e) {
+                LOGGER.error("[Thread Id : " + Thread.currentThread().getId() + "] Caught " + e.getClass() + " Exception : " + e.getMessage());
             }
 
             //checking if the socketChannel is valid.
             if ((socketChannel != null) && (socketChannel.isOpen())) {
                 try {
-                    System.out.printf("\n[CONNECTION REQUEST] Connection Established with %s \n\n",
-                            socketChannel.getRemoteAddress().toString());
+                    LOGGER.debug("[Thread Id : " + Thread.currentThread().getId() + "] [CONNECTION REQUEST] Connection Established with " + socketChannel.getRemoteAddress().toString());
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOGGER.error("[Thread Id : " + Thread.currentThread().getId() + "] Caught " + e.getClass() + " Exception : " + e.getMessage());
                 }
-                //creating new connection object adding it to the map and assigning to the threadPool.????
                 Connection newConnection = null;
-                try {
-                    newConnection = new Connection(socketChannel.getRemoteAddress().toString(), socketChannel);
-                    // give this connection to requestProcessor
-                    RequestProcessor requestProcessor = new RequestProcessor(newConnection);
-                    threadPool.execute(requestProcessor);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                newConnection = new Connection(socketChannel);
+                LOGGER.debug("[Thread Id : " +Thread.currentThread().getId() + "] [REQUEST PROCESSOR] Connection given to the requestProcessor");
+                // give this connection to requestProcessor
+                RequestProcessor requestProcessor = new RequestProcessor(newConnection);
+                threadPool.execute(requestProcessor);
             }
         }
     }

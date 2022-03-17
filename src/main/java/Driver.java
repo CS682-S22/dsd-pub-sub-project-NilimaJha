@@ -1,9 +1,10 @@
 import model.BrokerConfig;
 import model.ConfigInformation;
 import model.Constants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Logger;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.Duration;
@@ -11,31 +12,26 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- *
+ * Application class
+ * contains main method.
  * @author nilimajha
  */
 public class Driver {
+    private static final Logger LOGGER = (Logger) LogManager.getLogger(Driver.class);
 
     /**
-     *
+     * Application's main
      * @param args
      */
     public static void main (String[] args) {
-        //producer fileName topic brokerIP brokerPort
-        // -name PRODUCER-1 -configFile ProducerInfoConfig.json
-        //broker ip port
-        // -name BROKER-1 -configFile model.BrokerConfig.json
-        //consumer outputFileName topicName
-        // -name CONSUMER-1 -configFile ConsumerInfoConfig.json
-
         //validate args
         if (!Utility.argsIsValid(args)) {
-            System.out.println("Argument provided is invalid.");
+            LOGGER.error("[Thread Id : " + Thread.currentThread().getId() + "]  Argument provided is invalid. Exiting the system.");
             System.exit(0);
         }
         //parseArgs
+        String hostType = Utility.getTypeFromArgs(args);
         String hostName = Utility.getNameFromArgs(args);
-        String hostType = hostName.split("-")[0];
         String configFileName = Utility.getConfigFilename(args);
 
         if (hostType.equals(Constants.BROKER)) {
@@ -46,51 +42,34 @@ public class Driver {
             ConfigInformation configInformation = Utility.extractConsumerOrPublisherConfigInfo(configFileName, hostName);
             Producer producer = new Producer(configInformation.getName(), configInformation.getBrokerIP(), configInformation.getBrokerPort());
             producer.startProducer();
-
-            System.out.printf("\n[Now Sending Actual data]\n");
+            LOGGER.info("[Thread Id : " + Thread.currentThread().getId() + "] Producer started.");
+            System.out.printf("\n[Thread Id : %s] Producer started.\n", Thread.currentThread().getId());
             try (BufferedReader bufferedReader = Utility.fileReaderInitializer(configInformation.getFileName())) {
                 String eachLine = bufferedReader.readLine();
-                System.out.printf("\n[eachLine : %s]\n", eachLine);
                 String topic = null;
                 while (eachLine != null) {
                     if (configInformation.getFileName().equals("Apache.log")) {
-                        String[] messagePart = eachLine.split("] \\[");
-                        if (messagePart.length != 1) {
-                            if (messagePart[1].equals("error")) {
-                                topic = "Apache_error";
-                            } else {
-                                topic = "Apache_notice";
-                            }
-                        }
+                        topic = "Apache";
                     } else if (configInformation.getFileName().equals("Zookeeper.log")) {
                         topic = "Zookeeper";
                     } else {
                         topic = "Mac";
                     }
-
-                    System.out.printf("\n[Now Sending Actual data] [Topic : %s]\n", topic);
                     producer.send(topic, eachLine.getBytes());    // send data
-
-                    if (configInformation.getFileName().equals("Apache.log")) {
-                        String[] messagePart = eachLine.split("] \\[");
-                        if (messagePart.length != 1) {
-                            topic = "Apache";
-                            producer.send(topic, eachLine.getBytes());  // send data
-                        }
-                    }
-
                     eachLine = bufferedReader.readLine();   // reading next line from the file
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.error("[Thread Id : " + Thread.currentThread().getId() + "]  Caught IOException : " + e);
             }
+            producer.close();
         } else { //Consumer
             ConfigInformation configInformation = Utility.extractConsumerOrPublisherConfigInfo(configFileName, hostName);
-            System.out.printf("\nConsumer Started\n");
             Consumer consumer = new Consumer(configInformation.getName(), configInformation.getType(), configInformation.getBrokerIP(), configInformation.getBrokerPort(), configInformation.getTopicName(), 0);
-
-            ExecutorService pool = Executors.newFixedThreadPool(1); //thread pool of size 15
+            ExecutorService pool = Executors.newFixedThreadPool(1); //thread pool of size 1
             pool.execute(consumer :: startConsumer);    // assigning consumer thread
+            LOGGER.info("[Thread Id : " + Thread.currentThread().getId() + "] Producer started.");
+            System.out.printf("\n[Thread Id : %s] Producer started.\n", Thread.currentThread().getId());
+
             try (FileOutputStream fileWriter = Utility.fileWriterInitializer(configInformation.getFileName())) {
                 // Continue to pull messages...forever
                 while(true) {
@@ -102,7 +81,7 @@ public class Driver {
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.error("[Thread Id : " + Thread.currentThread().getId() + "]  Caught IOException : " + e);
             }
         }
     }
