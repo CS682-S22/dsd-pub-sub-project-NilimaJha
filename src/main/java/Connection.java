@@ -1,6 +1,4 @@
 import model.Constants;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -19,7 +17,7 @@ import java.util.concurrent.TimeoutException;
  * @author nilimajha
  */
 public class Connection {
-    private static final Logger LOGGER = (Logger) LogManager.getLogger(Connection.class);
+    private String hostName;
     protected AsynchronousSocketChannel connectionSocket;
     private Future<Integer> incomingMessage;
     private ByteBuffer buffer = ByteBuffer.allocate(Constants.BUFFER_SIZE);
@@ -27,9 +25,11 @@ public class Connection {
 
     /**
      * Constructor to initialise class attributes.
+     * @param hostName
      * @param connectionSocket
      */
-    public Connection(AsynchronousSocketChannel connectionSocket) {
+    public Connection(String hostName, AsynchronousSocketChannel connectionSocket) {
+        this.hostName = hostName;
         this.connectionSocket = connectionSocket;
         this.incomingMessage = this.connectionSocket.read(buffer);
     }
@@ -72,18 +72,22 @@ public class Connection {
                         break;
                     }
                 }
+//                System.out.printf("\n[R] [THREAD ID : %s] Read successful !!! \n" , Thread.currentThread().getId());
+
+            } else {
+//                System.out.printf("\n[R] [THREAD ID : %s] End of Stream ... No more data !!! \n" , Thread.currentThread().getId());
             }
         } catch (TimeoutException e) {
+//            System.out.printf("\n[R] [THREAD ID : %s] TIMEOUT encountered \n" , Thread.currentThread().getId());
             return messageQueue.poll();
         } catch (InterruptedException e) {
-            LOGGER.error("[Thread Id : "+ Thread.currentThread().getId() + "] Caught InterruptedException.");
+            System.out.println("\nExecution Interrupted for Thread Thread [" + Thread.currentThread().getId() + "]\n");
         } catch (ExecutionException e) {
-            LOGGER.info("[Thread Id : " + Thread.currentThread().getId() + "] SOURCE has closed the Connection !!!");
-            System.out.printf("\n[Thread Id : %s] SOURCE has closed the Connection !!!\n", Thread.currentThread().getId());
+            System.out.println("\nSOURCE has closed the Connection !!!");
             try {
                 this.connectionSocket.close();
             } catch (IOException ex) {
-                LOGGER.error("Caught IOException while closing connection socket : " + ex);
+                ex.printStackTrace();
             }
         }
         return messageQueue.poll();
@@ -106,11 +110,11 @@ public class Connection {
             try {
                 result.get();
             } catch (InterruptedException e) {
-                LOGGER.error("[Thread Id : " + Thread.currentThread().getId() + "] Caught InterruptedException : " + e);
+                System.out.println("\nExecution Interrupted for Thread Thread [" + Thread.currentThread().getId() + "]\n");
                 return false;
             } catch (ExecutionException e) {
-                LOGGER.info("[Thread Id : " + Thread.currentThread().getId() + "] DESTINATION has closed the Connection !!!");
-                System.out.printf("\n[Thread Id : %s] DESTINATION has closed the Connection !!!\n", Thread.currentThread().getId());
+                System.out.println("\nDESTINATION has closed the Connection !!!");
+                System.out.println("\nExecution Terminated for Thread [" + Thread.currentThread().getId() + "]\n");
                 return false;
             }
             buffer.clear();

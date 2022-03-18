@@ -1,8 +1,5 @@
 package model;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.Logger;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -12,7 +9,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @author nilimajha
  */
 public class Data {
-    private static final Logger LOGGER = (Logger) LogManager.getLogger(Data.class);
     private HashMap<String, MessageInfo> topicToMessageMap;
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
@@ -49,12 +45,9 @@ public class Data {
     public boolean addMessage(String topic, byte[] messageByteArray) {
         lock.writeLock().lock();         // acquiring write lock on topicToMessageMap
         if (!topicToMessageMap.containsKey(topic)) {
-            System.out.printf("\n[Thread Id : %s] New Topic Created, topic name: %s\n", Thread.currentThread().getId(), topic);
-            LOGGER.info("[Thread Id : " + Thread.currentThread().getId() + "] New Topic Created, topic name: " + topic);
+            System.out.printf("[Adding Topic '%s']\n", topic);
             topicToMessageMap.put(topic, new MessageInfo(topic));
         }
-        System.out.printf("\n[Thread Id : %s] Added new Message to topic %s\n", Thread.currentThread().getId(), topic);
-        LOGGER.info("[Thread Id : " + Thread.currentThread().getId() + "] Added new Message to topic " + topic);
         topicToMessageMap.get(topic).addNewMessage(messageByteArray);
         lock.writeLock().unlock();      // realising write lock on topicToMessageMap
         return true;
@@ -63,15 +56,14 @@ public class Data {
     /**
      * gets the message of given messageId and the given topic from the topicToMessageMap
      * @param topic
-     * @param offset
+     * @param offsetNumber
      * @return message
      */
-    public ArrayList<byte[]> getMessage(String topic, int offset) {
+    public ArrayList<byte[]> getMessage(String topic, int offsetNumber) {
         lock.readLock().lock();        // acquire read lock on topicToMessageMap
         ArrayList<byte[]> messageBatch = null;
         if (isTopicAvailable(topic)) {
-            LOGGER.debug("[Thread Id : " + Thread.currentThread().getId() + "] Getting batch of message of topic " + topic + " from given offset " + offset);
-            messageBatch = topicToMessageMap.get(topic).getMessage(offset);
+            messageBatch = topicToMessageMap.get(topic).getMessage(offsetNumber);
         }
         lock.readLock().unlock();     // realising read lock on topicToMessageMap
         return messageBatch;

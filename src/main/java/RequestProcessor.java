@@ -3,8 +3,6 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import model.Constants;
 import model.Data;
 import model.DataInitializer;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.Logger;
 import proto.*;
 
 import java.util.ArrayList;
@@ -14,7 +12,6 @@ import java.util.ArrayList;
  * @author nilimajha
  */
 public class RequestProcessor implements Runnable {
-    private static final Logger LOGGER = (Logger) LogManager.getLogger(RequestProcessor.class);
     private Connection connection;
     private Data data;
     private String connectionWith;
@@ -55,28 +52,25 @@ public class RequestProcessor implements Runnable {
                 try {
                     packetDetails = Packet.PacketDetails.parseFrom(receivedMessage);
                 } catch (InvalidProtocolBufferException e) {
-                    LOGGER.error("[Thread Id : " + Thread.currentThread().getId() + "] Caught InvalidProtocolBufferException : " + e);
+                    e.printStackTrace();
                 }
-                LOGGER.info("\n[Thread Id : " + Thread.currentThread().getId() + "] [Received InitialPacket] Sender name: " + packetDetails.getFrom());
-                System.out.printf("\n[Thread Id : %s] [Received InitialPacket]\n", Thread.currentThread().getId());
+                System.out.printf("\n[Received InitialPacket]\n");
                 parseInitialMessage(packetDetails);
-
-                if (connectionWith.equals(Constants.PRODUCER)) {
-                    LOGGER.info("[Thread Id : " + Thread.currentThread().getId() + "] [INITIAL SETUP DONE] Connection with : " + connectionWith + ", Connection name : " + name);
-                    System.out.printf("\n[Thread Id : %s] [INITIAL SETUP DONE] Connection with : %s, Connection name : %s\n", Thread.currentThread().getId(), connectionWith, name);
-                } else {
-                    LOGGER.info("[Thread Id : " + Thread.currentThread().getId() + "] [INITIAL SETUP DONE] Connection with : " + connectionWith + ", Connection name : " + name + ", Consumer Type : " + consumerType);
-                    System.out.printf("\n[Thread Id : %s] [INITIAL SETUP DONE] Connection with : %s, Connection name : %s, Consumer Type : %s\n", Thread.currentThread().getId(), connectionWith, name, consumerType);
-                }
             }
         }
 
         if (connectionWith.equals(Constants.PRODUCER)) {
+            System.out.printf("\n[Thread Id : %s] [This Connection was PRODUCER]\n", Thread.currentThread().getId());
             handlePublisher();
+            System.out.printf("\n[Thread Id : %s] [Called Handling PRODUCER]\n", Thread.currentThread().getId());
         } else if (connectionWith.equals(Constants.CONSUMER) && consumerType.equals(Constants.CONSUMER_PULL)) {
+            System.out.printf("\n[Thread Id : %s] [This Connection was from CONSUMER named %s of type PULL]\n", name, Thread.currentThread().getId());
             handlePullConsumer();
+            System.out.printf("\n[Thread Id : %s] [Called Handling PULL CONSUMER]\n", Thread.currentThread().getId());
         } else if (connectionWith.equals(Constants.CONSUMER) && consumerType.equals(Constants.CONSUMER_PUSH)) {
+            System.out.printf("\n[Thread Id : %s] [This Connection was CONSUMER of type PUSH]\n", Thread.currentThread().getId());
             handlePushConsumer();
+            System.out.printf("\n[Thread Id : %s] [Called Handling PUSH CONSUMER]\n", Thread.currentThread().getId());
         }
     }
 
@@ -85,8 +79,9 @@ public class RequestProcessor implements Runnable {
      * @param packetDetails
      */
     public boolean parseInitialMessage(Packet.PacketDetails packetDetails) {
+        System.out.printf("\n[Parsing Initial Message]\n");
         if (packetDetails.getType().equals(Constants.INITIAL)) {
-            LOGGER.info("[Thread Id : " + Thread.currentThread().getId() + "] [Parsing Initial Message]");
+            System.out.printf("\n[Packet received is of type Initial.]\n");
             // decode message part from packetDetail to InitialMessage proto
             try {
                 InitialMessage.InitialMessageDetails initialMessageDetails = InitialMessage.InitialMessageDetails.parseFrom(packetDetails.getMessage());
@@ -103,9 +98,10 @@ public class RequestProcessor implements Runnable {
                         pushBasedConsumerTopic = initialMessageDetails.getTopic();
                     }
                     name = initialMessageDetails.getName();
+                    System.out.printf("\n[@@@@@ Final name =  %s]\n", name);
                 }
             } catch (InvalidProtocolBufferException e) {
-                LOGGER.error("[Thread Id : " + Thread.currentThread().getId() + "] Caught InvalidProtocolBufferException : " + e.getMessage());
+                e.printStackTrace();
                 return false;
             }
         }
@@ -122,12 +118,12 @@ public class RequestProcessor implements Runnable {
                 try {
                     PublisherPublishMessage.PublisherPublishMessageDetails publisherPublishMessageDetails = PublisherPublishMessage.PublisherPublishMessageDetails.parseFrom(message);
                     if (publisherPublishMessageDetails.getTopic() != null && publisherPublishMessageDetails.getMessage() != null) { // validating publish message
-                        LOGGER.info("[Thread Id : " + Thread.currentThread().getId() + "] [" + name + " produced a message on topic " + publisherPublishMessageDetails.getTopic() + "]");
+//                        System.out.printf("\n[Adding new message] [Topic : %s]\n", publisherPublishMessageDetails.getTopic());
                         data.addMessage(publisherPublishMessageDetails.getTopic(), publisherPublishMessageDetails.getMessage().toByteArray());
                     }
                     // if publish message is not valid then doing nothing.
                 } catch (InvalidProtocolBufferException e) {
-                    LOGGER.error("[Thread Id : " + Thread.currentThread().getId() + "] Caught InvalidProtocolBufferException : " + e);
+                    e.printStackTrace();
                 }
             }
         }
@@ -146,25 +142,25 @@ public class RequestProcessor implements Runnable {
                     ArrayList<byte[]> messageBatch = null;
                     byte[] finalByteArray;
                     if (consumerPullRequestDetails.getTopic() != null) { // validating publish message
-                        LOGGER.info("[Thread Id : " + Thread.currentThread().getId() + "] [RECEIVED] [" + name + " pull request for message from offset " + consumerPullRequestDetails.getOffset() + " of topic " + consumerPullRequestDetails.getTopic() + "]");
-                        System.out.printf("\n[Thread Id : %s] [RECEIVED] [%s pull request for message from offset %d of topic %s]\n", Thread.currentThread().getId(), name, consumerPullRequestDetails.getOffset(), consumerPullRequestDetails.getTopic());
+//                        System.out.printf("\n[Topic was not null in the pull request.] [offset number : %d]\n", consumerPullRequestDetails.getOffset());
+                        System.out.printf("\n[Thread Id : %s] Getting message from offset '%d' from file.\n", Thread.currentThread().getId(), consumerPullRequestDetails.getOffset());
                         messageBatch = data.getMessage(consumerPullRequestDetails.getTopic(), consumerPullRequestDetails.getOffset());
-                        LOGGER.debug("[Thread Id : " + Thread.currentThread().getId() + "] Getting message from offset '" + consumerPullRequestDetails.getOffset() + "' from file.");
+//                        System.out.printf("\n[Preparing message to be sent to %s]\n", consumerPullRequestDetails.getOffset(), this.name);
                         if (messageBatch != null) {
+//                            System.out.printf("\n[Topic was not null in the pull request.] [offset number : %d]\n", consumerPullRequestDetails.getOffset());
                             finalByteArray = createMessageFromBroker(consumerPullRequestDetails.getTopic(), messageBatch);
                         } else {
                             // message with given offset is not available
-                            finalByteArray = createMessageFromBrokerInvalid(Constants.MESSAGE_NOT_AVAILABLE);
+                            finalByteArray = createMessageFromBrokerInvalid("MESSAGE_NOT_AVAILABLE");
                         }
                     } else {
-                        finalByteArray = createMessageFromBrokerInvalid(Constants.TOPIC_NOT_AVAILABLE);
+                        finalByteArray = createMessageFromBrokerInvalid("TOPIC_NOT_AVAILABLE");
                     }
                     // sending response to the consumer
-                    LOGGER.info("[THREAD ID : " + Thread.currentThread().getId() + "] [SENDING] [Sending response to " + name + "]");
-                    System.out.printf("\n[THREAD ID : %s] [SENDING] [Sending response to %s.]\n", Thread.currentThread().getId(), name);
+                    System.out.printf("\n[THREAD ID : %s] [SENDING] [Sending prepared message batch to %s.]\n", Thread.currentThread().getId(), name);
                     connection.send(finalByteArray);
                 } catch (InvalidProtocolBufferException e) {
-                    LOGGER.error("[Thread Id : " + Thread.currentThread().getId() + "] Caught InvalidProtocolBufferException : " + e);
+                    e.printStackTrace();
                 }
             }
         }
@@ -177,27 +173,26 @@ public class RequestProcessor implements Runnable {
     public void handlePushConsumer() {
         while (connection.connectionSocket.isOpen()) {
             ArrayList<byte[]> messageBatch = null;
-            LOGGER.debug("[Thread Id : " + Thread.currentThread().getId() + "] Getting message from offset '" + offset + "' from file.");
+            System.out.printf("\n[Thread Id : %s] Getting message from offset '%d' from file.\n", Thread.currentThread().getId(), offset);
             messageBatch = data.getMessage(pushBasedConsumerTopic, offset);
             if (messageBatch != null) {
                 byte[] finalMessage = createMessageFromBroker(pushBasedConsumerTopic, messageBatch);
-                LOGGER.info("[THREAD ID : " + Thread.currentThread().getId() + "] [SENDING] [Sending next message batch containing total " + messageBatch.size() + " messages to " + name + "]");
-                System.out.printf("\n[THREAD ID : %s] [SENDING] [Sending next message batch containing total %d messages to %s.]\n", Thread.currentThread().getId(), messageBatch.size(), name);
+                System.out.printf("\n[THREAD ID : %s] SENDING next Batch of message to PUSH consumer %s.\n", Thread.currentThread().getId(), name);
                 boolean sendSuccessful = connection.send(finalMessage);
                  if (sendSuccessful) {
+
                      for (byte[] eachMessage : messageBatch) {
                          offset += eachMessage.length; // updating offset value
+                         System.out.printf("\nCurrent Message length: %d\n", eachMessage.length);
                      }
-                     LOGGER.debug("[THREAD ID : " + Thread.currentThread().getId() + "] Updated offset : " + offset);
-                     System.out.printf("\n[THREAD ID : %s] Updated offset : %d\n", Thread.currentThread().getId(), offset);
+                     System.out.printf("\nNext offset : %d\n", offset);
                  }
             } else {
                 try {
-                    LOGGER.debug("[THREAD ID : " + Thread.currentThread().getId() + "] [SLEEPING for 500 millis] [Next Batch of message is not yet available on Broker]");
-                    System.out.printf("\n[THREAD ID : %s] [SLEEPING for 500 millis] [Next Batch of message is not yet available on Broker]\n", Thread.currentThread().getId());
+                    System.out.printf("\n[THREAD ID : %s]Next Batch of message is not yet PUSHED by Broker for the consumer, %s.\n", Thread.currentThread().getId(), name);
                     Thread.sleep(500); //sleeping for 500 millisecond
                 } catch (InterruptedException e) {
-                    LOGGER.error("[Thread Id : " + Thread.currentThread().getId() + "] Caught InterruptedException : " + e);
+                    e.printStackTrace();
                 }
             }
         }

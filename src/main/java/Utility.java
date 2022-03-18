@@ -9,15 +9,14 @@ import java.nio.file.Paths;
 import java.util.List;
 
 /**
- * Utility class contains various helper methods.
- * @author nilimajha
+ *
  */
 public class Utility {
 
     /**
      * method check the validity of the argument provided.
      * @param args
-     * @return true/false
+     * @return
      */
     public static boolean argsIsValid (String[] args) {
         boolean isValid = false;
@@ -32,13 +31,13 @@ public class Utility {
     }
 
     /**
-     * check the validity of the type provided in the argument.
-     * @param type
-     * @return true/false
+     *
+     * @param name
+     * @return
      */
-    public static boolean typeIsValid (String type) {
+    public static boolean typeIsValid (String name) {
         boolean nameIsValid = false;
-        if (type.equals("PRODUCER") || type.equals("CONSUMER") || type.equals("BROKER")) {
+        if (name.equals("PRODUCER") || name.equals("CONSUMER") || name.equals("BROKER")) {
             nameIsValid = true;
         }
         return nameIsValid;
