@@ -1,3 +1,4 @@
+import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import model.Constants;
 import proto.ConsumerPullRequest;
@@ -63,7 +64,6 @@ public class Consumer {
             }
         } else {
             while (newConnection.connectionSocket.isOpen()) {
-//                System.out.printf("\n[Receiving message from broker]\n");
                 receiveMessageFromBroker(); // receiving data from broker
             }
         }
@@ -121,26 +121,36 @@ public class Consumer {
                     .setInitialOffset(offset)
                     .build();
         }
-        Packet.PacketDetails packetDetails = Packet.PacketDetails.newBuilder()
-                .setTo(brokerIP)
-                .setFrom(consumerName)
-                .setType(Constants.INITIAL)
-                .setMessage(initialMessageDetails.toByteString())
-                .build();
-        return packetDetails.toByteArray();
+        return createPacket(initialMessageDetails.toByteString(), Constants.INITIAL_SETUP);
     }
 
     /**
      * method creates pull request message.
      * @return byte[]
      */
-    private byte[] createPullRequestMessage() {
+    private byte[] createPullRequestMessagePacket() {
         System.out.printf("\nSending pull request for offset number %d\n", offset);
         ConsumerPullRequest.ConsumerPullRequestDetails consumerPullRequestDetails = ConsumerPullRequest.ConsumerPullRequestDetails.newBuilder()
                 .setTopic(topic)
                 .setOffset(offset)
                 .build();
-        return consumerPullRequestDetails.toByteArray();
+        return createPacket(consumerPullRequestDetails.toByteString(), Constants.PULL_REQUEST);
+    }
+
+    /**
+     * method creates appropriate Initial message for the broker as per the consumer type.
+     * @param byteMassage
+     * @param type
+     * @return
+     */
+    private byte[] createPacket(ByteString byteMassage, String type) {
+        Packet.PacketDetails packetDetails = Packet.PacketDetails.newBuilder()
+                .setTo(brokerIP)
+                .setFrom(consumerName)
+                .setType(type)
+                .setMessage(byteMassage)
+                .build();
+        return packetDetails.toByteArray();
     }
 
     /**
@@ -149,9 +159,9 @@ public class Consumer {
      * and then receives message sent by broker.
      */
     private boolean pullMessageFromBroker() {
-        byte[] requestMessage = createPullRequestMessage();
+        byte[] requestMessagePacket = createPullRequestMessagePacket();
         System.out.printf("\n[SEND]Send pull request to Broker\n");
-        newConnection.send(requestMessage); // sending pull request to the broker
+        newConnection.send(requestMessagePacket); // sending pull request to the broker
         return receiveMessageFromBroker();
     }
 
@@ -191,6 +201,10 @@ public class Consumer {
                     success = true;
                 } else if (messageFromBrokerDetails.getType().equals(Constants.MESSAGE_NOT_AVAILABLE)) {
                     System.out.printf("\noffset number is not available yet, so sleeping for 6000 ms %d\n", offset);
+                    Thread.sleep(6000);
+                    success = true;
+                } else {
+                    System.out.printf("\nTopic is not available yet, so sleeping for 6000 ms %d\n", offset);
                     Thread.sleep(6000);
                     success = true;
                 }

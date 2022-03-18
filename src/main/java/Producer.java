@@ -79,7 +79,7 @@ public class Producer {
         Packet.PacketDetails packetDetails = Packet.PacketDetails.newBuilder()
                 .setTo(brokerIP)
                 .setFrom(producerName)
-                .setType(Constants.INITIAL)
+                .setType(Constants.INITIAL_SETUP)
                 .setMessage(initialMessageDetails.toByteString())
                 .build();
         return packetDetails.toByteArray();

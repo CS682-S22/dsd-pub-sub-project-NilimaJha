@@ -54,8 +54,10 @@ public class RequestProcessor implements Runnable {
                 } catch (InvalidProtocolBufferException e) {
                     e.printStackTrace();
                 }
-                System.out.printf("\n[Received InitialPacket]\n");
-                parseInitialMessage(packetDetails);
+                if (packetDetails.getType().equals(Constants.INITIAL_SETUP)) {
+                    System.out.printf("\n[Received InitialPacket]\n");
+                    parseInitialMessage(packetDetails);
+                }
             }
         }
 
@@ -80,7 +82,7 @@ public class RequestProcessor implements Runnable {
      */
     public boolean parseInitialMessage(Packet.PacketDetails packetDetails) {
         System.out.printf("\n[Parsing Initial Message]\n");
-        if (packetDetails.getType().equals(Constants.INITIAL)) {
+        if (packetDetails.getType().equals(Constants.INITIAL_SETUP)) {
             System.out.printf("\n[Packet received is of type Initial.]\n");
             // decode message part from packetDetail to InitialMessage proto
             try {
@@ -98,7 +100,7 @@ public class RequestProcessor implements Runnable {
                         pushBasedConsumerTopic = initialMessageDetails.getTopic();
                     }
                     name = initialMessageDetails.getName();
-                    System.out.printf("\n[@@@@@ Final name =  %s]\n", name);
+                    System.out.printf("\n[Thread Id : %s] [@@@@@ Final name =  %s]\n", Thread.currentThread().getId(), name);
                 }
             } catch (InvalidProtocolBufferException e) {
                 e.printStackTrace();
@@ -115,6 +117,23 @@ public class RequestProcessor implements Runnable {
         while (connection.connectionSocket.isOpen()) {
             byte[] message = connection.receive();
             if (message != null) {
+//                Packet.PacketDetails packetDetails;
+//                try {
+//                    packetDetails = Packet.PacketDetails.parseFrom(message);
+//                    if (packetDetails.getType().equals(Constants.PUBLISH_REQUEST)) {
+//                        System.out.println("[Thread Id : " + Thread.currentThread().getId() + "]Received Packet Of type : " + packetDetails.getType());
+//                        PublisherPublishMessage.PublisherPublishMessageDetails publisherPublishMessageDetails = PublisherPublishMessage.PublisherPublishMessageDetails.parseFrom(packetDetails.getMessage());
+//                        System.out.printf("\n[@@@@@@@@@@@@@@@Thread Id : %s] [received message Topic : %s] [received message Message : %s]\n", Thread.currentThread().getId(), publisherPublishMessageDetails.getTopic(), publisherPublishMessageDetails.getMessage());
+//                        if (publisherPublishMessageDetails.getTopic() != null && publisherPublishMessageDetails.getMessage() != null) { // validating publish message
+//                        System.out.printf("\n[Thread Id : %s] [Adding new message] [Topic : %s]\n", Thread.currentThread().getId(), publisherPublishMessageDetails.getTopic());
+//                            data.addMessage(publisherPublishMessageDetails.getTopic(), publisherPublishMessageDetails.getMessage().toByteArray());
+//                        }
+//                        System.out.printf("\n[Thread Id : %s] [Added new message] [Topic : %s]\n", Thread.currentThread().getId(), publisherPublishMessageDetails.getTopic());
+////                        // if publish message is not valid then doing nothing.
+//                    }
+//                } catch (InvalidProtocolBufferException e) {
+//                    e.printStackTrace();
+//                }
                 try {
                     PublisherPublishMessage.PublisherPublishMessageDetails publisherPublishMessageDetails = PublisherPublishMessage.PublisherPublishMessageDetails.parseFrom(message);
                     if (publisherPublishMessageDetails.getTopic() != null && publisherPublishMessageDetails.getMessage() != null) { // validating publish message
@@ -137,28 +156,29 @@ public class RequestProcessor implements Runnable {
         while (connection.connectionSocket.isOpen()) {
             byte[] message = connection.receive();
             if (message != null) {
+                Packet.PacketDetails packetDetails;
                 try {
-                    ConsumerPullRequest.ConsumerPullRequestDetails consumerPullRequestDetails = ConsumerPullRequest.ConsumerPullRequestDetails.parseFrom(message);
-                    ArrayList<byte[]> messageBatch = null;
-                    byte[] finalByteArray;
-                    if (consumerPullRequestDetails.getTopic() != null) { // validating publish message
-//                        System.out.printf("\n[Topic was not null in the pull request.] [offset number : %d]\n", consumerPullRequestDetails.getOffset());
-                        System.out.printf("\n[Thread Id : %s] Getting message from offset '%d' from file.\n", Thread.currentThread().getId(), consumerPullRequestDetails.getOffset());
-                        messageBatch = data.getMessage(consumerPullRequestDetails.getTopic(), consumerPullRequestDetails.getOffset());
-//                        System.out.printf("\n[Preparing message to be sent to %s]\n", consumerPullRequestDetails.getOffset(), this.name);
-                        if (messageBatch != null) {
-//                            System.out.printf("\n[Topic was not null in the pull request.] [offset number : %d]\n", consumerPullRequestDetails.getOffset());
-                            finalByteArray = createMessageFromBroker(consumerPullRequestDetails.getTopic(), messageBatch);
+                    packetDetails = Packet.PacketDetails.parseFrom(message);
+                    if (packetDetails.getType().equals(Constants.PULL_REQUEST)) {
+                        ConsumerPullRequest.ConsumerPullRequestDetails consumerPullRequestDetails = ConsumerPullRequest.ConsumerPullRequestDetails.parseFrom(packetDetails.getMessage());
+                        ArrayList<byte[]> messageBatch = null;
+                        byte[] finalByteArray;
+                        if (consumerPullRequestDetails.getTopic() != null) { // validating publish message
+                            System.out.printf("\n[Thread Id : %s] Getting message from offset '%d' from file.\n", Thread.currentThread().getId(), consumerPullRequestDetails.getOffset());
+                            messageBatch = data.getMessage(consumerPullRequestDetails.getTopic(), consumerPullRequestDetails.getOffset());
+                            if (messageBatch != null) {
+                                finalByteArray = createMessageFromBroker(consumerPullRequestDetails.getTopic(), messageBatch);
+                            } else {
+                                // message with given offset is not available
+                                finalByteArray = createMessageFromBrokerInvalid("MESSAGE_NOT_AVAILABLE");
+                            }
                         } else {
-                            // message with given offset is not available
-                            finalByteArray = createMessageFromBrokerInvalid("MESSAGE_NOT_AVAILABLE");
+                            finalByteArray = createMessageFromBrokerInvalid("TOPIC_NOT_AVAILABLE");
                         }
-                    } else {
-                        finalByteArray = createMessageFromBrokerInvalid("TOPIC_NOT_AVAILABLE");
+                        // sending response to the consumer
+                        System.out.printf("\n[THREAD ID : %s] [SENDING] [Sending prepared message batch to %s.]\n", Thread.currentThread().getId(), name);
+                        connection.send(finalByteArray);
                     }
-                    // sending response to the consumer
-                    System.out.printf("\n[THREAD ID : %s] [SENDING] [Sending prepared message batch to %s.]\n", Thread.currentThread().getId(), name);
-                    connection.send(finalByteArray);
                 } catch (InvalidProtocolBufferException e) {
                     e.printStackTrace();
                 }
