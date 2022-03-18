@@ -80,8 +80,11 @@ public class MessageInfo {
         inMemoryMessageOffset.add(this.lastOffSet);
         inMemoryMessage.add(message);
         lastOffSet += message.length;
+        System.out.println("[Thread Id : " + Thread.currentThread().getId() + "] added new message. [In-memory buffer size " + inMemoryMessageOffset.size() + "]");
         if (inMemoryMessageOffset.size() == Constants.TOTAL_IN_MEMORY_MESSAGE_SIZE) {
+            System.out.println("[Thread Id : " + Thread.currentThread().getId() + "] Flushing needed.");
             flushOnFile();
+            System.out.println("[Thread Id : " + Thread.currentThread().getId() + "] Flushing is done.");
         }
         // release write lock on inMemoryOffset Arraylist and inMemoryMessage ArrayList.
         lock1.writeLock().unlock();
@@ -107,7 +110,7 @@ public class MessageInfo {
         // clearing in-memory buffer of the published message.
         inMemoryMessageOffset.clear();
         inMemoryMessage.clear();
-        System.out.printf("\n[Thread Id : %s] [Awake by Timeout or Notified by other thread.] [Total element in buffer after flushing : %d]\n", Thread.currentThread().getId(), this.inMemoryMessageOffset.size());
+        System.out.printf("\n[Thread Id : %s] [Total element in buffer after flushing : %d]\n", Thread.currentThread().getId(), this.inMemoryMessageOffset.size());
         // realising write lock on the file and flushedMessageOffset ArrayList
         lock2.writeLock().unlock();
     }
