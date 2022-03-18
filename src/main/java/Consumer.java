@@ -53,51 +53,66 @@ public class Consumer {
      * receive data from broker by calling appropriate function as per the time of consumer
      */
     public void startConsumer() {
-        connectToBroker();
-        if (consumerType.equals(Constants.CONSUMER_PULL)) {
-            while (newConnection.connectionSocket.isOpen()) {
-                System.out.printf("\n[Pulling message from broker]\n");
-                boolean topicIsAvailable = pullMessageFromBroker(); // fetching data from broker
-                if (!topicIsAvailable) {
-                    break;
+        boolean connected = connectToBroker();
+        if (connected) {
+            sendInitialSetupMessage();
+            if (consumerType.equals(Constants.CONSUMER_PULL)) {
+                while (newConnection.connectionSocket.isOpen()) {
+                    System.out.printf("\n[Pulling message from broker]\n");
+                    boolean topicIsAvailable = pullMessageFromBroker(); // fetching data from broker
+                    if (!topicIsAvailable) {
+                        break;
+                    }
+                }
+            } else {
+                while (newConnection.connectionSocket.isOpen()) {
+                    receiveMessageFromBroker(); // receiving data from broker
                 }
             }
-        } else {
-            while (newConnection.connectionSocket.isOpen()) {
-                receiveMessageFromBroker(); // receiving data from broker
-            }
         }
-
     }
 
     /**
      * method establishes connection with broker and sends initial message to it.
      */
-    public void connectToBroker() {
+    public boolean connectToBroker() {
+        boolean connected = false;
         AsynchronousSocketChannel clientSocket = null;
         try {
             clientSocket = AsynchronousSocketChannel.open();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        InetSocketAddress peerAddress = new InetSocketAddress(brokerIP, brokerPortNumber);
+        InetSocketAddress brokerAddress = new InetSocketAddress(brokerIP, brokerPortNumber);
         System.out.printf("\n[Connecting To Broker]\n");
-        Future<Void> futureSocket = clientSocket.connect(peerAddress);
+        Future<Void> futureSocket = clientSocket.connect(brokerAddress);
         try {
             futureSocket.get();
             System.out.printf("\n[Connection Successful]\n");
             newConnection = new Connection(brokerIP, clientSocket);
-            //send initial message
-            System.out.printf("\n[Creating Initial packet]\n");
-            byte[] initialMessagePacket = createInitialMessagePacket();
-            System.out.printf("\n[Sending Initial packet]\n");
-            newConnection.send(initialMessagePacket); //sending initial packet
-            System.out.printf("\n[Initial packet Sending Successful]\n");
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
+            connected = true;
+//            //send initial message
+//            System.out.printf("\n[Creating Initial packet]\n");
+//            byte[] initialMessagePacket = createInitialMessagePacket();
+//            System.out.printf("\n[Sending Initial packet]\n");
+//            newConnection.send(initialMessagePacket); //sending initial packet
+//            System.out.printf("\n[Initial packet Sending Successful]\n");
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
+        return connected;
+    }
+
+    /**
+     *
+     */
+    public void sendInitialSetupMessage() {
+        //send initial message
+        System.out.printf("\n[Creating Initial packet]\n");
+        byte[] initialMessagePacket = createInitialMessagePacket();
+        System.out.printf("\n[Sending Initial packet]\n");
+        newConnection.send(initialMessagePacket); //sending initial packet
+        System.out.printf("\n[Initial packet Sending Successful]\n");
     }
 
     /**

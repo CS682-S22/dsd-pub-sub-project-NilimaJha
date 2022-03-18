@@ -34,37 +34,44 @@ public class Producer {
      *
      */
     public void startProducer() {
-        connectToBroker();
+        boolean connected = connectToBroker();
+        if (connected) {
+            sendInitialSetupMessage();
+        }
     }
 
     /**
      *
      */
-    public void connectToBroker() {
+    public boolean connectToBroker() {
+        boolean connected = false;
         AsynchronousSocketChannel clientSocket = null;
         try {
             clientSocket = AsynchronousSocketChannel.open();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        InetSocketAddress peerAddress = new InetSocketAddress(brokerIP, brokerPortNumber);
+        InetSocketAddress brokerAddress = new InetSocketAddress(brokerIP, brokerPortNumber);
         System.out.printf("\n[Connecting To Broker]\n");
-        Future<Void> futureSocket = clientSocket.connect(peerAddress);
+        Future<Void> futureSocket = clientSocket.connect(brokerAddress);
         try {
             futureSocket.get();
             System.out.printf("\n[Connection Successful]\n");
             newConnection = new Connection(brokerIP, clientSocket);
-            //send initial message
-            System.out.printf("\n[Creating Initial packet]\n");
-            byte[] initialMessagePacket = createInitialMessagePacket();
-            System.out.printf("\n[Sending Initial packet]\n");
-            newConnection.send(initialMessagePacket); //sending initial packet
-            System.out.printf("\n[Initial packet Sending Successful]\n");
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
+            connected = true;
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
+        return connected;
+    }
+
+    public void sendInitialSetupMessage() {
+        //send initial message
+        System.out.printf("\n[Creating Initial packet]\n");
+        byte[] initialMessagePacket = createInitialMessagePacket();
+        System.out.printf("\n[Sending Initial packet]\n");
+        newConnection.send(initialMessagePacket); //sending initial packet
+        System.out.printf("\n[Initial packet Sending Successful]\n");
     }
 
     /**
