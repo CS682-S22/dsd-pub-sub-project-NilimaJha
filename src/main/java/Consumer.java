@@ -26,6 +26,7 @@ public class Consumer {
     private int offset;
     private String topic;
     private BlockingQueue<byte[]> messageFromBroker;
+    private ExecutorService pool = Executors.newFixedThreadPool(1); //thread pool of size 1
 
     /**
      *
@@ -44,6 +45,7 @@ public class Consumer {
         this.topic = topic;
         this.offset = startingPosition;
         this.messageFromBroker = new LinkedBlockingQueue<>();
+        pool.execute(this::startConsumer);  // assigning consumer thread
     }
 
     /**
