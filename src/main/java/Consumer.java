@@ -6,9 +6,6 @@ import proto.InitialMessage;
 import proto.MessageFromBroker;
 import proto.Packet;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.channels.AsynchronousSocketChannel;
 import java.time.Duration;
 import java.util.concurrent.*;
 
@@ -18,12 +15,8 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  *
  * @author nilimajha
  */
-public class Consumer {
-    private String consumerName;
+public class Consumer extends Node {
     private String consumerType;
-    private String brokerIP;
-    private int brokerPortNumber;
-    private Connection newConnection;
     private int offset;
     private String topic;
     private BlockingQueue<byte[]> messageFromBroker;
@@ -34,19 +27,17 @@ public class Consumer {
      * @param consumerName
      * @param consumerType
      * @param brokerIP
-     * @param brokerPortNumber
+     * @param brokerPort
      * @param topic
      * @param startingPosition
      */
-    public Consumer(String consumerName, String consumerType, String brokerIP, int brokerPortNumber, String topic, int startingPosition) {
-        this.consumerName = consumerName;
+    public Consumer(String consumerName, String consumerType, String brokerIP, int brokerPort, String topic, int startingPosition) {
+        super(consumerName, brokerIP, brokerPort);
         this.consumerType = consumerType;
-        this.brokerIP = brokerIP;
-        this.brokerPortNumber = brokerPortNumber;
         this.topic = topic;
         this.offset = startingPosition;
         this.messageFromBroker = new LinkedBlockingQueue<>();
-        pool.execute(this::startConsumer);  // assigning consumer thread
+        this.pool.execute(this::startConsumer);  // assigning consumer thread
     }
 
     /**
@@ -57,7 +48,7 @@ public class Consumer {
         if (connected) {
             sendInitialSetupMessage();
             if (consumerType.equals(Constants.CONSUMER_PULL)) {
-                while (newConnection.connectionSocket.isOpen()) {
+                while (connection.connectionSocket.isOpen()) {
                     System.out.printf("\n[Pulling message from broker]\n");
                     boolean topicIsAvailable = pullMessageFromBroker(); // fetching data from broker
                     if (!topicIsAvailable) {
@@ -65,42 +56,11 @@ public class Consumer {
                     }
                 }
             } else {
-                while (newConnection.connectionSocket.isOpen()) {
+                while (connection.connectionSocket.isOpen()) {
                     receiveMessageFromBroker(); // receiving data from broker
                 }
             }
         }
-    }
-
-    /**
-     * method establishes connection with broker and sends initial message to it.
-     */
-    public boolean connectToBroker() {
-        boolean connected = false;
-        AsynchronousSocketChannel clientSocket = null;
-        try {
-            clientSocket = AsynchronousSocketChannel.open();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        InetSocketAddress brokerAddress = new InetSocketAddress(brokerIP, brokerPortNumber);
-        System.out.printf("\n[Connecting To Broker]\n");
-        Future<Void> futureSocket = clientSocket.connect(brokerAddress);
-        try {
-            futureSocket.get();
-            System.out.printf("\n[Connection Successful]\n");
-            newConnection = new Connection(brokerIP, clientSocket);
-            connected = true;
-//            //send initial message
-//            System.out.printf("\n[Creating Initial packet]\n");
-//            byte[] initialMessagePacket = createInitialMessagePacket();
-//            System.out.printf("\n[Sending Initial packet]\n");
-//            newConnection.send(initialMessagePacket); //sending initial packet
-//            System.out.printf("\n[Initial packet Sending Successful]\n");
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-        return connected;
     }
 
     /**
@@ -111,7 +71,7 @@ public class Consumer {
         System.out.printf("\n[Creating Initial packet]\n");
         byte[] initialMessagePacket = createInitialMessagePacket();
         System.out.printf("\n[Sending Initial packet]\n");
-        newConnection.send(initialMessagePacket); //sending initial packet
+        connection.send(initialMessagePacket); //sending initial packet
         System.out.printf("\n[Initial packet Sending Successful]\n");
     }
 
@@ -124,13 +84,13 @@ public class Consumer {
         if (consumerType.equals(Constants.CONSUMER_PULL)) {
             initialMessageDetails = InitialMessage.InitialMessageDetails.newBuilder()
                     .setConnectionSender(Constants.CONSUMER)
-                    .setName(consumerName)
+                    .setName(name)
                     .setConsumerType(Constants.CONSUMER_PULL)
                     .build();
         } else {
             initialMessageDetails = InitialMessage.InitialMessageDetails.newBuilder()
                     .setConnectionSender(Constants.CONSUMER)
-                    .setName(consumerName)
+                    .setName(name)
                     .setConsumerType(Constants.CONSUMER_PUSH)
                     .setTopic(topic)
                     .setInitialOffset(offset)
@@ -161,7 +121,7 @@ public class Consumer {
     private byte[] createPacket(ByteString byteMassage, String type) {
         Packet.PacketDetails packetDetails = Packet.PacketDetails.newBuilder()
                 .setTo(brokerIP)
-                .setFrom(consumerName)
+                .setFrom(name)
                 .setType(type)
                 .setMessage(byteMassage)
                 .build();
@@ -176,7 +136,7 @@ public class Consumer {
     private boolean pullMessageFromBroker() {
         byte[] requestMessagePacket = createPullRequestMessagePacket();
         System.out.printf("\n[SEND]Send pull request to Broker\n");
-        newConnection.send(requestMessagePacket); // sending pull request to the broker
+        connection.send(requestMessagePacket); // sending pull request to the broker
         return receiveMessageFromBroker();
     }
 
@@ -185,7 +145,7 @@ public class Consumer {
      */
     private boolean receiveMessageFromBroker() {
         boolean successful = true;
-        byte[] brokerMessage = newConnection.receive();
+        byte[] brokerMessage = connection.receive();
         if (brokerMessage != null) {
             System.out.printf("\n[RECEIVE]Received message from Broker\n");
             successful = extractMessageFromBrokerMessage(brokerMessage);

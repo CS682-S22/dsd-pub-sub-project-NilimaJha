@@ -5,19 +5,11 @@ import proto.Packet;
 import proto.PublisherPublishMessage;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.channels.AsynchronousSocketChannel;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 /**
  *
  */
-public class Producer {
-    private String producerName;
-    private String brokerIP;
-    private int brokerPortNumber;
-    private Connection newConnection;
+public class Producer extends Node {
 
     /**
      * constructor for producer class attributes
@@ -25,9 +17,7 @@ public class Producer {
      * @param brokerPortNumber
      */
     public Producer (String producerName, String brokerIP, int brokerPortNumber) {
-        this.producerName = producerName;
-        this.brokerIP = brokerIP;
-        this.brokerPortNumber = brokerPortNumber;
+        super(producerName, brokerIP, brokerPortNumber);
     }
 
     /**
@@ -40,37 +30,12 @@ public class Producer {
         }
     }
 
-    /**
-     *
-     */
-    public boolean connectToBroker() {
-        boolean connected = false;
-        AsynchronousSocketChannel clientSocket = null;
-        try {
-            clientSocket = AsynchronousSocketChannel.open();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        InetSocketAddress brokerAddress = new InetSocketAddress(brokerIP, brokerPortNumber);
-        System.out.printf("\n[Connecting To Broker]\n");
-        Future<Void> futureSocket = clientSocket.connect(brokerAddress);
-        try {
-            futureSocket.get();
-            System.out.printf("\n[Connection Successful]\n");
-            newConnection = new Connection(brokerIP, clientSocket);
-            connected = true;
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-        return connected;
-    }
-
     public void sendInitialSetupMessage() {
         //send initial message
         System.out.printf("\n[Creating Initial packet]\n");
         byte[] initialMessagePacket = createInitialMessagePacket();
         System.out.printf("\n[Sending Initial packet]\n");
-        newConnection.send(initialMessagePacket); //sending initial packet
+        connection.send(initialMessagePacket); //sending initial packet
         System.out.printf("\n[Initial packet Sending Successful]\n");
     }
 
@@ -81,11 +46,11 @@ public class Producer {
     private byte[] createInitialMessagePacket() {
         InitialMessage.InitialMessageDetails initialMessageDetails = InitialMessage.InitialMessageDetails.newBuilder()
                 .setConnectionSender(Constants.PRODUCER)
-                .setName(producerName)
+                .setName(name)
                 .build();
         Packet.PacketDetails packetDetails = Packet.PacketDetails.newBuilder()
                 .setTo(brokerIP)
-                .setFrom(producerName)
+                .setFrom(name)
                 .setType(Constants.INITIAL_SETUP)
                 .setMessage(initialMessageDetails.toByteString())
                 .build();
@@ -104,7 +69,7 @@ public class Producer {
                 .setTopic(topic)
                 .setMessage(ByteString.copyFrom(data))
                 .build();
-        boolean sent = newConnection.send(publisherPublishMessageDetails.toByteArray());
+        boolean sent = connection.send(publisherPublishMessageDetails.toByteArray());
         return sent;
     }
 
@@ -113,7 +78,7 @@ public class Producer {
      */
     public void close() {
         try {
-            newConnection.connectionSocket.close();
+            connection.connectionSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

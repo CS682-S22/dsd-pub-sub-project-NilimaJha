@@ -4,7 +4,6 @@ public class Constants {
     public final static int BUFFER_SIZE = 60000;
     public final static  int READ_TIMEOUT_TIME = 500;
     public final static  int TOTAL_IN_MEMORY_MESSAGE_SIZE = 10; // number of message after which it will be flushed on to the segment file.
-    public final static long POLL_TIMEOUT_TIME = 100;
     public final static String INITIAL_SETUP = "INITIAL_SETUP";
     public final static String PUBLISH_REQUEST = "PUBLISH";
     public final static String PULL_REQUEST = "PULL";
