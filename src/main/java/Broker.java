@@ -2,8 +2,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -16,22 +14,22 @@ import java.util.concurrent.Future;
  * @author nilimajha
  */
 public class Broker implements Runnable {
-    HashMap<String, ArrayList<byte[]>> topicToMessageMap;
     private boolean shutdown = false;
-    private String hostName;
-    private String hostIP;
-    private int portNumber;
+    private String brokerName;
+    private String brokerIP;
+    private int brokerPort;
     private ExecutorService threadPool = Executors.newFixedThreadPool(15);
 
     /**
      * Constructor
-     * @param hostName
-     * @param portNumber
+     * @param brokerName Name of this broker
+     * @param brokerIP Ip of this broker
+     * @param brokerPort Port on which this broker is running
      */
-    public Broker(String hostName, String hostIP, int portNumber) {
-        this.hostName = hostName;
-        this.hostIP = hostIP;
-        this.portNumber = portNumber;
+    public Broker(String brokerName, String brokerIP, int brokerPort) {
+        this.brokerName = brokerName;
+        this.brokerIP = brokerIP;
+        this.brokerPort = brokerPort;
     }
 
     /**
@@ -45,14 +43,14 @@ public class Broker implements Runnable {
         AsynchronousServerSocketChannel serverSocket = null;
         try {
             serverSocket = AsynchronousServerSocketChannel.open();
-            serverSocket.bind(new InetSocketAddress(hostIP, portNumber));
+            serverSocket.bind(new InetSocketAddress(brokerIP, brokerPort));
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         // keeps on running when shutdown is false
         while (!shutdown) {
-            System.out.printf("%s[BROKER] BrokerServer is listening on %s, port : %s \n", hostName ,hostIP , portNumber);
+            System.out.printf("%s[BROKER] BrokerServer is listening on %s, port : %s \n", brokerName ,brokerIP , brokerPort);
             Future<AsynchronousSocketChannel> acceptFuture = serverSocket.accept();
             AsynchronousSocketChannel socketChannel = null;
             try {
@@ -72,11 +70,10 @@ public class Broker implements Runnable {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                //creating new connection object adding it to the map and assigning to the threadPool.????
                 Connection newConnection = null;
                 newConnection = new Connection(socketChannel);
                 // give this connection to requestProcessor
-                RequestProcessor requestProcessor = new RequestProcessor(newConnection);
+                RequestProcessor requestProcessor = new RequestProcessor(brokerName, newConnection);
                 threadPool.execute(requestProcessor);
             }
         }

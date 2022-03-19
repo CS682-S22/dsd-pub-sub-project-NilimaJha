@@ -165,32 +165,37 @@ public class Consumer extends Node {
     private boolean extractDataFromBrokerMessage(byte[] brokerMessage) {
         boolean success = false;
         if (brokerMessage != null) {
-            MessageFromBroker.MessageFromBrokerDetails messageFromBrokerDetails;
+            Packet.PacketDetails packetDetails;
             try {
-                messageFromBrokerDetails = MessageFromBroker.MessageFromBrokerDetails.parseFrom(brokerMessage);
-                if (messageFromBrokerDetails.getType().equals(Constants.MESSAGE)) {
-                    System.out.printf("\n[RECEIVE] Total message received from broker in one response = %d.\n", messageFromBrokerDetails.getActualMessageCount());
-                    for (int index = 0; index < messageFromBrokerDetails.getActualMessageCount(); index++) {
-                        byte[] actualMessageBytes = messageFromBrokerDetails.getActualMessage(index).toByteArray();
-                        messageFromBroker.put(actualMessageBytes);
-                        System.out.printf("\nReceived Message size: %d\n", actualMessageBytes.length);
-                        if (consumerType.equals(model.Constants.CONSUMER_PULL)) {
-                            offset += actualMessageBytes.length; // incrementing offset value to the next message offset
+                packetDetails = Packet.PacketDetails.parseFrom(brokerMessage);
+                if (packetDetails.getType().equals(Constants.DATA)) {
+                    MessageFromBroker.MessageFromBrokerDetails messageFromBrokerDetails = MessageFromBroker.MessageFromBrokerDetails.parseFrom(packetDetails.getMessage().toByteArray());
+                    if (messageFromBrokerDetails.getType().equals(Constants.MESSAGE)) {
+                        System.out.printf("\n[RECEIVE] Total message received from broker in one response = %d.\n", messageFromBrokerDetails.getActualMessageCount());
+                        for (int index = 0; index < messageFromBrokerDetails.getActualMessageCount(); index++) {
+                            byte[] actualMessageBytes = messageFromBrokerDetails.getActualMessage(index).toByteArray();
+                            try {
+                                messageFromBroker.put(actualMessageBytes);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            System.out.printf("\nReceived Message size: %d\n", actualMessageBytes.length);
+                            if (consumerType.equals(model.Constants.CONSUMER_PULL)) {
+                                offset += actualMessageBytes.length; // incrementing offset value to the next message offset
+                            }
                         }
+                        success = true;
                     }
-                    success = true;
-                } else if (messageFromBrokerDetails.getType().equals(Constants.MESSAGE_NOT_AVAILABLE)) {
+                } else if (packetDetails.getType().equals(Constants.MESSAGE_NOT_AVAILABLE) || packetDetails.getType().equals(Constants.TOPIC_NOT_AVAILABLE)) {
                     System.out.printf("\noffset number is not available yet, so sleeping for 6000 ms %d\n", offset);
-                    Thread.sleep(6000);
-                    success = true;
-                } else {
-                    System.out.printf("\nTopic is not available yet, so sleeping for 6000 ms %d\n", offset);
-                    Thread.sleep(6000);
+                    try {
+                        Thread.sleep(6000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                     success = true;
                 }
             } catch (InvalidProtocolBufferException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }

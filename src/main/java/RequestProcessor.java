@@ -12,6 +12,7 @@ import java.util.ArrayList;
  * @author nilimajha
  */
 public class RequestProcessor implements Runnable {
+    private String brokerName;
     private Connection connection;
     private Data data;
     private String connectionWith;
@@ -24,7 +25,8 @@ public class RequestProcessor implements Runnable {
      * Constructor that initialises Connection class object and also model.Data
      * @param connection
      */
-    public RequestProcessor(Connection connection) {
+    public RequestProcessor(String brokerName, Connection connection) {
+        this.brokerName = brokerName;
         this.connection = connection;
         this.data = DataInitializer.getData();
     }
@@ -161,22 +163,22 @@ public class RequestProcessor implements Runnable {
                     if (packetDetails.getType().equals(Constants.PULL_REQUEST)) {
                         ConsumerPullRequest.ConsumerPullRequestDetails consumerPullRequestDetails = ConsumerPullRequest.ConsumerPullRequestDetails.parseFrom(packetDetails.getMessage());
                         ArrayList<byte[]> messageBatch = null;
-                        byte[] finalByteArray;
+                        byte[] messageFromBrokerPacket;
                         if (consumerPullRequestDetails.getTopic() != null) { // validating publish message
                             System.out.printf("\n[Thread Id : %s] Getting message from offset '%d' from file.\n", Thread.currentThread().getId(), consumerPullRequestDetails.getOffset());
                             messageBatch = data.getMessage(consumerPullRequestDetails.getTopic(), consumerPullRequestDetails.getOffset());
                             if (messageBatch != null) {
-                                finalByteArray = createMessageFromBroker(consumerPullRequestDetails.getTopic(), messageBatch);
+                                messageFromBrokerPacket = createMessageFromBroker(consumerPullRequestDetails.getTopic(), messageBatch, Constants.DATA);
                             } else {
                                 // message with given offset is not available
-                                finalByteArray = createMessageFromBrokerInvalid("MESSAGE_NOT_AVAILABLE");
+                                messageFromBrokerPacket = createMessageFromBrokerInvalid(Constants.MESSAGE_NOT_AVAILABLE);
                             }
                         } else {
-                            finalByteArray = createMessageFromBrokerInvalid("TOPIC_NOT_AVAILABLE");
+                            messageFromBrokerPacket = createMessageFromBrokerInvalid(Constants.TOPIC_NOT_AVAILABLE);
                         }
                         // sending response to the consumer
                         System.out.printf("\n[THREAD ID : %s] [SENDING] [Sending prepared message batch to %s.]\n", Thread.currentThread().getId(), name);
-                        connection.send(finalByteArray);
+                        connection.send(messageFromBrokerPacket);
                     }
                 } catch (InvalidProtocolBufferException e) {
                     e.printStackTrace();
@@ -195,9 +197,9 @@ public class RequestProcessor implements Runnable {
             System.out.printf("\n[Thread Id : %s] Getting message from offset '%d' from file.\n", Thread.currentThread().getId(), offset);
             messageBatch = data.getMessage(pushBasedConsumerTopic, offset);
             if (messageBatch != null) {
-                byte[] finalMessage = createMessageFromBroker(pushBasedConsumerTopic, messageBatch);
+                byte[] messageFromBrokerPacket = createMessageFromBroker(pushBasedConsumerTopic, messageBatch, Constants.DATA);
                 System.out.printf("\n[THREAD ID : %s] SENDING next Batch of message to PUSH consumer %s.\n", Thread.currentThread().getId(), name);
-                boolean sendSuccessful = connection.send(finalMessage);
+                boolean sendSuccessful = connection.send(messageFromBrokerPacket);
                  if (sendSuccessful) {
 
                      for (byte[] eachMessage : messageBatch) {
@@ -224,7 +226,7 @@ public class RequestProcessor implements Runnable {
      * @param messageBatch
      * @return
      */
-    private byte[] createMessageFromBroker(String topic, ArrayList<byte[]> messageBatch) {
+    private byte[] createMessageFromBroker(String topic, ArrayList<byte[]> messageBatch, String type) {
         ArrayList<ByteString> messageBatchStringArray = new ArrayList<>();
         for (byte[] eachMessage : messageBatch) {
             ByteString messageByteString = ByteString.copyFrom(eachMessage);
@@ -236,7 +238,13 @@ public class RequestProcessor implements Runnable {
                 .setTotalMessage(messageBatch.size())
                 .addAllActualMessage(messageBatchStringArray)
                 .build();
-        return messageFromBrokerDetails.toByteArray();
+        Packet.PacketDetails packetDetails = Packet.PacketDetails.newBuilder()
+                .setTo(connectionWith)
+                .setFrom(brokerName)
+                .setType(type)
+                .setMessage(messageFromBrokerDetails.toByteString())
+                .build();
+        return packetDetails.toByteArray();
     }
 
     /**
@@ -248,6 +256,12 @@ public class RequestProcessor implements Runnable {
         MessageFromBroker.MessageFromBrokerDetails messageFromBrokerDetails = MessageFromBroker.MessageFromBrokerDetails.newBuilder()
                 .setType(type)
                 .build();
-        return messageFromBrokerDetails.toByteArray();
+        Packet.PacketDetails packetDetails = Packet.PacketDetails.newBuilder()
+                .setTo(connectionWith)
+                .setFrom(brokerName)
+                .setType(type)
+                .setMessage(messageFromBrokerDetails.toByteString())
+                .build();
+        return packetDetails.toByteArray();
     }
 }
