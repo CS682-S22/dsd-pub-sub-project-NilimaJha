@@ -5,7 +5,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
- *
+ * Parent class for Producer and Consumer class.
  * @author nilimajha
  */
 public class Node {
@@ -16,8 +16,8 @@ public class Node {
 
     /**
      * constructor for producer class attributes
-     * @param brokerIP
-     * @param brokerPort
+     * @param brokerIP Ip of Broker
+     * @param brokerPort Broker port
      */
     public Node (String name, String brokerIP, int brokerPort) {
         this.name = name;
@@ -26,7 +26,8 @@ public class Node {
     }
 
     /**
-     *
+     * method that connects to the broker and saves the connection object.
+     * @return  true/false
      */
     public boolean connectToBroker() {
         boolean connected = false;
@@ -42,7 +43,7 @@ public class Node {
         try {
             futureSocket.get();
             System.out.printf("\n[Connection Successful]\n");
-            connection = new Connection(brokerIP, clientSocket);
+            connection = new Connection(clientSocket);
             connected = true;
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();

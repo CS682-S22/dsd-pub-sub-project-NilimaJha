@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 /**
  * Class to keep information of producer and consumer from config file.
+ * @author nilimajha
  */
 public class ConfigInformation {
     private String Name;

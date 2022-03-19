@@ -2,6 +2,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import model.BrokerConfig;
 import model.ConfigInformation;
+import model.Constants;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -9,14 +10,15 @@ import java.nio.file.Paths;
 import java.util.List;
 
 /**
- *
+ * Utility class to store the helper functions.
+ * @author nilimajha
  */
 public class Utility {
 
     /**
      * method check the validity of the argument provided.
-     * @param args
-     * @return
+     * @param args argument
+     * @return true/false
      */
     public static boolean argsIsValid (String[] args) {
         boolean isValid = false;
@@ -31,23 +33,18 @@ public class Utility {
     }
 
     /**
-     *
-     * @param name
-     * @return
+     * check the validity of the type provided in the argument.
+     * @param name name provided in the argument
+     * @return true/false
      */
     public static boolean typeIsValid (String name) {
-        boolean nameIsValid = false;
-        if (name.equals("PRODUCER") || name.equals("CONSUMER") || name.equals("BROKER")) {
-            nameIsValid = true;
-        }
-        return nameIsValid;
+        return name.equals(Constants.PRODUCER) || name.equals(Constants.CONSUMER) || name.equals(Constants.BROKER);
     }
 
     /**
-     * method fileIsValid()
-     * check the validity of the all the files in the file list.
+     * check the validity of the all the config file provided.
      * @param fileName list of files
-     * @return
+     * @return true/false
      */
     public static boolean fileNameIsValid(String fileName) {
         boolean valid = true;
@@ -59,9 +56,8 @@ public class Utility {
     }
 
     /**
-     * method getFileExtension()
      * extracts the extension of the given fileName that is in String format.
-     * @param fileName
+     * @param fileName file name
      * @return extension
      */
     public static String getFileExtension(String fileName) {
@@ -74,27 +70,27 @@ public class Utility {
     }
 
     /**
-     *
-     * @param args
-     * @return
+     * returns the type provided in the argument.
+     * @param args argument
+     * @return type
      */
     public static String getTypeFromArgs (String[] args) {
         return args[1];
     }
 
     /**
-     *
-     * @param args
-     * @return
+     * returns the name provided in the argument.
+     * @param args arguments
+     * @return name
      */
     public static String getNameFromArgs (String[] args) {
         return args[3];
     }
 
     /**
-     *
-     * @param args
-     * @return
+     * returns config file name provided in the argument.
+     * @param args argument
+     * @return filename
      */
     public static String getConfigFilename (String[] args) {
         return args[5];
@@ -104,8 +100,9 @@ public class Utility {
      * reads configFile and returns model.ConfigInformation class obj
      * which contains all the information of the producer or consumer
      * whose name is provided.
-     * @param fileName
-     * @return
+     * @param fileName config file name
+     * @param name name provided in the args
+     * @return configInformation
      */
     public static ConfigInformation extractConsumerOrPublisherConfigInfo(String fileName, String name) {
         List<ConfigInformation> hostDetailsList = null;
@@ -129,8 +126,9 @@ public class Utility {
      * reads configFile and returns BrokerInformation class obj
      * which contains all the information of the producer or consumer
      * whose name is provided.
-     * @param fileName
-     * @return
+     * @param fileName config file name
+     * @param name name provided in the args
+     * @return BrokerConfig
      */
     public static BrokerConfig extractBrokerConfigInfo(String fileName, String name) {
         List<BrokerConfig> brokerDetails = null;
@@ -152,10 +150,9 @@ public class Utility {
 
     /**
      * initialises the FileInputStream named fileWriter of the class and deletes the file if already exist.
-     * @param outputFileName
+     * @param outputFileName file on which writting is to be performed
      */
     public static FileOutputStream fileWriterInitializer (String outputFileName) {
-        System.out.printf("\n[Inside FileWriterInitializer] [outputFileName : %s] \n", outputFileName);
         File outputFile = new File(outputFileName);
         FileOutputStream fileWriter = null;
         if(outputFile.exists()){
@@ -170,29 +167,8 @@ public class Utility {
     }
 
     /**
-     * initialises the FileInputStream named fileWriter of the class and deletes the file if already exist.
-     * @param outputFileName
-     */
-    public static BufferedWriter fileWriterInitializer2 (String outputFileName) {
-        System.out.printf("\n[Inside FileWriterInitializer] [outputFileName : %s] \n", outputFileName);
-        File outputFile = new File(outputFileName);
-        BufferedWriter bufferedWriter = null;
-        if(outputFile.exists()){
-            outputFile.delete();
-        }  //deleting file if exist
-        try {
-            bufferedWriter = new BufferedWriter(new FileWriter(outputFileName, true));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return bufferedWriter;
-    }
-
-    /**
      * initialises the FileInputStream named fileReader of the class.
-     * @param inputFileName
+     * @param inputFileName file from where read is to be performed
      * @return fileReader
      */
     public static BufferedReader fileReaderInitializer (String inputFileName) {

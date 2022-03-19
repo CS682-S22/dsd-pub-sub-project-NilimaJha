@@ -60,9 +60,7 @@ public class Broker implements Runnable {
                 if (shutdown) {
                     return;
                 }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
+            } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
 
@@ -76,14 +74,10 @@ public class Broker implements Runnable {
                 }
                 //creating new connection object adding it to the map and assigning to the threadPool.????
                 Connection newConnection = null;
-                try {
-                    newConnection = new Connection(socketChannel.getRemoteAddress().toString(), socketChannel);
-                    // give this connection to requestProcessor
-                    RequestProcessor requestProcessor = new RequestProcessor(newConnection);
-                    threadPool.execute(requestProcessor);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                newConnection = new Connection(socketChannel);
+                // give this connection to requestProcessor
+                RequestProcessor requestProcessor = new RequestProcessor(newConnection);
+                threadPool.execute(requestProcessor);
             }
         }
     }

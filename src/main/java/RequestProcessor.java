@@ -78,7 +78,7 @@ public class RequestProcessor implements Runnable {
 
     /**
      * decode message field of the PacketDetails object as per the type.
-     * @param packetDetails
+     * @param packetDetails initialPacket
      */
     public boolean parseInitialMessage(Packet.PacketDetails packetDetails) {
         System.out.printf("\n[Parsing Initial Message]\n");
@@ -111,7 +111,7 @@ public class RequestProcessor implements Runnable {
     }
 
     /**
-     * receives publish message from publisher and add it to the topic.
+     * continuously receives publish message from publisher and add it to the topic.
      */
     public void handlePublisher() {
         while (connection.connectionSocket.isOpen()) {
@@ -137,7 +137,6 @@ public class RequestProcessor implements Runnable {
                 try {
                     PublisherPublishMessage.PublisherPublishMessageDetails publisherPublishMessageDetails = PublisherPublishMessage.PublisherPublishMessageDetails.parseFrom(message);
                     if (publisherPublishMessageDetails.getTopic() != null && publisherPublishMessageDetails.getMessage() != null) { // validating publish message
-//                        System.out.printf("\n[Adding new message] [Topic : %s]\n", publisherPublishMessageDetails.getTopic());
                         data.addMessage(publisherPublishMessageDetails.getTopic(), publisherPublishMessageDetails.getMessage().toByteArray());
                     }
                     // if publish message is not valid then doing nothing.
@@ -243,7 +242,7 @@ public class RequestProcessor implements Runnable {
     /**
      * method creates MessageFromBroker obj of type INVALID
      * and returns its byteArray.
-     * @return
+     * @return byte[]
      */
     private byte[] createMessageFromBrokerInvalid(String type) {
         MessageFromBroker.MessageFromBrokerDetails messageFromBrokerDetails = MessageFromBroker.MessageFromBrokerDetails.newBuilder()

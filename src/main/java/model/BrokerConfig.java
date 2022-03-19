@@ -2,6 +2,7 @@ package model;
 
 /**
  * Class to keep all the information from model.BrokerConfig file.
+ * @author nilimajha
  */
 public class BrokerConfig {
     private String Name;

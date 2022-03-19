@@ -19,26 +19,29 @@ public class MessageInfo {
     private FileInputStream fileReader = null;
     private String topicSegmentFileName;
     private boolean topicIsAvailable = true;
-    final ReentrantReadWriteLock lock1 = new ReentrantReadWriteLock(); // lock for inMemory data store
-    final ReentrantReadWriteLock lock2 = new ReentrantReadWriteLock(); // lock for persistent storage and flushedMessageOffset ArrayList.
+    private String topic;
+    private final ReentrantReadWriteLock lock1 = new ReentrantReadWriteLock(); // lock for inMemory data store
+    private final ReentrantReadWriteLock lock2 = new ReentrantReadWriteLock(); // lock for persistent storage and flushedMessageOffset ArrayList.
     private ExecutorService threadPool = Executors.newFixedThreadPool(1);
 
     /**
      * Constructor to initialise class attributes.
-     * @param topic
+     * @param topic topic to which this MessageInfo object belongs.
      */
     public MessageInfo(String topic) {
         this.flushedMessageOffset = new ArrayList<>();
         this.inMemoryMessageOffset = new ArrayList<>();
         this.inMemoryMessage = new ArrayList<>();
         this.topicSegmentFileName = topic + ".log";
+        this.topic = topic;
         threadPool.execute(this::flushIfNeeded);
         fileWriterInitializer(this.topicSegmentFileName);
         fileReaderInitializer(this.topicSegmentFileName);
     }
 
     /**
-     * initialises the FileOutputStream named fileWriter of the class and deletes the file if already exist.
+     * initialises the FileOutputStream named fileWriter
+     * of the class and deletes the file if already exist.
      * @param fileName
      */
     public void fileWriterInitializer(String fileName) {
@@ -56,7 +59,7 @@ public class MessageInfo {
 
     /**
      * initialises the FileInputStream named fileReader of the class.
-     * @param fileName
+     * @param fileName name of the segmentFile
      */
     private void fileReaderInitializer(String fileName) {
         try {
@@ -71,7 +74,7 @@ public class MessageInfo {
      * and if after adding new message buffer ArrayList is full then
      * flushing those inMemory message to the file on the disk and
      * making it available for the consumer.
-     * @param message
+     * @param message message to be added
      * @return true
      */
     public boolean addNewMessage(byte[] message) {
@@ -117,7 +120,7 @@ public class MessageInfo {
 
     /**
      * reads 10 message from the offset given and returns it.
-     * @param offSet
+     * @param offSet offset from where data is to be extracted.
      * @return messageBatch
      */
     public ArrayList<byte[]> getMessage(int offSet) {
@@ -198,22 +201,6 @@ public class MessageInfo {
             }
             // release write lock on inMemoryOffset Arraylist and inMemoryMessage ArrayList.
             lock1.writeLock().lock();
-//            synchronized (object) {
-//                try {
-//                    System.out.printf("\n[Thread Id : %s] [sleeping for 6000 milli sec] \n", Thread.currentThread().getId());
-//                    object.wait(6000);
-//                    System.out.printf("\n[Thread Id : %s] [Awake after 6000 ms] \n", Thread.currentThread().getId());
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//                lock1.writeLock().lock();
-//                System.out.printf("\nChecking if flushing is needed[Total element in buffer : %d] \n", inMemoryMessageOffset.size());
-//                if (inMemoryMessageOffset.size() != 0) {
-//                    System.out.printf("\nFlushing on File. [Total element in buffer : %d] \n", inMemoryMessageOffset.size());
-//                    flushOnFile();
-//                }
-//                lock1.writeLock().lock();
-//            }
         }
     }
 

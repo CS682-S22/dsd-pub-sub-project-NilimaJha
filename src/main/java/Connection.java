@@ -17,7 +17,7 @@ import java.util.concurrent.TimeoutException;
  * @author nilimajha
  */
 public class Connection {
-    private String hostName;
+//    private String hostName;
     protected AsynchronousSocketChannel connectionSocket;
     private Future<Integer> incomingMessage;
     private ByteBuffer buffer = ByteBuffer.allocate(Constants.BUFFER_SIZE);
@@ -25,11 +25,10 @@ public class Connection {
 
     /**
      * Constructor to initialise class attributes.
-     * @param hostName
      * @param connectionSocket
      */
-    public Connection(String hostName, AsynchronousSocketChannel connectionSocket) {
-        this.hostName = hostName;
+    public Connection(AsynchronousSocketChannel connectionSocket) {
+//        this.hostName = hostName;
         this.connectionSocket = connectionSocket;
         this.incomingMessage = this.connectionSocket.read(buffer);
     }

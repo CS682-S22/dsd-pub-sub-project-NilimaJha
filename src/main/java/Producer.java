@@ -7,21 +7,22 @@ import proto.PublisherPublishMessage;
 import java.io.IOException;
 
 /**
- *
+ * Class extends Node class and is a producer
+ * @author nilimajha
  */
 public class Producer extends Node {
 
     /**
      * constructor for producer class attributes
-     * @param brokerIP
-     * @param brokerPortNumber
+     * @param brokerIP Ip of Broker
+     * @param brokerPort port on which broker is running
      */
-    public Producer (String producerName, String brokerIP, int brokerPortNumber) {
-        super(producerName, brokerIP, brokerPortNumber);
+    public Producer (String producerName, String brokerIP, int brokerPort) {
+        super(producerName, brokerIP, brokerPort);
     }
 
     /**
-     *
+     * first connects to the broker and then sets itself up by sending InitialPacket.
      */
     public void startProducer() {
         boolean connected = connectToBroker();
@@ -30,6 +31,9 @@ public class Producer extends Node {
         }
     }
 
+    /**
+     * creates and sends Initial Packet to the Broker.
+     */
     public void sendInitialSetupMessage() {
         //send initial message
         System.out.printf("\n[Creating Initial packet]\n");
@@ -40,8 +44,8 @@ public class Producer extends Node {
     }
 
     /**
-     *
-     * @return
+     * creates the Producer Initial packet.
+     * @return byte[] array
      */
     private byte[] createInitialMessagePacket() {
         InitialMessage.InitialMessageDetails initialMessageDetails = InitialMessage.InitialMessageDetails.newBuilder()
@@ -60,21 +64,20 @@ public class Producer extends Node {
     /**
      * send method takes the message to be published on the broker and
      * also the topic to which this message will be published on broker.
-     * @param topic
-     * @param data
-     * @return
+     * @param topic topic of the data
+     * @param data actual data to be published
+     * @return true/false
      */
     public boolean send (String topic, byte[] data) {
         PublisherPublishMessage.PublisherPublishMessageDetails publisherPublishMessageDetails = PublisherPublishMessage.PublisherPublishMessageDetails.newBuilder()
                 .setTopic(topic)
                 .setMessage(ByteString.copyFrom(data))
                 .build();
-        boolean sent = connection.send(publisherPublishMessageDetails.toByteArray());
-        return sent;
+        return connection.send(publisherPublishMessageDetails.toByteArray());
     }
 
     /**
-     *
+     * closes the connection.
      */
     public void close() {
         try {

@@ -1,5 +1,9 @@
 package model;
 
+/**
+ * Constant class to hold various Constants.
+ * @author nilimajha
+ */
 public class Constants {
     public final static int BUFFER_SIZE = 60000;
     public final static  int READ_TIMEOUT_TIME = 500;
@@ -16,5 +20,4 @@ public class Constants {
     public final static int MESSAGE_BATCH_SIZE = 10;
     public final static int FLUSH_FREQUENCY = 6000;
     public final static String MESSAGE_NOT_AVAILABLE = "MESSAGE_NOT_AVAILABLE";
-
 }

@@ -12,7 +12,7 @@ import java.util.concurrent.*;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
- *
+ * Class extends Node class and is a Consumer
  * @author nilimajha
  */
 public class Consumer extends Node {
@@ -23,13 +23,14 @@ public class Consumer extends Node {
     private ExecutorService pool = Executors.newFixedThreadPool(1); //thread pool of size 1
 
     /**
-     *
-     * @param consumerName
-     * @param consumerType
-     * @param brokerIP
-     * @param brokerPort
-     * @param topic
-     * @param startingPosition
+     * Constructor initialises the class attributes and
+     * also starts consumer to receive the data from broker.
+     * @param consumerName consumer name
+     * @param consumerType consumer type
+     * @param brokerIP broker Ip
+     * @param brokerPort Broker port
+     * @param topic topic from which this consumer will get data
+     * @param startingPosition offset from which the consumer will start pulling data.
      */
     public Consumer(String consumerName, String consumerType, String brokerIP, int brokerPort, String topic, int startingPosition) {
         super(consumerName, brokerIP, brokerPort);
@@ -41,7 +42,10 @@ public class Consumer extends Node {
     }
 
     /**
-     * receive data from broker by calling appropriate function as per the time of consumer
+     * first connects to the broker and
+     * sets itself up with Broker by sending InitialPacket.
+     * then after receive data from broker by
+     * calling appropriate function as per the time of consumer
      */
     public void startConsumer() {
         boolean connected = connectToBroker();
@@ -64,7 +68,7 @@ public class Consumer extends Node {
     }
 
     /**
-     *
+     * method sends Consumer Initial setup packet to the broker.
      */
     public void sendInitialSetupMessage() {
         //send initial message
@@ -113,10 +117,10 @@ public class Consumer extends Node {
     }
 
     /**
-     * method creates appropriate Initial message for the broker as per the consumer type.
-     * @param byteMassage
-     * @param type
-     * @return
+     * method creates packet for message to be sent to the broker as per the consumer type.
+     * @param byteMassage message to be sent
+     * @param type type of message
+     * @return byte[] packet to be sent
      */
     private byte[] createPacket(ByteString byteMassage, String type) {
         Packet.PacketDetails packetDetails = Packet.PacketDetails.newBuilder()
@@ -129,8 +133,8 @@ public class Consumer extends Node {
     }
 
     /**
-     * method pulls message from broker a
-     * t first it sends pull message to the broker
+     * method pulls message from broker
+     * at first it sends pull message to the broker
      * and then receives message sent by broker.
      */
     private boolean pullMessageFromBroker() {
@@ -148,16 +152,17 @@ public class Consumer extends Node {
         byte[] brokerMessage = connection.receive();
         if (brokerMessage != null) {
             System.out.printf("\n[RECEIVE]Received message from Broker\n");
-            successful = extractMessageFromBrokerMessage(brokerMessage);
+            successful = extractDataFromBrokerMessage(brokerMessage);
         }
         return successful;
     }
 
     /**
-     *
-     * @param brokerMessage
+     * method extracts data from message received from broker.
+     * @param brokerMessage message received from broker
+     * @return true/false
      */
-    private boolean extractMessageFromBrokerMessage(byte[] brokerMessage) {
+    private boolean extractDataFromBrokerMessage(byte[] brokerMessage) {
         boolean success = false;
         if (brokerMessage != null) {
             MessageFromBroker.MessageFromBrokerDetails messageFromBrokerDetails;
@@ -195,7 +200,7 @@ public class Consumer extends Node {
     /**
      * return application program the byte array of message fetched from broker.
      * @return message
-     * @param duration
+     * @param duration maximum time to wait if data is not yet available.
      */
     public byte[] poll(Duration duration)  {
         byte[] message = null;

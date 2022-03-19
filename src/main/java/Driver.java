@@ -8,14 +8,14 @@ import java.io.IOException;
 import java.time.Duration;
 
 /**
- *
+ * Driver class that contains main method.
  * @author nilimajha
  */
 public class Driver {
 
     /**
-     *
-     * @param args
+     * main method
+     * @param args input args
      */
     public static void main (String[] args) {
         //validate args
@@ -37,14 +37,24 @@ public class Driver {
         }
     }
 
-    public static void createAndStartBroker (String configFileName, String hostName) {
-        BrokerConfig brokerConfig = Utility.extractBrokerConfigInfo(configFileName, hostName);
+    /**
+     * method Creates Broker object and starts it
+     * @param configFileName broker Config Filename
+     * @param brokerName broker name
+     */
+    public static void createAndStartBroker (String configFileName, String brokerName) {
+        BrokerConfig brokerConfig = Utility.extractBrokerConfigInfo(configFileName, brokerName);
         Broker broker = new Broker(brokerConfig.getName(), brokerConfig.getBrokerIP(), brokerConfig.getBrokerPort());
         broker.run();
     }
 
-    public static void createAndStartProducer (String configFileName, String hostName) {
-        ConfigInformation configInformation = Utility.extractConsumerOrPublisherConfigInfo(configFileName, hostName);
+    /**
+     * method Creates Producer object and starts it
+     * @param configFileName producerConfigFileName
+     * @param producerName Name of Producer
+     */
+    public static void createAndStartProducer (String configFileName, String producerName) {
+        ConfigInformation configInformation = Utility.extractConsumerOrPublisherConfigInfo(configFileName, producerName);
         Producer producer = new Producer(configInformation.getName(), configInformation.getBrokerIP(), configInformation.getBrokerPort());
         producer.startProducer();
 
@@ -87,8 +97,13 @@ public class Driver {
         }
     }
 
-    public static void createAndStartConsumer (String configFileName, String hostName) {
-        ConfigInformation configInformation = Utility.extractConsumerOrPublisherConfigInfo(configFileName, hostName);
+    /**
+     * method Creates Consumer object and starts it
+     * @param configFileName consumerConfigFileName
+     * @param consumerName Name of consumer
+     */
+    public static void createAndStartConsumer (String configFileName, String consumerName) {
+        ConfigInformation configInformation = Utility.extractConsumerOrPublisherConfigInfo(configFileName, consumerName);
         System.out.printf("\nConsumer Started\n");
         Consumer consumer = new Consumer(configInformation.getName(), configInformation.getType(), configInformation.getBrokerIP(), configInformation.getBrokerPort(), configInformation.getTopicName(), 0);
         try (FileOutputStream fileWriter = Utility.fileWriterInitializer(configInformation.getFileName())) {
