@@ -119,29 +119,16 @@ public class RequestProcessor implements Runnable {
         while (connection.connectionSocket.isOpen()) {
             byte[] message = connection.receive();
             if (message != null) {
-//                Packet.PacketDetails packetDetails;
-//                try {
-//                    packetDetails = Packet.PacketDetails.parseFrom(message);
-//                    if (packetDetails.getType().equals(Constants.PUBLISH_REQUEST)) {
-//                        System.out.println("[Thread Id : " + Thread.currentThread().getId() + "]Received Packet Of type : " + packetDetails.getType());
-//                        PublisherPublishMessage.PublisherPublishMessageDetails publisherPublishMessageDetails = PublisherPublishMessage.PublisherPublishMessageDetails.parseFrom(packetDetails.getMessage());
-//                        System.out.printf("\n[@@@@@@@@@@@@@@@Thread Id : %s] [received message Topic : %s] [received message Message : %s]\n", Thread.currentThread().getId(), publisherPublishMessageDetails.getTopic(), publisherPublishMessageDetails.getMessage());
-//                        if (publisherPublishMessageDetails.getTopic() != null && publisherPublishMessageDetails.getMessage() != null) { // validating publish message
-//                        System.out.printf("\n[Thread Id : %s] [Adding new message] [Topic : %s]\n", Thread.currentThread().getId(), publisherPublishMessageDetails.getTopic());
-//                            data.addMessage(publisherPublishMessageDetails.getTopic(), publisherPublishMessageDetails.getMessage().toByteArray());
-//                        }
-//                        System.out.printf("\n[Thread Id : %s] [Added new message] [Topic : %s]\n", Thread.currentThread().getId(), publisherPublishMessageDetails.getTopic());
-////                        // if publish message is not valid then doing nothing.
-//                    }
-//                } catch (InvalidProtocolBufferException e) {
-//                    e.printStackTrace();
-//                }
+                Packet.PacketDetails packetDetails;
                 try {
-                    PublisherPublishMessage.PublisherPublishMessageDetails publisherPublishMessageDetails = PublisherPublishMessage.PublisherPublishMessageDetails.parseFrom(message);
-                    if (publisherPublishMessageDetails.getTopic() != null && publisherPublishMessageDetails.getMessage() != null) { // validating publish message
-                        data.addMessage(publisherPublishMessageDetails.getTopic(), publisherPublishMessageDetails.getMessage().toByteArray());
+                    packetDetails = Packet.PacketDetails.parseFrom(message);
+                    if (packetDetails.getType().equals(Constants.PUBLISH_REQUEST)) {
+                        PublisherPublishMessage.PublisherPublishMessageDetails publisherPublishMessageDetails = PublisherPublishMessage.PublisherPublishMessageDetails.parseFrom(packetDetails.getMessage().toByteArray());
+                        if (publisherPublishMessageDetails.getTopic() != null && publisherPublishMessageDetails.getMessage() != null) { // validating publish message
+                            data.addMessage(publisherPublishMessageDetails.getTopic(), publisherPublishMessageDetails.getMessage().toByteArray());
+                        }
+                        // if publish message is not valid then doing nothing.
                     }
-                    // if publish message is not valid then doing nothing.
                 } catch (InvalidProtocolBufferException e) {
                     e.printStackTrace();
                 }

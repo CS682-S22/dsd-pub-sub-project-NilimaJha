@@ -73,7 +73,13 @@ public class Producer extends Node {
                 .setTopic(topic)
                 .setMessage(ByteString.copyFrom(data))
                 .build();
-        return connection.send(publisherPublishMessageDetails.toByteArray());
+        Packet.PacketDetails packetDetails = Packet.PacketDetails.newBuilder()
+                .setTo(brokerIP)
+                .setFrom(name)
+                .setType(Constants.PUBLISH_REQUEST)
+                .setMessage(publisherPublishMessageDetails.toByteString())
+                .build();
+        return connection.send(packetDetails.toByteArray());
     }
 
     /**
