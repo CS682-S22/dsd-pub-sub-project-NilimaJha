@@ -252,7 +252,7 @@ public class RequestProcessor implements Runnable {
      * and returns its byteArray.
      * @return byte[]
      */
-    private byte[] createMessageFromBrokerInvalid(String type) {
+    public byte[] createMessageFromBrokerInvalid(String type) {
         MessageFromBroker.MessageFromBrokerDetails messageFromBrokerDetails = MessageFromBroker.MessageFromBrokerDetails.newBuilder()
                 .setType(type)
                 .build();

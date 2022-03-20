@@ -34,11 +34,11 @@ public class Utility {
 
     /**
      * check the validity of the type provided in the argument.
-     * @param name name provided in the argument
+     * @param type name provided in the argument
      * @return true/false
      */
-    public static boolean typeIsValid (String name) {
-        return name.equals(Constants.PRODUCER) || name.equals(Constants.CONSUMER) || name.equals(Constants.BROKER);
+    public static boolean typeIsValid (String type) {
+        return type.equals(Constants.PRODUCER) || type.equals(Constants.CONSUMER) || type.equals(Constants.BROKER);
     }
 
     /**
@@ -48,9 +48,8 @@ public class Utility {
      */
     public static boolean fileNameIsValid(String fileName) {
         boolean valid = true;
-        if (!getFileExtension(fileName).equals(".json")) {
+        if (getFileExtension(fileName) == null || !getFileExtension(fileName).equals(".json")) {
             valid = false;
-            System.out.println("file not valid...");
         }
         return valid;
     }

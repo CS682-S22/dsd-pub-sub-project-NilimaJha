@@ -47,7 +47,7 @@ public class Producer extends Node {
      * creates the Producer Initial packet.
      * @return byte[] array
      */
-    private byte[] createInitialMessagePacket() {
+    public byte[] createInitialMessagePacket() {
         InitialMessage.InitialMessageDetails initialMessageDetails = InitialMessage.InitialMessageDetails.newBuilder()
                 .setConnectionSender(Constants.PRODUCER)
                 .setName(name)
