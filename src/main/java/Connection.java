@@ -17,7 +17,6 @@ import java.util.concurrent.TimeoutException;
  * @author nilimajha
  */
 public class Connection {
-//    private String hostName;
     protected AsynchronousSocketChannel connectionSocket;
     private Future<Integer> incomingMessage;
     private ByteBuffer buffer = ByteBuffer.allocate(Constants.BUFFER_SIZE);
@@ -28,7 +27,6 @@ public class Connection {
      * @param connectionSocket
      */
     public Connection(AsynchronousSocketChannel connectionSocket) {
-//        this.hostName = hostName;
         this.connectionSocket = connectionSocket;
         this.incomingMessage = this.connectionSocket.read(buffer);
     }
@@ -71,13 +69,8 @@ public class Connection {
                         break;
                     }
                 }
-//                System.out.printf("\n[R] [THREAD ID : %s] Read successful !!! \n" , Thread.currentThread().getId());
-
-            } else {
-                //System.out.printf("\n[R] [THREAD ID : %s] End of Stream ... No more data !!! \n" , Thread.currentThread().getId());
             }
         } catch (TimeoutException e) {
-//            System.out.printf("\n[R] [THREAD ID : %s] TIMEOUT encountered \n" , Thread.currentThread().getId());
             return messageQueue.poll();
         } catch (InterruptedException e) {
             System.out.printf("\n[Thread Id : %s] Execution Interrupted.\n", Thread.currentThread().getId());

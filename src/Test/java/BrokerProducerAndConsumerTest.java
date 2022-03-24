@@ -16,12 +16,19 @@ import java.util.concurrent.Executors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Test class
+ * @author nilimajha
+ */
 public class BrokerProducerAndConsumerTest {
     static ExecutorService threadPool = Executors.newFixedThreadPool(15);
     static Broker broker = null;
     static Producer producer = null;
     static Consumer consumer = null;
 
+    /**
+     * initialises the broker, producer, Consumer
+     */
     @Before
     public void init() {
         System.out.println("inside init...");
@@ -45,10 +52,11 @@ public class BrokerProducerAndConsumerTest {
         } else {
             System.out.println("Broker is not null...");
         }
-
-        //consumer = new Consumer("CONSUMER-TEST", "PULL", "localhost", 9090, "Test", 0);
     }
 
+    /**
+     * Tests the type of packet createInitialMessage from Producer Class.
+     */
     @Test
     public void createProducerInitialMessagePacketTest1() {
         if (producer != null) {
@@ -66,6 +74,9 @@ public class BrokerProducerAndConsumerTest {
         }
     }
 
+    /**
+     * Tests the sender filed of packet createInitialMessage from Producer Class.
+     */
     @Test
     public void createProducerInitialMessagePacketTest2() {
         if (producer != null) {
@@ -85,6 +96,9 @@ public class BrokerProducerAndConsumerTest {
         }
     }
 
+    /**
+     * Tests the name of the sender of packet createInitialMessage from Producer Class.
+     */
     @Test
     public void createProducerInitialMessagePacketTest3() {
         if (producer != null) {
@@ -104,6 +118,9 @@ public class BrokerProducerAndConsumerTest {
         }
     }
 
+    /**
+     * tests the createPublishPacket type of ProducerClass.
+     */
     @Test
     public void createPublishMessagePacketTest1() {
         if (producer != null) {
@@ -123,6 +140,9 @@ public class BrokerProducerAndConsumerTest {
         }
     }
 
+    /**
+     * tests the createPublishPacket topic part of ProducerClass.
+     */
     @Test
     public void createPublishMessagePacketTest2() {
         if (producer != null) {
@@ -144,6 +164,9 @@ public class BrokerProducerAndConsumerTest {
         }
     }
 
+    /**
+     * tests the createPublishPacket message part of ProducerClass.
+     */
     @Test
     public void createPublishMessagePacketTest3() {
         if (producer != null) {
@@ -165,6 +188,9 @@ public class BrokerProducerAndConsumerTest {
         }
     }
 
+    /**
+     * test the encoding and decoding of data into packet.
+     */
     @Test
     public void createPacketTest1() {
         if (producer != null) {
@@ -186,6 +212,9 @@ public class BrokerProducerAndConsumerTest {
         }
     }
 
+    /**
+     * test the encoding and decoding of data into packet.
+     */
     @Test
     public void createPacketTest2() {
         if (producer != null) {
@@ -207,6 +236,9 @@ public class BrokerProducerAndConsumerTest {
         }
     }
 
+    /**
+     * test send Packet at the producer.
+     */
     @Test
     public void producerSendPacketTest1() {
         if (broker != null && producer != null) {
@@ -222,6 +254,9 @@ public class BrokerProducerAndConsumerTest {
         }
     }
 
+    /**
+     * test the connectTo method of the Node class
+     */
     @Test
     public void consumerConnectToBrokerTest() {
         if (broker != null) {
@@ -232,6 +267,9 @@ public class BrokerProducerAndConsumerTest {
         }
     }
 
+    /**
+     * test the initialMessagePacket from Consumer side.
+     */
     @Test
     public void createConsumerInitialMessagePacketTest1() {
         if (consumer != null) {
@@ -252,6 +290,9 @@ public class BrokerProducerAndConsumerTest {
         }
     }
 
+    /**
+     * test the initialMessagePacket from Consumer side.
+     */
     @Test
     public void createConsumerInitialMessagePacketTest2() {
         if (consumer != null) {
@@ -272,6 +313,9 @@ public class BrokerProducerAndConsumerTest {
         }
     }
 
+    /**
+     * test createPullRequestMessagePacket at Producer.
+     */
     @Test
     public void createConsumerPullRequestMessagePacketTest3() {
         if (consumer != null) {
@@ -290,6 +334,9 @@ public class BrokerProducerAndConsumerTest {
         }
     }
 
+    /**
+     * test createPullRequestMessagePacket at Producer.
+     */
     @Test
     public void createConsumerPullRequestMessagePacketTest4() {
         if (consumer != null) {
@@ -310,6 +357,9 @@ public class BrokerProducerAndConsumerTest {
         }
     }
 
+    /**
+     * test createPullRequestMessagePacket at Producer.
+     */
     @Test
     public void createConsumerPullRequestMessagePacketTest5() {
         if (consumer != null) {
@@ -330,6 +380,9 @@ public class BrokerProducerAndConsumerTest {
         }
     }
 
+    /**
+     * Pulling messages from broker.
+     */
     @Test
     public void receiveMessageFromBroker1() {
         if (consumer != null && producer != null && producer.connection.connectionSocket.isOpen() && broker != null) {
@@ -345,6 +398,9 @@ public class BrokerProducerAndConsumerTest {
         }
     }
 
+    /**
+     * test pullMessage at Consumer.
+     */
     @Test
     public void receiveMessageFromBroker2() {
         if (consumer != null && producer != null && producer.connection.connectionSocket.isOpen() && broker != null) {
@@ -372,6 +428,9 @@ public class BrokerProducerAndConsumerTest {
         }
     }
 
+    /**
+     * Tests the createInitialMessage from Consumer Class.
+     */
     @Test
     public void consumerSendInitialPacketToBrokerTest() {
         if (broker != null && consumer.connection.connectionSocket.isOpen()) {
@@ -382,6 +441,9 @@ public class BrokerProducerAndConsumerTest {
         }
     }
 
+    /**
+     * waits for 30000 millis after the execution of the entire function.
+     */
     @AfterAll
     static void end() {
         try {

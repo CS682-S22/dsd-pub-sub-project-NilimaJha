@@ -136,10 +136,6 @@ public class MessageInfo {
             System.out.printf("\n[Thread Id : %s] Offset %d is not yet available. Last Offset available is %d.\n", Thread.currentThread().getId(), offSet, flushedMessageOffset.get(flushedMessageOffset.size() - 1));
             persistentStorageAccessLock.readLock().unlock();
             return messageBatch;
-//        } else if (index == -1) {
-//            System.out.printf("\n[Thread Id : %s] [offset number %d is not available. String last Offset number available %d]\n", Thread.currentThread().getId(), offSet, flushedMessageOffset.get(flushedMessageOffset.size() - 1));
-//            persistentStorageAccessLock.readLock().unlock();
-//            return messageBatch;
         } else {
             System.out.printf("\n[Thread Id : %s] Offset %d is available.\n", Thread.currentThread().getId(), offSet);
             messageBatch = new ArrayList<>();
@@ -156,7 +152,10 @@ public class MessageInfo {
                         e.printStackTrace();
                     }
                 } else {
-                    eachMessage = new byte[flushedMessageOffset.get(index + 1) - currentOffset];
+                    int temp = flushedMessageOffset.get(index + 1) - currentOffset;
+                    if (temp > 0){
+                        eachMessage = new byte[temp];
+                    }
                 }
 
                 try {

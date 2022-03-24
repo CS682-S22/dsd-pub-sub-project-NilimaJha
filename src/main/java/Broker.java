@@ -64,11 +64,6 @@ public class Broker implements Runnable {
 
             //checking if the socketChannel is valid.
             if ((socketChannel != null) && (socketChannel.isOpen())) {
-//                try {
-//                    //System.out.printf("\n[Thread Id: %s] Connection Established with %s\n", Thread.currentThread().getId(), socketChannel.getRemoteAddress().toString());
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
                 Connection newConnection = null;
                 newConnection = new Connection(socketChannel);
                 // give this connection to requestProcessor

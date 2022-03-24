@@ -63,6 +63,7 @@ public class Driver {
             String eachLine = bufferedReader.readLine();
             System.out.printf("\n[eachLine : %s]\n", eachLine);
             String topic = null;
+            int lineNo = 1;
             while (eachLine != null) {
                 if (configInformation.getFileName().equals("Apache.log")) {
                     String[] messagePart = eachLine.split("] \\[");
@@ -75,6 +76,8 @@ public class Driver {
                     }
                 } else if (configInformation.getFileName().equals("Zookeeper.log")) {
                     topic = "Zookeeper";
+                } else if (configInformation.getFileName().equals("Hadoop.log")) {
+                    topic = "Hadoop";
                 } else {
                     topic = "Mac";
                 }
@@ -90,6 +93,8 @@ public class Driver {
                     }
                 }
 
+                System.out.printf("LineNumber : %d", lineNo);
+                lineNo++;
                 eachLine = bufferedReader.readLine();   // reading next line from the file
             }
         } catch (IOException e) {

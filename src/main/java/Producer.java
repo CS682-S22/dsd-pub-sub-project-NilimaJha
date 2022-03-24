@@ -36,7 +36,6 @@ public class Producer extends Node {
      */
     public boolean sendInitialSetupMessage() {
         //send initial message
-        //System.out.printf("\n[Thread Id : %s] [Creating Initial packet]\n", Thread.currentThread().getId());
         byte[] initialMessagePacket = createInitialMessagePacket();
         System.out.printf("\n[Thread Id : %s] [Sending Initial packet]\n", Thread.currentThread().getId());
         return connection.send(initialMessagePacket); //sending initial packet
@@ -102,7 +101,7 @@ public class Producer extends Node {
      */
     public void close() {
         try {
-            System.out.printf("\n[Thread Id : %s] Closing the Consumer.\n", Thread.currentThread().getId());
+            System.out.printf("\n[Thread Id : %s] Closing the Producer.\n", Thread.currentThread().getId());
             connection.connectionSocket.close();
         } catch (IOException e) {
             e.printStackTrace();

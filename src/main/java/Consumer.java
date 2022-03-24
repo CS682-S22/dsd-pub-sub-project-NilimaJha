@@ -72,7 +72,6 @@ public class Consumer extends Node {
      */
     public boolean sendInitialSetupMessage() {
         //send initial message
-        //System.out.printf("\n[Thread Id : %s] [Creating Initial packet]\n", Thread.currentThread().getId());
         byte[] initialMessagePacket = createInitialMessagePacket();
         System.out.printf("\n[Thread Id : %s] [Sending Initial packet]\n", Thread.currentThread().getId());
         //sending initial packet
@@ -108,7 +107,6 @@ public class Consumer extends Node {
      * @return byte[]
      */
     public byte[] createPullRequestMessagePacket() {
-        //System.out.printf("\nSending pull request for offset number %d\n", offset);
         ConsumerPullRequest.ConsumerPullRequestDetails consumerPullRequestDetails = ConsumerPullRequest.ConsumerPullRequestDetails.newBuilder()
                 .setTopic(topic)
                 .setOffset(offset)

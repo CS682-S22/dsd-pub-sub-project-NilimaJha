@@ -13,7 +13,7 @@ import java.util.concurrent.Future;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TestClass {
+public class ConnectionAndUtilTest {
 
     public static AsynchronousServerSocketChannel serverSocket = null;
     public static AsynchronousSocketChannel server = null;

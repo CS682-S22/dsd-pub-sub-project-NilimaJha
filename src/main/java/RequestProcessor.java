@@ -152,7 +152,6 @@ public class RequestProcessor implements Runnable {
                         ArrayList<byte[]> messageBatch = null;
                         byte[] messageFromBrokerPacket;
                         if (consumerPullRequestDetails.getTopic() != null) { // validating publish message
-                            //System.out.printf("\n[Thread Id : %s] Getting message from offset '%d' from file.\n", Thread.currentThread().getId(), consumerPullRequestDetails.getOffset());
                             messageBatch = data.getMessage(consumerPullRequestDetails.getTopic(), consumerPullRequestDetails.getOffset());
                             if (messageBatch != null) {
                                 messageFromBrokerPacket = createMessageFromBroker(consumerPullRequestDetails.getTopic(), messageBatch, Constants.DATA);
@@ -183,7 +182,6 @@ public class RequestProcessor implements Runnable {
     public void handlePushConsumer() {
         while (connection.connectionSocket.isOpen()) {
             ArrayList<byte[]> messageBatch = null;
-            //System.out.printf("\n[Thread Id : %s] Getting message from offset %d from file for topic %s.\n", Thread.currentThread().getId(), offset, pushBasedConsumerTopic);
             messageBatch = data.getMessage(pushBasedConsumerTopic, offset);
             if (messageBatch != null) {
                 byte[] messageFromBrokerPacket = createMessageFromBroker(pushBasedConsumerTopic, messageBatch, Constants.DATA);
@@ -193,9 +191,7 @@ public class RequestProcessor implements Runnable {
 
                      for (byte[] eachMessage : messageBatch) {
                          offset += eachMessage.length; // updating offset value
-                         //System.out.printf("\nCurrent Message length: %d\n", eachMessage.length);
                      }
-                     //System.out.printf("\nNext offset : %d\n", offset);
                  }
             } else {
                 try {
@@ -213,6 +209,7 @@ public class RequestProcessor implements Runnable {
      * creates MessageFromBroker obj with it and returns its byteArray.
      * @param topic
      * @param messageBatch
+     * @param type
      * @return
      */
     private byte[] createMessageFromBroker(String topic, ArrayList<byte[]> messageBatch, String type) {
