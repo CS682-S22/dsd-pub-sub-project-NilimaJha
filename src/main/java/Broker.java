@@ -41,6 +41,7 @@ public class Broker implements Runnable {
     @Override
     public void run() {
         AsynchronousServerSocketChannel serverSocket = null;
+
         try {
             serverSocket = AsynchronousServerSocketChannel.open();
             serverSocket.bind(new InetSocketAddress(brokerIP, brokerPort));
@@ -50,9 +51,12 @@ public class Broker implements Runnable {
 
         // keeps on running when shutdown is false
         while (!shutdown) {
-            System.out.printf("\n[Thread Id: %s] [Broker : %s] BrokerServer is listening on IP: %s & Port : %s.\n", Thread.currentThread().getId(), brokerName ,brokerIP , brokerPort);
+            System.out.printf("\n[Thread Id: %s] [Broker : %s] BrokerServer is listening on IP: %s & Port : %s.\n",
+                    Thread.currentThread().getId(), brokerName ,brokerIP , brokerPort);
+
             Future<AsynchronousSocketChannel> acceptFuture = serverSocket.accept();
             AsynchronousSocketChannel socketChannel = null;
+
             try {
                 socketChannel = acceptFuture.get();
                 if (shutdown) {

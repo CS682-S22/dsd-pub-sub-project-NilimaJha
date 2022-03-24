@@ -18,8 +18,10 @@ public class MessageInfo {
     private String topicSegmentFileName;
     private boolean topicIsAvailable = true;
     private String topic;
-    private final ReentrantReadWriteLock inMemoryDSLock = new ReentrantReadWriteLock(); // lock for inMemory data store
-    private final ReentrantReadWriteLock persistentStorageAccessLock = new ReentrantReadWriteLock(); // lock for persistent storage and flushedMessageOffset ArrayList.
+    // lock for inMemory data store
+    private final ReentrantReadWriteLock inMemoryDSLock = new ReentrantReadWriteLock();
+    // lock for persistent storage and flushedMessageOffset ArrayList.
+    private final ReentrantReadWriteLock persistentStorageAccessLock = new ReentrantReadWriteLock();
     Thread thread = new Thread() {
         @Override
         public void run() {
@@ -86,7 +88,10 @@ public class MessageInfo {
         inMemoryMessageOffset.add(this.lastOffSet);
         inMemoryMessage.add(message);
         lastOffSet += message.length;
-        System.out.printf("\n[Thread Id : %s] [ADD] Added new message on Topic %s. [In-memory buffer size : %d]\n", Thread.currentThread().getId(), topic, inMemoryMessageOffset.size());
+
+        System.out.printf("\n[Thread Id : %s] [ADD] Added new message on Topic %s. [In-memory buffer size : %d]\n",
+                Thread.currentThread().getId(), topic, inMemoryMessageOffset.size());
+
         if (inMemoryMessageOffset.size() == Constants.TOTAL_IN_MEMORY_MESSAGE_SIZE) {
             flushOnFile();
         }
@@ -114,7 +119,10 @@ public class MessageInfo {
         // clearing in-memory buffer of the published message.
         inMemoryMessageOffset.clear();
         inMemoryMessage.clear();
-        System.out.printf("\n[Thread Id : %s] [FLUSH] Flushed In-Memory message of topic %s on the file %s.\n", Thread.currentThread().getId(), topic, topicSegmentFileName);
+
+        System.out.printf("\n[Thread Id : %s] [FLUSH] Flushed In-Memory message of topic %s on the file %s.\n",
+                Thread.currentThread().getId(), topic, topicSegmentFileName);
+
         // realising write lock on the file and flushedMessageOffset ArrayList
         persistentStorageAccessLock.writeLock().unlock();
     }
@@ -133,16 +141,25 @@ public class MessageInfo {
         int index = flushedMessageOffset.indexOf(offSet);
         // offset is not available
         if (index == -1 && currentOffset > flushedMessageOffset.get(flushedMessageOffset.size() - 1)) {
-            System.out.printf("\n[Thread Id : %s] Offset %d is not yet available. Last Offset available is %d.\n", Thread.currentThread().getId(), offSet, flushedMessageOffset.get(flushedMessageOffset.size() - 1));
+
+            System.out.printf("\n[Thread Id : %s] Offset %d is not yet available. Last Offset available is %d.\n",
+                    Thread.currentThread().getId(), offSet, flushedMessageOffset.get(flushedMessageOffset.size() - 1));
+
             persistentStorageAccessLock.readLock().unlock();
             return messageBatch;
         } else {
-            System.out.printf("\n[Thread Id : %s] Offset %d is available.\n", Thread.currentThread().getId(), offSet);
+
+            System.out.printf("\n[Thread Id : %s] Offset %d is available.\n",
+                    Thread.currentThread().getId(), offSet);
+
             messageBatch = new ArrayList<>();
         }
-        while (count < Constants.MESSAGE_BATCH_SIZE && currentOffset <= flushedMessageOffset.get(flushedMessageOffset.size() - 1)) {
+        while (count < Constants.MESSAGE_BATCH_SIZE && currentOffset <=
+                flushedMessageOffset.get(flushedMessageOffset.size() - 1)) {
+
             // read one message at a time and append it on the messageBatch arrayList
-            synchronized (this) { // making this block of code synchronised so that at a time only one thread can use FileInputStream named fileReader
+            // making this block of code synchronised so that at a time only one thread can use FileInputStream named fileReader
+            synchronized (this) {
                 byte[] eachMessage = new byte[0];
                 if (index == flushedMessageOffset.size() - 1) {
                     try {
@@ -186,14 +203,20 @@ public class MessageInfo {
     private void flushIfNeeded() {
         while (topicIsAvailable) {
             try {
-                System.out.printf("\n[Thread Id : %s] [sleeping for 6000 milli sec] \n", Thread.currentThread().getId());
+                System.out.printf("\n[Thread Id : %s] [sleeping for 6000 milli sec] \n",
+                        Thread.currentThread().getId());
+
                 Thread.sleep(Constants.FLUSH_FREQUENCY);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             // acquire write lock on inMemoryOffset Arraylist and inMemoryMessage ArrayList
             inMemoryDSLock.writeLock().lock();
-            System.out.printf("\n[Thread Id : %s] Checking if flushing is needed for topic %s [Total element in buffer : %d] \n", Thread.currentThread().getId(), topic, inMemoryMessageOffset.size());
+
+            System.out.printf("\n[Thread Id : %s] Checking if flushing is needed for topic %s " +
+                    "[Total element in buffer : %d] \n", Thread.currentThread().getId(),
+                    topic, inMemoryMessageOffset.size());
+
             if (inMemoryMessageOffset.size() != 0) {
                 flushOnFile();
             }

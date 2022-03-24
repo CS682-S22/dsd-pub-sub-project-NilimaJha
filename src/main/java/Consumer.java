@@ -32,7 +32,9 @@ public class Consumer extends Node {
      * @param topic topic from which this consumer will get data
      * @param startingPosition offset from which the consumer will start pulling data.
      */
-    public Consumer(String consumerName, String consumerType, String brokerIP, int brokerPort, String topic, int startingPosition) {
+    public Consumer(String consumerName, String consumerType, String brokerIP,
+                    int brokerPort, String topic, int startingPosition) {
+
         super(consumerName, brokerIP, brokerPort);
         this.consumerType = consumerType;
         this.topic = topic;
@@ -53,7 +55,9 @@ public class Consumer extends Node {
             sendInitialSetupMessage();
             if (consumerType.equals(Constants.CONSUMER_PULL)) {
                 while (connection.connectionSocket.isOpen()) {
-                    System.out.printf("\n[Thread Id : %s] [Pulling message from broker]\n", Thread.currentThread().getId());
+                    System.out.printf("\n[Thread Id : %s] [Pulling message from broker]\n",
+                            Thread.currentThread().getId());
+
                     boolean topicIsAvailable = pullMessageFromBroker(); // fetching data from broker
                     if (!topicIsAvailable) {
                         break;
@@ -107,7 +111,8 @@ public class Consumer extends Node {
      * @return byte[]
      */
     public byte[] createPullRequestMessagePacket() {
-        ConsumerPullRequest.ConsumerPullRequestDetails consumerPullRequestDetails = ConsumerPullRequest.ConsumerPullRequestDetails.newBuilder()
+        ConsumerPullRequest.ConsumerPullRequestDetails consumerPullRequestDetails = ConsumerPullRequest
+                .ConsumerPullRequestDetails.newBuilder()
                 .setTopic(topic)
                 .setOffset(offset)
                 .build();
@@ -137,7 +142,10 @@ public class Consumer extends Node {
      */
     public boolean pullMessageFromBroker() {
         byte[] requestMessagePacket = createPullRequestMessagePacket();
-        System.out.printf("\n[Thread Id : %s] [SEND] Sending pull request to Broker for Offset %d.\n", Thread.currentThread().getId(), offset);
+
+        System.out.printf("\n[Thread Id : %s] [SEND] Sending pull request to Broker for Offset %d.\n",
+                Thread.currentThread().getId(), offset);
+
         connection.send(requestMessagePacket); // sending pull request to the broker
         return receiveMessageFromBroker();
     }
@@ -149,7 +157,10 @@ public class Consumer extends Node {
         boolean successful = true;
         byte[] brokerMessage = connection.receive();
         if (brokerMessage != null) {
-            System.out.printf("\n[Thread Id : %s] [RECEIVE] Received Response from Broker.\n", Thread.currentThread().getId());
+
+            System.out.printf("\n[Thread Id : %s] [RECEIVE] Received Response from Broker.\n",
+                    Thread.currentThread().getId());
+
             successful = extractDataFromBrokerResponse(brokerMessage);
         }
         return successful;
@@ -167,9 +178,15 @@ public class Consumer extends Node {
             try {
                 packetDetails = Packet.PacketDetails.parseFrom(brokerMessage);
                 if (packetDetails.getType().equals(Constants.DATA)) {
-                    MessageFromBroker.MessageFromBrokerDetails messageFromBrokerDetails = MessageFromBroker.MessageFromBrokerDetails.parseFrom(packetDetails.getMessage().toByteArray());
+                    MessageFromBroker.MessageFromBrokerDetails messageFromBrokerDetails = MessageFromBroker
+                            .MessageFromBrokerDetails.parseFrom(packetDetails.getMessage().toByteArray());
+
                     if (messageFromBrokerDetails.getType().equals(Constants.MESSAGE)) {
-                        System.out.printf("\n[Thread Id : %s] [RECEIVE] Total message received from broker in one response = %d.\n", Thread.currentThread().getId(), messageFromBrokerDetails.getActualMessageCount());
+
+                        System.out.printf("\n[Thread Id : %s] [RECEIVE] Total message received from broker in one " +
+                                "response = %d.\n", Thread.currentThread().getId(),
+                                messageFromBrokerDetails.getActualMessageCount());
+
                         for (int index = 0; index < messageFromBrokerDetails.getActualMessageCount(); index++) {
                             byte[] actualMessageBytes = messageFromBrokerDetails.getActualMessage(index).toByteArray();
                             try {
@@ -183,8 +200,12 @@ public class Consumer extends Node {
                         }
                         success = true;
                     }
-                } else if (packetDetails.getType().equals(Constants.MESSAGE_NOT_AVAILABLE) || packetDetails.getType().equals(Constants.TOPIC_NOT_AVAILABLE)) {
-                    System.out.printf("\n[Thread Id : %s] [RECEIVE] Offset %d is not available yet, so sleeping for 6000 ms\n", Thread.currentThread().getId(), offset);
+                } else if (packetDetails.getType().equals(Constants.MESSAGE_NOT_AVAILABLE)
+                        || packetDetails.getType().equals(Constants.TOPIC_NOT_AVAILABLE)) {
+
+                    System.out.printf("\n[Thread Id : %s] [RECEIVE] Offset %d is not available yet, " +
+                            "so sleeping for 6000 ms\n", Thread.currentThread().getId(), offset);
+
                     try {
                         Thread.sleep(6000);
                     } catch (InterruptedException e) {

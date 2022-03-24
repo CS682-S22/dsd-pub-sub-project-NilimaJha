@@ -44,7 +44,11 @@ public class Driver {
      */
     public static void createAndStartBroker (String configFileName, String brokerName) {
         BrokerConfig brokerConfig = Utility.extractBrokerConfigInfo(configFileName, brokerName);
-        Broker broker = new Broker(brokerConfig.getName(), brokerConfig.getBrokerIP(), brokerConfig.getBrokerPort());
+        Broker broker = new Broker(
+                brokerConfig.getName(),
+                brokerConfig.getBrokerIP(),
+                brokerConfig.getBrokerPort());
+
         broker.run();
     }
 
@@ -55,7 +59,11 @@ public class Driver {
      */
     public static void createAndStartProducer (String configFileName, String producerName) {
         ConfigInformation configInformation = Utility.extractConsumerOrPublisherConfigInfo(configFileName, producerName);
-        Producer producer = new Producer(configInformation.getName(), configInformation.getBrokerIP(), configInformation.getBrokerPort());
+        Producer producer = new Producer(
+                configInformation.getName(),
+                configInformation.getBrokerIP(),
+                configInformation.getBrokerPort());
+
         producer.startProducer();
 
         System.out.printf("\n[Now Sending Actual data]\n");
@@ -105,7 +113,6 @@ public class Driver {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
         producer.close();
     }
 
@@ -117,7 +124,13 @@ public class Driver {
     public static void createAndStartConsumer (String configFileName, String consumerName) {
         ConfigInformation configInformation = Utility.extractConsumerOrPublisherConfigInfo(configFileName, consumerName);
         System.out.printf("\nConsumer Started\n");
-        Consumer consumer = new Consumer(configInformation.getName(), configInformation.getType(), configInformation.getBrokerIP(), configInformation.getBrokerPort(), configInformation.getTopicName(), 0);
+        Consumer consumer = new Consumer(
+                configInformation.getName(),
+                configInformation.getType(),
+                configInformation.getBrokerIP(),
+                configInformation.getBrokerPort(),
+                configInformation.getTopicName(),
+                0);
         try (FileOutputStream fileWriter = Utility.fileWriterInitializer(configInformation.getFileName())) {
             // Continue to pull messages...forever
             while(true) {

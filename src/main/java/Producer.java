@@ -60,7 +60,8 @@ public class Producer extends Node {
      * @return
      */
     public byte[] createPublishMessagePacket(String topic, byte[] data) {
-        PublisherPublishMessage.PublisherPublishMessageDetails publisherPublishMessageDetails = PublisherPublishMessage.PublisherPublishMessageDetails.newBuilder()
+        PublisherPublishMessage.PublisherPublishMessageDetails publisherPublishMessageDetails = PublisherPublishMessage
+                .PublisherPublishMessageDetails.newBuilder()
                 .setTopic(topic)
                 .setMessage(ByteString.copyFrom(data))
                 .build();
@@ -92,7 +93,9 @@ public class Producer extends Node {
      * @return true/false
      */
     public boolean send (String topic, byte[] data) {
-        System.out.printf("\n[Thread Id : %s] [SEND] Publishing Message on Topic %s.\n", Thread.currentThread().getId(), topic);
+        System.out.printf("\n[Thread Id : %s] [SEND] Publishing Message on Topic %s.\n",
+                Thread.currentThread().getId(), topic);
+
         return connection.send(createPublishMessagePacket(topic, data));
     }
 
@@ -101,7 +104,9 @@ public class Producer extends Node {
      */
     public void close() {
         try {
-            System.out.printf("\n[Thread Id : %s] Closing the Producer.\n", Thread.currentThread().getId());
+            System.out.printf("\n[Thread Id : %s] Closing the Producer.\n",
+                    Thread.currentThread().getId());
+
             connection.connectionSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
