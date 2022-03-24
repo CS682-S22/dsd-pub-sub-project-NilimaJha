@@ -95,6 +95,13 @@ public class Driver {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        try {
+            Thread.sleep(6000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        producer.close();
     }
 
     /**

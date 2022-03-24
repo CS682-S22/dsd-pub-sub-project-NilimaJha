@@ -8,7 +8,6 @@ public class BrokerConfig {
     private String Name;
     private String BrokerIP;
     private int BrokerPort;
-
     /**
      * Constructor to initialise class attributes
      * @param Name
@@ -44,4 +43,5 @@ public class BrokerConfig {
     public int getBrokerPort() {
         return BrokerPort;
     }
+
 }

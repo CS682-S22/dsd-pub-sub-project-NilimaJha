@@ -50,7 +50,7 @@ public class Broker implements Runnable {
 
         // keeps on running when shutdown is false
         while (!shutdown) {
-            System.out.printf("%s[BROKER] BrokerServer is listening on %s, port : %s \n", brokerName ,brokerIP , brokerPort);
+            System.out.printf("\n[Thread Id: %s] [Broker : %s] BrokerServer is listening on IP: %s & Port : %s.\n", Thread.currentThread().getId(), brokerName ,brokerIP , brokerPort);
             Future<AsynchronousSocketChannel> acceptFuture = serverSocket.accept();
             AsynchronousSocketChannel socketChannel = null;
             try {
@@ -64,12 +64,11 @@ public class Broker implements Runnable {
 
             //checking if the socketChannel is valid.
             if ((socketChannel != null) && (socketChannel.isOpen())) {
-                try {
-                    System.out.printf("\n[CONNECTION REQUEST] Connection Established with %s \n\n",
-                            socketChannel.getRemoteAddress().toString());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+//                try {
+//                    //System.out.printf("\n[Thread Id: %s] Connection Established with %s\n", Thread.currentThread().getId(), socketChannel.getRemoteAddress().toString());
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
                 Connection newConnection = null;
                 newConnection = new Connection(socketChannel);
                 // give this connection to requestProcessor

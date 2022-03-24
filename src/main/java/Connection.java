@@ -74,15 +74,15 @@ public class Connection {
 //                System.out.printf("\n[R] [THREAD ID : %s] Read successful !!! \n" , Thread.currentThread().getId());
 
             } else {
-//                System.out.printf("\n[R] [THREAD ID : %s] End of Stream ... No more data !!! \n" , Thread.currentThread().getId());
+                //System.out.printf("\n[R] [THREAD ID : %s] End of Stream ... No more data !!! \n" , Thread.currentThread().getId());
             }
         } catch (TimeoutException e) {
 //            System.out.printf("\n[R] [THREAD ID : %s] TIMEOUT encountered \n" , Thread.currentThread().getId());
             return messageQueue.poll();
         } catch (InterruptedException e) {
-            System.out.println("\nExecution Interrupted for Thread Thread [" + Thread.currentThread().getId() + "]\n");
+            System.out.printf("\n[Thread Id : %s] Execution Interrupted.\n", Thread.currentThread().getId());
         } catch (ExecutionException e) {
-            System.out.println("\nSOURCE has closed the Connection !!!");
+            System.out.printf("\n[Thread Id : %s] SOURCE has closed the Connection !!!", Thread.currentThread().getId());
             try {
                 this.connectionSocket.close();
             } catch (IOException ex) {
@@ -109,11 +109,11 @@ public class Connection {
             try {
                 result.get();
             } catch (InterruptedException e) {
-                System.out.println("\nExecution Interrupted for Thread Thread [" + Thread.currentThread().getId() + "]\n");
+                System.out.printf("\n[Thread Id : %s] Execution Interrupted.\n", Thread.currentThread().getId());
                 return false;
             } catch (ExecutionException e) {
                 System.out.println("\nDESTINATION has closed the Connection !!!");
-                System.out.println("\nExecution Terminated for Thread [" + Thread.currentThread().getId() + "]\n");
+                System.out.printf("\n[Thread Id : %s] SOURCE has closed the Connection !!!", Thread.currentThread().getId());
                 return false;
             }
             buffer.clear();

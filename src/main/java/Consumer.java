@@ -53,7 +53,7 @@ public class Consumer extends Node {
             sendInitialSetupMessage();
             if (consumerType.equals(Constants.CONSUMER_PULL)) {
                 while (connection.connectionSocket.isOpen()) {
-                    System.out.printf("\n[Pulling message from broker]\n");
+                    System.out.printf("\n[Thread Id : %s] [Pulling message from broker]\n", Thread.currentThread().getId());
                     boolean topicIsAvailable = pullMessageFromBroker(); // fetching data from broker
                     if (!topicIsAvailable) {
                         break;
@@ -70,20 +70,20 @@ public class Consumer extends Node {
     /**
      * method sends Consumer Initial setup packet to the broker.
      */
-    public void sendInitialSetupMessage() {
+    public boolean sendInitialSetupMessage() {
         //send initial message
-        System.out.printf("\n[Creating Initial packet]\n");
+        //System.out.printf("\n[Thread Id : %s] [Creating Initial packet]\n", Thread.currentThread().getId());
         byte[] initialMessagePacket = createInitialMessagePacket();
-        System.out.printf("\n[Sending Initial packet]\n");
-        connection.send(initialMessagePacket); //sending initial packet
-        System.out.printf("\n[Initial packet Sending Successful]\n");
+        System.out.printf("\n[Thread Id : %s] [Sending Initial packet]\n", Thread.currentThread().getId());
+        //sending initial packet
+        return connection.send(initialMessagePacket);
     }
 
     /**
      * method creates appropriate Initial message for the broker as per the consumer type.
      * @return initialMessagePacketByteArray
      */
-    private byte[] createInitialMessagePacket() {
+    public byte[] createInitialMessagePacket() {
         InitialMessage.InitialMessageDetails initialMessageDetails;
         if (consumerType.equals(Constants.CONSUMER_PULL)) {
             initialMessageDetails = InitialMessage.InitialMessageDetails.newBuilder()
@@ -107,8 +107,8 @@ public class Consumer extends Node {
      * method creates pull request message.
      * @return byte[]
      */
-    private byte[] createPullRequestMessagePacket() {
-        System.out.printf("\nSending pull request for offset number %d\n", offset);
+    public byte[] createPullRequestMessagePacket() {
+        //System.out.printf("\nSending pull request for offset number %d\n", offset);
         ConsumerPullRequest.ConsumerPullRequestDetails consumerPullRequestDetails = ConsumerPullRequest.ConsumerPullRequestDetails.newBuilder()
                 .setTopic(topic)
                 .setOffset(offset)
@@ -137,9 +137,9 @@ public class Consumer extends Node {
      * at first it sends pull message to the broker
      * and then receives message sent by broker.
      */
-    private boolean pullMessageFromBroker() {
+    public boolean pullMessageFromBroker() {
         byte[] requestMessagePacket = createPullRequestMessagePacket();
-        System.out.printf("\n[SEND]Send pull request to Broker\n");
+        System.out.printf("\n[Thread Id : %s] [SEND] Sending pull request to Broker for Offset %d.\n", Thread.currentThread().getId(), offset);
         connection.send(requestMessagePacket); // sending pull request to the broker
         return receiveMessageFromBroker();
     }
@@ -151,8 +151,8 @@ public class Consumer extends Node {
         boolean successful = true;
         byte[] brokerMessage = connection.receive();
         if (brokerMessage != null) {
-            System.out.printf("\n[RECEIVE]Received message from Broker\n");
-            successful = extractDataFromBrokerMessage(brokerMessage);
+            System.out.printf("\n[Thread Id : %s] [RECEIVE] Received Response from Broker.\n", Thread.currentThread().getId());
+            successful = extractDataFromBrokerResponse(brokerMessage);
         }
         return successful;
     }
@@ -162,7 +162,7 @@ public class Consumer extends Node {
      * @param brokerMessage message received from broker
      * @return true/false
      */
-    private boolean extractDataFromBrokerMessage(byte[] brokerMessage) {
+    private boolean extractDataFromBrokerResponse(byte[] brokerMessage) {
         boolean success = false;
         if (brokerMessage != null) {
             Packet.PacketDetails packetDetails;
@@ -171,7 +171,7 @@ public class Consumer extends Node {
                 if (packetDetails.getType().equals(Constants.DATA)) {
                     MessageFromBroker.MessageFromBrokerDetails messageFromBrokerDetails = MessageFromBroker.MessageFromBrokerDetails.parseFrom(packetDetails.getMessage().toByteArray());
                     if (messageFromBrokerDetails.getType().equals(Constants.MESSAGE)) {
-                        System.out.printf("\n[RECEIVE] Total message received from broker in one response = %d.\n", messageFromBrokerDetails.getActualMessageCount());
+                        System.out.printf("\n[Thread Id : %s] [RECEIVE] Total message received from broker in one response = %d.\n", Thread.currentThread().getId(), messageFromBrokerDetails.getActualMessageCount());
                         for (int index = 0; index < messageFromBrokerDetails.getActualMessageCount(); index++) {
                             byte[] actualMessageBytes = messageFromBrokerDetails.getActualMessage(index).toByteArray();
                             try {
@@ -179,7 +179,6 @@ public class Consumer extends Node {
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
-                            System.out.printf("\nReceived Message size: %d\n", actualMessageBytes.length);
                             if (consumerType.equals(model.Constants.CONSUMER_PULL)) {
                                 offset += actualMessageBytes.length; // incrementing offset value to the next message offset
                             }
@@ -187,7 +186,7 @@ public class Consumer extends Node {
                         success = true;
                     }
                 } else if (packetDetails.getType().equals(Constants.MESSAGE_NOT_AVAILABLE) || packetDetails.getType().equals(Constants.TOPIC_NOT_AVAILABLE)) {
-                    System.out.printf("\noffset number is not available yet, so sleeping for 6000 ms %d\n", offset);
+                    System.out.printf("\n[Thread Id : %s] [RECEIVE] Offset %d is not available yet, so sleeping for 6000 ms\n", Thread.currentThread().getId(), offset);
                     try {
                         Thread.sleep(6000);
                     } catch (InterruptedException e) {
@@ -215,5 +214,29 @@ public class Consumer extends Node {
             e.printStackTrace();
         }
         return message;
+    }
+
+    /**
+     * getter for consumerType
+     * @return consumerType
+     */
+    public String getConsumerType() {
+        return consumerType;
+    }
+
+    /**
+     * getter for offset
+     * @return offset
+     */
+    public int getOffset() {
+        return offset;
+    }
+
+    /**
+     * getter for topic
+     * @return topic
+     */
+    public String getTopic() {
+        return topic;
     }
 }

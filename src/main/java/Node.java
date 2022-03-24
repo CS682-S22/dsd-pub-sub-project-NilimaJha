@@ -38,16 +38,24 @@ public class Node {
             e.printStackTrace();
         }
         InetSocketAddress brokerAddress = new InetSocketAddress(brokerIP, brokerPort);
-        System.out.printf("\n[Connecting To Broker]\n");
+        System.out.printf("\n[Thread Id : %s] [Connecting To Broker]\n", Thread.currentThread().getId());
         Future<Void> futureSocket = clientSocket.connect(brokerAddress);
         try {
             futureSocket.get();
-            System.out.printf("\n[Connection Successful]\n");
+            System.out.printf("\n[Thread Id : %s] [Connection Successful]\n", Thread.currentThread().getId());
             connection = new Connection(clientSocket);
             connected = true;
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
         return connected;
+    }
+
+    /**
+     * getter for the name.
+     * @return name
+     */
+    public String getName() {
+        return name;
     }
 }
