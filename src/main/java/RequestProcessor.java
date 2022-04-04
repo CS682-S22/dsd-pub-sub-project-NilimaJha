@@ -8,6 +8,8 @@ import org.apache.logging.log4j.Logger;
 import proto.*;
 
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -24,6 +26,8 @@ public class RequestProcessor implements Runnable {
     private String name;
     private AtomicLong offset = new AtomicLong(-1);
     private String pushBasedConsumerTopic = null;
+    private Timer timer;
+    private final Object waitObj = new Object();
 
     /**
      * Constructor that initialises Connection class object and also model.Data
@@ -33,6 +37,30 @@ public class RequestProcessor implements Runnable {
         this.brokerName = brokerName;
         this.connection = connection;
         this.data = Data.getData();
+    }
+
+    /**
+     *
+     */
+    private void startTimer() {
+        TimerTask timerTask = new TimerTask() {
+            public void run() {
+                notifyThread();
+            }
+        };
+        timer = new Timer();
+        timer.schedule(timerTask, Constants.TIMEOUT_IF_DATA_NOT_YET_AVAILABLE);
+    }
+
+    /**
+     *
+     */
+    public void notifyThread() {
+        timer.cancel();
+        synchronized (waitObj) {
+            logger.info("\nNotifying the thread about timeout.");
+            waitObj.notify();
+        }
     }
 
     /**
@@ -137,11 +165,14 @@ public class RequestProcessor implements Runnable {
                     logger.error("\nInvalidProtocolBufferException occurred while decoding publish message. Error Message : " + e.getMessage());
                 }
             } else {
-                try {
-                    logger.info("\nMessage is not received from " + name);
-                    Thread.sleep(6000);
-                } catch (InterruptedException e) {
-                    logger.error("\nInterruptedException occurred. Error Message : " + e.getMessage());
+                synchronized (waitObj) {
+                    startTimer();
+                    try {
+                        logger.info("\nMessage is not received from " + name + " Waiting...");
+                        waitObj.wait();
+                    } catch (InterruptedException e) {
+                        logger.error("\nInterruptedException occurred. Error Message : " + e.getMessage());
+                    }
                 }
             }
         }
@@ -212,11 +243,14 @@ public class RequestProcessor implements Runnable {
                      }
                  }
             } else {
-                try {
-                    logger.info("\nNext Batch of message is not yet PUSHED to " + brokerName + " fot the " + name);
-                    Thread.sleep(500); //sleeping for 500 millisecond
-                } catch (InterruptedException e) {
-                    logger.error("\nInterruptedException occurred. Error Message : " + e.getMessage());
+                synchronized (waitObj) {
+                    startTimer();
+                    try {
+                        logger.info("\nNext Batch of message is not yet PUSHED to " + brokerName + " fot the " + name + ". Waiting...");
+                        waitObj.wait();
+                    } catch (InterruptedException e) {
+                        logger.error("\nInterruptedException occurred. Error Message : " + e.getMessage());
+                    }
                 }
             }
         }
