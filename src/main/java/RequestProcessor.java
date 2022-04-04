@@ -60,7 +60,7 @@ public class RequestProcessor implements Runnable {
                         parseInitialMessage1(any);
                     }
                 } catch (InvalidProtocolBufferException e) {
-                    e.printStackTrace();
+                    logger.error("\nInvalidProtocolBufferException occurred decoding Initial Packet. Error Message : " + e.getMessage());
                 }
             }
         }

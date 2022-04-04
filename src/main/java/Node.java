@@ -48,11 +48,10 @@ public class Node {
                 connection = new Connection(clientSocket);
                 connected = true;
             } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
+                logger.error("\nException occurred while connecting to broker. Error Message : " + e.getMessage());
             }
         } catch (IOException e) {
             logger.error("\nIOException occurred while connecting to Broker.");
-            //e.printStackTrace();
         }
         return connected;
     }

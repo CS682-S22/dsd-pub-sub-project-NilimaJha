@@ -138,7 +138,6 @@ public class Connection {
             connectionSocket.close();
         } catch (IOException e) {
             logger.info("\nIOException occurred while closing the connectionSocket. Error Message : " + e.getMessage());
-           // e.printStackTrace();
             return false;
         }
         return true;

@@ -3,6 +3,8 @@ import com.google.gson.reflect.TypeToken;
 import model.BrokerConfig;
 import model.ConfigInformation;
 import model.Constants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -14,6 +16,7 @@ import java.util.List;
  * @author nilimajha
  */
 public class Utility {
+    private static final Logger logger = LogManager.getLogger(Utility.class);
 
     /**
      * method check the validity of the argument provided.
@@ -161,7 +164,8 @@ public class Utility {
         try {
             fileWriter = new FileOutputStream(outputFileName, true);
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            logger.error("\nFileNotFoundException occurred while Initialising FileOutPutStream for file "
+                    + outputFileName + ". Error Message : " + e.getMessage());
         }
         return fileWriter;
     }
@@ -176,7 +180,7 @@ public class Utility {
         try {
             bufferedReader = new BufferedReader(new FileReader(inputFileName));
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("\nIOException occurred while initialising BufferedReader on file " + inputFileName + ". Error Message : " + e.getMessage());
         }
         return bufferedReader;
     }

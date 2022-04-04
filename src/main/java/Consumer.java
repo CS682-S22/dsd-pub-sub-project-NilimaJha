@@ -193,7 +193,7 @@ public class Consumer extends Node {
                             try {
                                 messageFromBroker.put(actualMessageBytes);
                             } catch (InterruptedException e) {
-                                e.printStackTrace();
+                                logger.error("\nInterruptedException occurred while trying to put new message into list. Error Message : " + e.getMessage());
                             }
                             if (consumerType.equals(model.Constants.CONSUMER_PULL)) {
                                 offset.addAndGet(actualMessageBytes.length); // incrementing offset value to the next message offset
@@ -219,7 +219,7 @@ public class Consumer extends Node {
         try {
             message = messageFromBroker.poll(duration.toMillis(), MILLISECONDS);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            logger.error("\nInterruptedException occurred while trying to poll message from consumer. Error Message : " + e.getMessage());
         }
         return message;
     }
