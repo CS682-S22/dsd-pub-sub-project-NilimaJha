@@ -1,0 +1,7 @@
+[
+	{
+		"Name": "BROKER-1",
+		"BrokerIP" : "localhost",
+		"BrokerPort" : "8080"
+	}
+]

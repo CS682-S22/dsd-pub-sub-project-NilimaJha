@@ -464,7 +464,7 @@ public class ConnectionAndUtilTest {
         }
 
         Producer producer = new Producer("PRODUCER-1", "localhost", 8007);
-        byte[] initialMessagePacket = producer.createInitialMessagePacket();
+        byte[] initialMessagePacket = producer.createInitialMessagePacket1();
         newConnectionClientSide.send(initialMessagePacket);
     }
 }

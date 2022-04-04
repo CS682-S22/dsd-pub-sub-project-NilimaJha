@@ -9,7 +9,6 @@ import proto.InitialMessage;
 import proto.Packet;
 import proto.PublisherPublishMessage;
 
-import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -60,7 +59,7 @@ public class BrokerProducerAndConsumerTest {
     @Test
     public void createProducerInitialMessagePacketTest1() {
         if (producer != null) {
-            byte[] producerInitialMessagePacket = producer.createInitialMessagePacket();
+            byte[] producerInitialMessagePacket = producer.createInitialMessagePacket1();
             Packet.PacketDetails packetDetails;
             try {
                 packetDetails = Packet.PacketDetails.parseFrom(producerInitialMessagePacket);
@@ -80,7 +79,7 @@ public class BrokerProducerAndConsumerTest {
     @Test
     public void createProducerInitialMessagePacketTest2() {
         if (producer != null) {
-            byte[] producerInitialMessagePacket = producer.createInitialMessagePacket();
+            byte[] producerInitialMessagePacket = producer.createInitialMessagePacket1();
             Packet.PacketDetails packetDetails;
             InitialMessage.InitialMessageDetails initialMessageDetails;
             try {
@@ -102,7 +101,7 @@ public class BrokerProducerAndConsumerTest {
     @Test
     public void createProducerInitialMessagePacketTest3() {
         if (producer != null) {
-            byte[] producerInitialMessagePacket = producer.createInitialMessagePacket();
+            byte[] producerInitialMessagePacket = producer.createInitialMessagePacket1();
             Packet.PacketDetails packetDetails;
             InitialMessage.InitialMessageDetails initialMessageDetails;
             try {
@@ -189,60 +188,12 @@ public class BrokerProducerAndConsumerTest {
     }
 
     /**
-     * test the encoding and decoding of data into packet.
-     */
-    @Test
-    public void createPacketTest1() {
-        if (producer != null) {
-            String message = "Testing create message packet.";
-            ByteString messageToBePublished = ByteString.copyFromUtf8(message);
-            String type = "Testing";
-            byte[] messagePacket = producer.createPacket(messageToBePublished, type);
-
-            Packet.PacketDetails packetDetails;
-            try {
-                packetDetails = Packet.PacketDetails.parseFrom(messagePacket);
-                assertEquals(message, new String(packetDetails.getMessage().toByteArray()));
-                System.out.println("7.Success.");
-            } catch (InvalidProtocolBufferException e) {
-                e.printStackTrace();
-            }
-        } else {
-            System.out.println("7.Producer is null [createPacketTest1]");
-        }
-    }
-
-    /**
-     * test the encoding and decoding of data into packet.
-     */
-    @Test
-    public void createPacketTest2() {
-        if (producer != null) {
-            String message = "Testing create message packet.";
-            ByteString messageToBePublished = ByteString.copyFromUtf8(message);
-            String type = "Testing";
-            byte[] messagePacket = producer.createPacket(messageToBePublished, type);
-
-            Packet.PacketDetails packetDetails;
-            try {
-                packetDetails = Packet.PacketDetails.parseFrom(messagePacket);
-                assertEquals(type, packetDetails.getType());
-                System.out.println("8.Success.");
-            } catch (InvalidProtocolBufferException e) {
-                e.printStackTrace();
-            }
-        } else {
-            System.out.println("8.Producer is null [createPacketTest2]");
-        }
-    }
-
-    /**
      * test send Packet at the producer.
      */
     @Test
     public void producerSendPacketTest1() {
         if (broker != null && producer != null) {
-            if (producer.connection.connectionSocket.isOpen()) {
+            if (producer.connection.connectionIsOpen()) {
                 byte[] messageToBePublished = "Test-Message".getBytes();
                 assertTrue(producer.send("Test", messageToBePublished));
                 System.out.println("9.Success.");
@@ -385,7 +336,7 @@ public class BrokerProducerAndConsumerTest {
      */
     @Test
     public void receiveMessageFromBroker1() {
-        if (consumer != null && producer != null && producer.connection.connectionSocket.isOpen() && broker != null) {
+        if (consumer != null && producer != null && producer.connection.connectionIsOpen() && broker != null) {
             for(int i = 0; i < 11; i++) {
                 String message = "Test-Message";
                 byte[] messageBytes = message.getBytes();
@@ -399,41 +350,11 @@ public class BrokerProducerAndConsumerTest {
     }
 
     /**
-     * test pullMessage at Consumer.
-     */
-    @Test
-    public void receiveMessageFromBroker2() {
-        if (consumer != null && producer != null && producer.connection.connectionSocket.isOpen() && broker != null) {
-            for(int i = 0; i < 11; i++) {
-                String message = "Test-Message";
-                byte[] messageBytes = message.getBytes();
-                producer.send("Test", messageBytes);
-            }
-
-            String message = null;
-            int i = 0;
-            while(true) {
-                consumer.pullMessageFromBroker();
-                byte[] messageBytes = consumer.poll(Duration.ofMillis(6000));
-                if (messageBytes != null) {
-                    message = String.valueOf(messageBytes);
-                    break;
-                }
-                i++;
-            }
-            assertEquals("Test-Message-0", message);
-            System.out.println("17.Success.");
-        } else {
-            System.out.println("17.Condition is false [receiveMessageFromBroker2]");
-        }
-    }
-
-    /**
      * Tests the createInitialMessage from Consumer Class.
      */
     @Test
     public void consumerSendInitialPacketToBrokerTest() {
-        if (broker != null && consumer.connection.connectionSocket.isOpen()) {
+        if (broker != null && consumer.connection.connectionIsOpen()) {
             assertTrue(consumer.sendInitialSetupMessage());
             System.out.println("18.Success.");
         } else {

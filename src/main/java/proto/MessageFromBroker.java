@@ -43,10 +43,10 @@ public final class MessageFromBroker {
         getTopicBytes();
 
     /**
-     * <code>int32 totalMessage = 3;</code>
+     * <code>uint64 totalMessage = 3;</code>
      * @return The totalMessage.
      */
-    int getTotalMessage();
+    long getTotalMessage();
 
     /**
      * <code>repeated bytes actualMessage = 4;</code>
@@ -128,7 +128,7 @@ public final class MessageFromBroker {
             }
             case 24: {
 
-              totalMessage_ = input.readInt32();
+              totalMessage_ = input.readUInt64();
               break;
             }
             case 34: {
@@ -251,13 +251,13 @@ public final class MessageFromBroker {
     }
 
     public static final int TOTALMESSAGE_FIELD_NUMBER = 3;
-    private int totalMessage_;
+    private long totalMessage_;
     /**
-     * <code>int32 totalMessage = 3;</code>
+     * <code>uint64 totalMessage = 3;</code>
      * @return The totalMessage.
      */
     @java.lang.Override
-    public int getTotalMessage() {
+    public long getTotalMessage() {
       return totalMessage_;
     }
 
@@ -308,8 +308,8 @@ public final class MessageFromBroker {
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(topic_)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, topic_);
       }
-      if (totalMessage_ != 0) {
-        output.writeInt32(3, totalMessage_);
+      if (totalMessage_ != 0L) {
+        output.writeUInt64(3, totalMessage_);
       }
       for (int i = 0; i < actualMessage_.size(); i++) {
         output.writeBytes(4, actualMessage_.get(i));
@@ -329,9 +329,9 @@ public final class MessageFromBroker {
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(topic_)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, topic_);
       }
-      if (totalMessage_ != 0) {
+      if (totalMessage_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(3, totalMessage_);
+          .computeUInt64Size(3, totalMessage_);
       }
       {
         int dataSize = 0;
@@ -381,7 +381,8 @@ public final class MessageFromBroker {
       hash = (37 * hash) + TOPIC_FIELD_NUMBER;
       hash = (53 * hash) + getTopic().hashCode();
       hash = (37 * hash) + TOTALMESSAGE_FIELD_NUMBER;
-      hash = (53 * hash) + getTotalMessage();
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getTotalMessage());
       if (getActualMessageCount() > 0) {
         hash = (37 * hash) + ACTUALMESSAGE_FIELD_NUMBER;
         hash = (53 * hash) + getActualMessageList().hashCode();
@@ -523,7 +524,7 @@ public final class MessageFromBroker {
 
         topic_ = "";
 
-        totalMessage_ = 0;
+        totalMessage_ = 0L;
 
         actualMessage_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -618,7 +619,7 @@ public final class MessageFromBroker {
           topic_ = other.topic_;
           onChanged();
         }
-        if (other.getTotalMessage() != 0) {
+        if (other.getTotalMessage() != 0L) {
           setTotalMessage(other.getTotalMessage());
         }
         if (!other.actualMessage_.isEmpty()) {
@@ -813,33 +814,33 @@ public final class MessageFromBroker {
         return this;
       }
 
-      private int totalMessage_ ;
+      private long totalMessage_ ;
       /**
-       * <code>int32 totalMessage = 3;</code>
+       * <code>uint64 totalMessage = 3;</code>
        * @return The totalMessage.
        */
       @java.lang.Override
-      public int getTotalMessage() {
+      public long getTotalMessage() {
         return totalMessage_;
       }
       /**
-       * <code>int32 totalMessage = 3;</code>
+       * <code>uint64 totalMessage = 3;</code>
        * @param value The totalMessage to set.
        * @return This builder for chaining.
        */
-      public Builder setTotalMessage(int value) {
+      public Builder setTotalMessage(long value) {
         
         totalMessage_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>int32 totalMessage = 3;</code>
+       * <code>uint64 totalMessage = 3;</code>
        * @return This builder for chaining.
        */
       public Builder clearTotalMessage() {
         
-        totalMessage_ = 0;
+        totalMessage_ = 0L;
         onChanged();
         return this;
       }
@@ -997,7 +998,7 @@ public final class MessageFromBroker {
     java.lang.String[] descriptorData = {
       "\n\027MessageFromBroker.proto\022\010tutorial\"d\n\030M" +
       "essageFromBrokerDetails\022\014\n\004type\030\001 \001(\t\022\r\n" +
-      "\005topic\030\002 \001(\t\022\024\n\014totalMessage\030\003 \001(\005\022\025\n\rac" +
+      "\005topic\030\002 \001(\t\022\024\n\014totalMessage\030\003 \001(\004\022\025\n\rac" +
       "tualMessage\030\004 \003(\014B\032\n\005protoB\021MessageFromB" +
       "rokerb\006proto3"
     };

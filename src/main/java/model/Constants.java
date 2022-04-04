@@ -20,6 +20,8 @@ public class Constants {
     public final static String MESSAGE = "MESSAGE";
     public final static int MESSAGE_BATCH_SIZE = 10;
     public final static int FLUSH_FREQUENCY = 6000;
+    public final static int TIMEOUT_IF_DATA_NOT_YET_AVAILABLE = 6000;
     public final static String MESSAGE_NOT_AVAILABLE = "MESSAGE_NOT_AVAILABLE";
     public final static String TOPIC_NOT_AVAILABLE = "TOPIC_NOT_AVAILABLE";
+    public final static int BROKER_THREAD_POOL_SIZE = 20;
 }

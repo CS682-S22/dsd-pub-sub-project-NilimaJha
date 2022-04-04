@@ -1,0 +1,42 @@
+[
+	{
+		"Name" : "PRODUCER-1",
+		"ConnectTo" :
+		[
+			"BROKER-1"
+		],
+		"FileName" : "Apache.log",
+		"BrokerIP" : "localhost",
+		"BrokerPort" : "8080"
+	},
+	{
+		"Name" : "PRODUCER-2",
+		"ConnectTo" :
+		[
+			"BROKER-1"
+		],
+		"FileName" : "Apache.log",
+		"BrokerIP" : "localhost",
+		"BrokerPort" : "8080"
+	},
+	{
+		"Name": "PRODUCER-3",
+		"ConnectTo" :
+		[
+			"BROKER-1"
+		],
+		"FileName" : "Zookeeper.log",
+		"BrokerIP" : "localhost",
+		"BrokerPort" : "8080"
+	},
+	{
+		"Name": "PRODUCER-4",
+		"ConnectTo" :
+		[
+			"BROKER-1"
+		],
+		"FileName" : "Mac.log",
+		"BrokerIP" : "localhost",
+		"BrokerPort" : "8080"
+	}
+]

@@ -1,16 +1,18 @@
+import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import model.Constants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import proto.InitialMessage;
-import proto.Packet;
 import proto.PublisherPublishMessage;
 
-import java.io.IOException;
 
 /**
  * Class extends Node class and is a producer
  * @author nilimajha
  */
 public class Producer extends Node {
+    private static final Logger logger = LogManager.getLogger(Producer.class);
 
     /**
      * constructor for producer class attributes
@@ -19,13 +21,14 @@ public class Producer extends Node {
      */
     public Producer (String producerName, String brokerIP, int brokerPort) {
         super(producerName, brokerIP, brokerPort);
+        startProducer();
     }
 
     /**
      * first connects to the broker and then sets itself up by sending InitialPacket.
      */
     public void startProducer() {
-        boolean connected = connectToBroker();
+        connectToBroker();
         if (connected) {
             sendInitialSetupMessage();
         }
@@ -36,8 +39,8 @@ public class Producer extends Node {
      */
     public boolean sendInitialSetupMessage() {
         //send initial message
-        byte[] initialMessagePacket = createInitialMessagePacket();
-        System.out.printf("\n[Thread Id : %s] [Sending Initial packet]\n", Thread.currentThread().getId());
+        byte[] initialMessagePacket = createInitialMessagePacket1();
+        logger.info("\n[Sending Initial packet]");
         return connection.send(initialMessagePacket); //sending initial packet
     }
 
@@ -45,12 +48,12 @@ public class Producer extends Node {
      * creates the Producer Initial packet.
      * @return byte[] array
      */
-    public byte[] createInitialMessagePacket() {
-        InitialMessage.InitialMessageDetails initialMessageDetails = InitialMessage.InitialMessageDetails.newBuilder()
+    public byte[] createInitialMessagePacket1() {
+        Any any = Any.pack(InitialMessage.InitialMessageDetails.newBuilder()
                 .setConnectionSender(Constants.PRODUCER)
                 .setName(name)
-                .build();
-        return createPacket(initialMessageDetails.toByteString(), Constants.INITIAL_SETUP);
+                .build());
+        return any.toByteArray();
     }
 
     /**
@@ -60,28 +63,18 @@ public class Producer extends Node {
      * @return
      */
     public byte[] createPublishMessagePacket(String topic, byte[] data) {
+        Any any = Any.pack(PublisherPublishMessage
+                .PublisherPublishMessageDetails.newBuilder()
+                .setTopic(topic)
+                .setMessage(ByteString.copyFrom(data))
+                .build());
         PublisherPublishMessage.PublisherPublishMessageDetails publisherPublishMessageDetails = PublisherPublishMessage
                 .PublisherPublishMessageDetails.newBuilder()
                 .setTopic(topic)
                 .setMessage(ByteString.copyFrom(data))
                 .build();
-        return createPacket(publisherPublishMessageDetails.toByteString(), Constants.PUBLISH_REQUEST);
-    }
-
-    /**
-     * Wrap the message into a packet of given type.
-     * @param message
-     * @param type
-     * @return
-     */
-    public byte[] createPacket(ByteString message, String type) {
-        Packet.PacketDetails packetDetails = Packet.PacketDetails.newBuilder()
-                .setTo(brokerIP)
-                .setFrom(name)
-                .setType(type)
-                .setMessage(message)
-                .build();
-        return packetDetails.toByteArray();
+        //return createPacket(publisherPublishMessageDetails.toByteString(), Constants.PUBLISH_REQUEST);
+        return any.toByteArray();
     }
 
     /**
@@ -93,9 +86,7 @@ public class Producer extends Node {
      * @return true/false
      */
     public boolean send (String topic, byte[] data) {
-        System.out.printf("\n[Thread Id : %s] [SEND] Publishing Message on Topic %s.\n",
-                Thread.currentThread().getId(), topic);
-
+        logger.info("\n[SEND] Publishing Message on Topic " + topic);
         return connection.send(createPublishMessagePacket(topic, data));
     }
 
@@ -103,13 +94,11 @@ public class Producer extends Node {
      * closes the connection.
      */
     public void close() {
-        try {
-            System.out.printf("\n[Thread Id : %s] Closing the Producer.\n",
-                    Thread.currentThread().getId());
-
-            connection.connectionSocket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        boolean closeSuccessful = false;
+        while (!closeSuccessful) {
+            closeSuccessful = connection.closeConnection();
         }
     }
+
+
 }

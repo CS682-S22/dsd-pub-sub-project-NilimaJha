@@ -1,24 +1,28 @@
+import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import model.Constants;
 import model.Data;
-import model.DataInitializer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import proto.*;
 
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * class to handle connection between broker and producer or consumer.
  * @author nilimajha
  */
 public class RequestProcessor implements Runnable {
+    private static final Logger logger = LogManager.getLogger(RequestProcessor.class);
     private String brokerName;
     private Connection connection;
     private Data data;
     private String connectionWith;
     private String consumerType;
     private String name;
-    private int offset = -1;
+    private AtomicLong offset = new AtomicLong(-1);
     private String pushBasedConsumerTopic = null;
 
     /**
@@ -28,7 +32,7 @@ public class RequestProcessor implements Runnable {
     public RequestProcessor(String brokerName, Connection connection) {
         this.brokerName = brokerName;
         this.connection = connection;
-        this.data = DataInitializer.getData();
+        this.data = Data.getData();
     }
 
     /**
@@ -50,16 +54,13 @@ public class RequestProcessor implements Runnable {
             byte[] receivedMessage = connection.receive(); // getting initial setup Message.
             if (receivedMessage != null) { // received initial message
                 // call decode packet and then call decode message inside
-                Packet.PacketDetails packetDetails = null;
-
                 try {
-                    packetDetails = Packet.PacketDetails.parseFrom(receivedMessage);
+                    Any any = Any.parseFrom(receivedMessage);
+                    if (any.is(InitialMessage.InitialMessageDetails.class)) {
+                        parseInitialMessage1(any);
+                    }
                 } catch (InvalidProtocolBufferException e) {
                     e.printStackTrace();
-                }
-
-                if (packetDetails.getType().equals(Constants.INITIAL_SETUP)) {
-                    parseInitialMessage(packetDetails);
                 }
             }
         }
@@ -75,47 +76,38 @@ public class RequestProcessor implements Runnable {
 
     /**
      * decode message field of the PacketDetails object as per the type.
-     * @param packetDetails initialPacket
+     * @param any
      */
-    public boolean parseInitialMessage(Packet.PacketDetails packetDetails) {
-        if (packetDetails.getType().equals(Constants.INITIAL_SETUP)) {
-            // decode message part from packetDetail to InitialMessage proto
+    public boolean parseInitialMessage1(Any any) {
+        if (any.is(InitialMessage.InitialMessageDetails.class)) {
+            // decode received message
             try {
-                InitialMessage.InitialMessageDetails initialMessageDetails = InitialMessage.InitialMessageDetails
-                        .parseFrom(packetDetails.getMessage());
-
+                InitialMessage.InitialMessageDetails initialMessageDetails =
+                        any.unpack(InitialMessage.InitialMessageDetails.class);
                 if (connectionWith == null) {
                     if (initialMessageDetails.getConnectionSender().equals(Constants.PRODUCER)) {
                         connectionWith = Constants.PRODUCER;
-
-                        System.out.printf("\n[Thread Id : %s] Received InitialPacket from %s\n",
-                                Thread.currentThread().getId(), packetDetails.getFrom());
-
+                        logger.info("\nReceived InitialPacket from " + initialMessageDetails.getName());
                     } else if (initialMessageDetails.getConnectionSender().equals(Constants.CONSUMER) &&
                             initialMessageDetails.getConsumerType().equals(Constants.CONSUMER_PULL)) {
-
                         connectionWith = Constants.CONSUMER;
                         consumerType = Constants.CONSUMER_PULL;    // PULL consumer
-
-                        System.out.printf("\n[Thread Id : %s] Received InitialPacket from %s, Consumer Type : %s\n",
-                                Thread.currentThread().getId(), packetDetails.getFrom(), consumerType);
-
+                        logger.info("\nReceived InitialPacket from " + initialMessageDetails.getName() +
+                                " Consumer Type : " + consumerType);
                     } else if (initialMessageDetails.getConnectionSender().equals(Constants.CONSUMER) &&
                             initialMessageDetails.getConsumerType().equals(Constants.CONSUMER_PUSH)) {
-
                         connectionWith = Constants.CONSUMER;
                         consumerType = Constants.CONSUMER_PUSH;    // PUSH consumer
-                        offset = initialMessageDetails.getInitialOffset();
+                        offset.set(initialMessageDetails.getInitialOffset());
                         pushBasedConsumerTopic = initialMessageDetails.getTopic();
-
-                        System.out.printf("\n[Thread Id : %s] Received InitialPacket from %s, Consumer Type : %s, " +
-                                        "Initial Offset : %d, Topic : %s\n", Thread.currentThread().getId(),
-                                packetDetails.getFrom(), consumerType, offset, pushBasedConsumerTopic);
+                        logger.info("\nReceived InitialPacket from " + initialMessageDetails.getName() +
+                                " Consumer Type : " + consumerType + ", InitialOffset : " + offset +
+                                ", Topic : " + pushBasedConsumerTopic);
                     }
                     name = initialMessageDetails.getName();
                 }
             } catch (InvalidProtocolBufferException e) {
-                e.printStackTrace();
+                logger.error("\nInvalidProtocolBufferException occurred decoding Initial Packet. Error Message : " + e.getMessage());
                 return false;
             }
         }
@@ -126,39 +118,30 @@ public class RequestProcessor implements Runnable {
      * continuously receives publish message from publisher and add it to the topic.
      */
     public void handlePublisher() {
-        while (connection.connectionSocket.isOpen()) {
+        while (connection.connectionIsOpen()) {
             byte[] message = connection.receive();
             if (message != null) {
-                Packet.PacketDetails packetDetails;
                 try {
-                    packetDetails = Packet.PacketDetails.parseFrom(message);
-                    if (packetDetails.getType().equals(Constants.PUBLISH_REQUEST)) {
-
+                    Any any = Any.parseFrom(message);
+                    if (any.is(PublisherPublishMessage.PublisherPublishMessageDetails.class)) {
                         PublisherPublishMessage.PublisherPublishMessageDetails publisherPublishMessageDetails =
-                                PublisherPublishMessage.PublisherPublishMessageDetails
-                                        .parseFrom(packetDetails.getMessage().toByteArray());
+                                any.unpack(PublisherPublishMessage.PublisherPublishMessageDetails.class);
 
-                        // validating publish message
                         if (publisherPublishMessageDetails.getTopic() != null && publisherPublishMessageDetails.getMessage() != null) {
-
-                            System.out.printf("\n[Thread Id : %s] Receive Publish Request from %s.\n",
-                                    Thread.currentThread().getId(), name);
-
+                            logger.info("\nReceive Publish Request from " + name);
                             data.addMessage(publisherPublishMessageDetails.getTopic(),
                                     publisherPublishMessageDetails.getMessage().toByteArray());
                         }
                     }
                 } catch (InvalidProtocolBufferException e) {
-                    e.printStackTrace();
+                    logger.error("\nInvalidProtocolBufferException occurred while decoding publish message. Error Message : " + e.getMessage());
                 }
             } else {
                 try {
-                    System.out.printf("\n[Thread Id : %s] Message is not received from %s.\n",
-                            Thread.currentThread().getId(), name);
-
+                    logger.info("\nMessage is not received from " + name);
                     Thread.sleep(6000);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    logger.error("\nInterruptedException occurred. Error Message : " + e.getMessage());
                 }
             }
         }
@@ -169,51 +152,41 @@ public class RequestProcessor implements Runnable {
      * pull request and sends response accordingly.
      */
     public void handlePullConsumer() {
-        while (connection.connectionSocket.isOpen()) {
+        while (connection.connectionIsOpen()) {
             byte[] message = connection.receive();
             if (message != null) {
-                Packet.PacketDetails packetDetails;
                 try {
-                    packetDetails = Packet.PacketDetails.parseFrom(message);
-                    if (packetDetails.getType().equals(Constants.PULL_REQUEST)) {
-                        ConsumerPullRequest.ConsumerPullRequestDetails consumerPullRequestDetails = ConsumerPullRequest
-                                .ConsumerPullRequestDetails.parseFrom(packetDetails.getMessage());
-
+                    Any any = Any.parseFrom(message);
+                    if (any.is(ConsumerPullRequest.ConsumerPullRequestDetails.class)) {
+                        ConsumerPullRequest.ConsumerPullRequestDetails consumerPullRequestDetails =
+                                any.unpack(ConsumerPullRequest.ConsumerPullRequestDetails.class);
                         ArrayList<byte[]> messageBatch = null;
-                        byte[] messageFromBrokerPacket;
+                        byte[] messageFromBroker;
                         // validating publish message
                         if (consumerPullRequestDetails.getTopic() != null) {
-
                             messageBatch = data.getMessage(consumerPullRequestDetails.getTopic(),
                                     consumerPullRequestDetails.getOffset());
-
                             if (messageBatch != null) {
-                                messageFromBrokerPacket = createMessageFromBroker(consumerPullRequestDetails.getTopic(),
-                                        messageBatch, Constants.DATA);
-
-                                System.out.printf("\n[THREAD ID : %s] [SENDING] Sending prepared message " +
-                                        "batch of topic %s to %s.\n", Thread.currentThread().getId(),
-                                        consumerPullRequestDetails.getTopic(), name);
+                                messageFromBroker = createMessageFromBroker(consumerPullRequestDetails.getTopic(),
+                                        messageBatch, Constants.MESSAGE);
+                                logger.info("\n[SENDING] Sending prepared message batch of topic " + consumerPullRequestDetails.getTopic() + " to " + name);
                             } else {
                                 // message with given offset is not available
-                                messageFromBrokerPacket = createMessageFromBrokerInvalid(Constants.MESSAGE_NOT_AVAILABLE);
-
-                                System.out.printf("\n[THREAD ID : %s] [SENDING] Sending prepared message of " +
-                                        "type MESSAGE_NOT_AVAILABLE to %s for request of topic %s.\n",
-                                        Thread.currentThread().getId(), name, consumerPullRequestDetails.getTopic());
+                                messageFromBroker = createMessageFromBrokerInvalid(Constants.MESSAGE_NOT_AVAILABLE);
+                                logger.info("\n[SENDING] Sending prepared message of type MESSAGE_NOT_AVAILABLE to "
+                                        + name + " for request of topic " + consumerPullRequestDetails.getTopic());
                             }
                         } else {
-                            messageFromBrokerPacket = createMessageFromBrokerInvalid(Constants.TOPIC_NOT_AVAILABLE);
-
-                            System.out.printf("\n[THREAD ID : %s] [SENDING] Sending message of type TOPIC_NOT_AVAILABLE " +
-                                    "to %s for request of topic %s.\n", Thread.currentThread().getId(), name,
-                                    consumerPullRequestDetails.getTopic());
+                            messageFromBroker = createMessageFromBrokerInvalid(Constants.TOPIC_NOT_AVAILABLE);
+                            logger.info("\n[SENDING] Sending message of type TOPIC_NOT_AVAILABLE to " + name +
+                                    " for request of topic " + consumerPullRequestDetails.getTopic());
                         }
                         // sending response to the consumer
-                        connection.send(messageFromBrokerPacket);
+                        connection.send(messageFromBroker);
                     }
                 } catch (InvalidProtocolBufferException e) {
-                    e.printStackTrace();
+                    logger.info("\nInvalidProtocolBufferException occurred while decoding pull request message " +
+                            "from consumer. Error Message : " + e.getMessage());
                 }
             }
         }
@@ -224,31 +197,26 @@ public class RequestProcessor implements Runnable {
      * pull request and sends response accordingly.
      */
     public void handlePushConsumer() {
-        while (connection.connectionSocket.isOpen()) {
+        while (connection.connectionIsOpen()) {
             ArrayList<byte[]> messageBatch = null;
-            messageBatch = data.getMessage(pushBasedConsumerTopic, offset);
+            messageBatch = data.getMessage(pushBasedConsumerTopic, offset.get());
             if (messageBatch != null) {
-                byte[] messageFromBrokerPacket = createMessageFromBroker(pushBasedConsumerTopic,
-                        messageBatch, Constants.DATA);
-
-                System.out.printf("\n[THREAD ID : %s] [SENDING] Sending prepared message batch of topic %s to %s.\n",
-                        Thread.currentThread().getId(), pushBasedConsumerTopic, name);
-
-                boolean sendSuccessful = connection.send(messageFromBrokerPacket);
+                byte[] messageFromBroker = createMessageFromBroker(pushBasedConsumerTopic,
+                        messageBatch, Constants.MESSAGE);
+                logger.info("\n[SENDING] Sending prepared message batch of topic " + pushBasedConsumerTopic + " to " + name);
+                boolean sendSuccessful = connection.send(messageFromBroker);
                  if (sendSuccessful) {
 
                      for (byte[] eachMessage : messageBatch) {
-                         offset += eachMessage.length; // updating offset value
+                         offset.addAndGet(eachMessage.length); // updating offset value
                      }
                  }
             } else {
                 try {
-                    System.out.printf("\n[THREAD ID : %s] Next Batch of message is not yet PUSHED to %s for the " +
-                            "consumer, %s.\n", Thread.currentThread().getId(), brokerName, name);
-
+                    logger.info("\nNext Batch of message is not yet PUSHED to " + brokerName + " fot the " + name);
                     Thread.sleep(500); //sleeping for 500 millisecond
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    logger.error("\nInterruptedException occurred. Error Message : " + e.getMessage());
                 }
             }
         }
@@ -259,7 +227,6 @@ public class RequestProcessor implements Runnable {
      * creates MessageFromBroker obj with it and returns its byteArray.
      * @param topic
      * @param messageBatch
-     * @param type
      * @return
      */
     private byte[] createMessageFromBroker(String topic, ArrayList<byte[]> messageBatch, String type) {
@@ -268,20 +235,14 @@ public class RequestProcessor implements Runnable {
             ByteString messageByteString = ByteString.copyFrom(eachMessage);
             messageBatchStringArray.add(messageByteString);
         }
-        MessageFromBroker.MessageFromBrokerDetails messageFromBrokerDetails = MessageFromBroker
+        Any any = Any.pack(MessageFromBroker
                 .MessageFromBrokerDetails.newBuilder()
-                .setType(Constants.MESSAGE)
+                .setType(type)
                 .setTopic(topic)
                 .setTotalMessage(messageBatch.size())
                 .addAllActualMessage(messageBatchStringArray)
-                .build();
-        Packet.PacketDetails packetDetails = Packet.PacketDetails.newBuilder()
-                .setTo(connectionWith)
-                .setFrom(brokerName)
-                .setType(type)
-                .setMessage(messageFromBrokerDetails.toByteString())
-                .build();
-        return packetDetails.toByteArray();
+                .build());
+        return any.toByteArray();
     }
 
     /**
@@ -290,16 +251,10 @@ public class RequestProcessor implements Runnable {
      * @return byte[]
      */
     public byte[] createMessageFromBrokerInvalid(String type) {
-        MessageFromBroker.MessageFromBrokerDetails messageFromBrokerDetails = MessageFromBroker.
+        Any any = Any.pack(MessageFromBroker.
                 MessageFromBrokerDetails.newBuilder()
                 .setType(type)
-                .build();
-        Packet.PacketDetails packetDetails = Packet.PacketDetails.newBuilder()
-                .setTo(connectionWith)
-                .setFrom(brokerName)
-                .setType(type)
-                .setMessage(messageFromBrokerDetails.toByteString())
-                .build();
-        return packetDetails.toByteArray();
+                .build());
+        return any.toByteArray();
     }
 }

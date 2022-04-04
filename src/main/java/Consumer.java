@@ -1,13 +1,17 @@
-import com.google.protobuf.ByteString;
+import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import model.Constants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import proto.ConsumerPullRequest;
 import proto.InitialMessage;
 import proto.MessageFromBroker;
-import proto.Packet;
 
 import java.time.Duration;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -16,11 +20,13 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  * @author nilimajha
  */
 public class Consumer extends Node {
+    private static final Logger logger = LogManager.getLogger(Consumer.class);
     private String consumerType;
-    private int offset;
+    private AtomicLong offset;
     private String topic;
     private BlockingQueue<byte[]> messageFromBroker;
-    private ExecutorService pool = Executors.newFixedThreadPool(1); //thread pool of size 1
+    private boolean initialSetupDone;
+    private Timer timer;
 
     /**
      * Constructor initialises the class attributes and
@@ -33,15 +39,31 @@ public class Consumer extends Node {
      * @param startingPosition offset from which the consumer will start pulling data.
      */
     public Consumer(String consumerName, String consumerType, String brokerIP,
-                    int brokerPort, String topic, int startingPosition) {
+                    int brokerPort, String topic, long startingPosition) {
 
         super(consumerName, brokerIP, brokerPort);
         this.consumerType = consumerType;
         this.topic = topic;
-        this.offset = startingPosition;
+        this.offset = new AtomicLong(startingPosition);
         this.messageFromBroker = new LinkedBlockingQueue<>();
-        this.pool.execute(this::startConsumer);  // assigning consumer thread
+        connectToBroker();
+        startTimer();
     }
+
+    /**
+     *
+     */
+    private void startTimer() {
+        TimerTask timerTask = new TimerTask() {
+            public void run() {
+                startConsumer();
+            }
+        };
+        timer = new Timer();
+        timer.schedule(timerTask, Constants.TIMEOUT_IF_DATA_NOT_YET_AVAILABLE);
+    }
+
+
 
     /**
      * first connects to the broker and
@@ -50,22 +72,29 @@ public class Consumer extends Node {
      * calling appropriate function as per the time of consumer
      */
     public void startConsumer() {
-        boolean connected = connectToBroker();
-        if (connected) {
-            sendInitialSetupMessage();
-            if (consumerType.equals(Constants.CONSUMER_PULL)) {
-                while (connection.connectionSocket.isOpen()) {
-                    System.out.printf("\n[Thread Id : %s] [Pulling message from broker]\n",
-                            Thread.currentThread().getId());
+        timer.cancel();
+        if (!connected) {
+            connectToBroker();
+        }
 
-                    boolean topicIsAvailable = pullMessageFromBroker(); // fetching data from broker
-                    if (!topicIsAvailable) {
-                        break;
+        if (connected) {
+            if (!initialSetupDone) {
+                initialSetupDone = sendInitialSetupMessage();
+            }
+            if (initialSetupDone) {
+                if (consumerType.equals(Constants.CONSUMER_PULL)) {
+                    while (connection.connectionIsOpen()) {
+                        logger.info("\n[Pulling message from broker]");
+                        boolean topicIsAvailable = pullMessageFromBroker(); // fetching data from broker
+                        if (!topicIsAvailable) {
+                            startTimer();
+                            break;
+                        }
                     }
-                }
-            } else {
-                while (connection.connectionSocket.isOpen()) {
-                    receiveMessageFromBroker(); // receiving data from broker
+                } else {
+                    while (connection.connectionIsOpen()) {
+                        receiveMessageFromBroker(); // receiving data from broker
+                    }
                 }
             }
         }
@@ -77,7 +106,7 @@ public class Consumer extends Node {
     public boolean sendInitialSetupMessage() {
         //send initial message
         byte[] initialMessagePacket = createInitialMessagePacket();
-        System.out.printf("\n[Thread Id : %s] [Sending Initial packet]\n", Thread.currentThread().getId());
+        logger.info("\n[Sending Initial packet].");
         //sending initial packet
         return connection.send(initialMessagePacket);
     }
@@ -87,23 +116,23 @@ public class Consumer extends Node {
      * @return initialMessagePacketByteArray
      */
     public byte[] createInitialMessagePacket() {
-        InitialMessage.InitialMessageDetails initialMessageDetails;
+        Any any;
         if (consumerType.equals(Constants.CONSUMER_PULL)) {
-            initialMessageDetails = InitialMessage.InitialMessageDetails.newBuilder()
+            any = Any.pack(InitialMessage.InitialMessageDetails.newBuilder()
                     .setConnectionSender(Constants.CONSUMER)
                     .setName(name)
                     .setConsumerType(Constants.CONSUMER_PULL)
-                    .build();
+                    .build());
         } else {
-            initialMessageDetails = InitialMessage.InitialMessageDetails.newBuilder()
+            any = Any.pack(InitialMessage.InitialMessageDetails.newBuilder()
                     .setConnectionSender(Constants.CONSUMER)
                     .setName(name)
                     .setConsumerType(Constants.CONSUMER_PUSH)
                     .setTopic(topic)
-                    .setInitialOffset(offset)
-                    .build();
+                    .setInitialOffset(offset.get())
+                    .build());
         }
-        return createPacket(initialMessageDetails.toByteString(), Constants.INITIAL_SETUP);
+        return any.toByteArray();
     }
 
     /**
@@ -111,28 +140,12 @@ public class Consumer extends Node {
      * @return byte[]
      */
     public byte[] createPullRequestMessagePacket() {
-        ConsumerPullRequest.ConsumerPullRequestDetails consumerPullRequestDetails = ConsumerPullRequest
+        Any any = Any.pack(ConsumerPullRequest
                 .ConsumerPullRequestDetails.newBuilder()
                 .setTopic(topic)
-                .setOffset(offset)
-                .build();
-        return createPacket(consumerPullRequestDetails.toByteString(), Constants.PULL_REQUEST);
-    }
-
-    /**
-     * method creates packet for message to be sent to the broker as per the consumer type.
-     * @param byteMassage message to be sent
-     * @param type type of message
-     * @return byte[] packet to be sent
-     */
-    private byte[] createPacket(ByteString byteMassage, String type) {
-        Packet.PacketDetails packetDetails = Packet.PacketDetails.newBuilder()
-                .setTo(brokerIP)
-                .setFrom(name)
-                .setType(type)
-                .setMessage(byteMassage)
-                .build();
-        return packetDetails.toByteArray();
+                .setOffset(offset.get())
+                .build());
+        return any.toByteArray();
     }
 
     /**
@@ -142,10 +155,7 @@ public class Consumer extends Node {
      */
     public boolean pullMessageFromBroker() {
         byte[] requestMessagePacket = createPullRequestMessagePacket();
-
-        System.out.printf("\n[Thread Id : %s] [SEND] Sending pull request to Broker for Offset %d.\n",
-                Thread.currentThread().getId(), offset);
-
+        logger.info("\n[SEND] Sending pull request to Broker for Offset " + offset.get());
         connection.send(requestMessagePacket); // sending pull request to the broker
         return receiveMessageFromBroker();
     }
@@ -157,10 +167,7 @@ public class Consumer extends Node {
         boolean successful = true;
         byte[] brokerMessage = connection.receive();
         if (brokerMessage != null) {
-
-            System.out.printf("\n[Thread Id : %s] [RECEIVE] Received Response from Broker.\n",
-                    Thread.currentThread().getId());
-
+            logger.info("\n[RECEIVE] Received Response from Broker.");
             successful = extractDataFromBrokerResponse(brokerMessage);
         }
         return successful;
@@ -174,19 +181,13 @@ public class Consumer extends Node {
     private boolean extractDataFromBrokerResponse(byte[] brokerMessage) {
         boolean success = false;
         if (brokerMessage != null) {
-            Packet.PacketDetails packetDetails;
             try {
-                packetDetails = Packet.PacketDetails.parseFrom(brokerMessage);
-                if (packetDetails.getType().equals(Constants.DATA)) {
-                    MessageFromBroker.MessageFromBrokerDetails messageFromBrokerDetails = MessageFromBroker
-                            .MessageFromBrokerDetails.parseFrom(packetDetails.getMessage().toByteArray());
-
+                Any any = Any.parseFrom(brokerMessage);
+                if (any.is(MessageFromBroker.MessageFromBrokerDetails.class)) {
+                    MessageFromBroker.MessageFromBrokerDetails messageFromBrokerDetails =
+                            any.unpack(MessageFromBroker.MessageFromBrokerDetails.class);
                     if (messageFromBrokerDetails.getType().equals(Constants.MESSAGE)) {
-
-                        System.out.printf("\n[Thread Id : %s] [RECEIVE] Total message received from broker in one " +
-                                "response = %d.\n", Thread.currentThread().getId(),
-                                messageFromBrokerDetails.getActualMessageCount());
-
+                        logger.info("\n[RECEIVE] Total message received from broker in one response = " + messageFromBrokerDetails.getActualMessageCount());
                         for (int index = 0; index < messageFromBrokerDetails.getActualMessageCount(); index++) {
                             byte[] actualMessageBytes = messageFromBrokerDetails.getActualMessage(index).toByteArray();
                             try {
@@ -195,26 +196,14 @@ public class Consumer extends Node {
                                 e.printStackTrace();
                             }
                             if (consumerType.equals(model.Constants.CONSUMER_PULL)) {
-                                offset += actualMessageBytes.length; // incrementing offset value to the next message offset
+                                offset.addAndGet(actualMessageBytes.length); // incrementing offset value to the next message offset
                             }
                         }
                         success = true;
                     }
-                } else if (packetDetails.getType().equals(Constants.MESSAGE_NOT_AVAILABLE)
-                        || packetDetails.getType().equals(Constants.TOPIC_NOT_AVAILABLE)) {
-
-                    System.out.printf("\n[Thread Id : %s] [RECEIVE] Offset %d is not available yet, " +
-                            "so sleeping for 6000 ms\n", Thread.currentThread().getId(), offset);
-
-                    try {
-                        Thread.sleep(6000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    success = true;
                 }
             } catch (InvalidProtocolBufferException e) {
-                e.printStackTrace();
+                logger.info("\nInvalidProtocolBufferException occurred while decoding message from Broker. Error Message : " + e.getMessage());
             }
         }
         return success;
@@ -247,8 +236,8 @@ public class Consumer extends Node {
      * getter for offset
      * @return offset
      */
-    public int getOffset() {
-        return offset;
+    public long getOffset() {
+        return offset.get();
     }
 
     /**

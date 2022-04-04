@@ -1,0 +1,62 @@
+[
+	{
+		"Name": "CONSUMER-1",
+		"Type" : "PUSH",
+		"ConnectTo" :
+		[
+			"BROKER-1"
+		],
+		"FileName" : "Consumer1Apache.log",
+		"TopicName" : "Apache",
+		"BrokerIP" : "localhost",
+		"BrokerPort" : "8080"
+	},
+	{
+		"Name": "CONSUMER-2",
+		"Type" : "PULL",
+		"ConnectTo" :
+		[
+			"BROKER-1"
+		],
+		"FileName" : "Consumer2Apache.log",
+		"TopicName" : "Apache",
+		"BrokerIP" : "localhost",
+		"BrokerPort" : "8080"
+	},
+	{
+		"Name": "CONSUMER-3",
+		"Type" : "PULL",
+		"ConnectTo" :
+		[
+			"BROKER-1"
+		],
+		"FileName" : "Consumer3Zookeeper.log",
+		"TopicName" : "Zookeeper",
+		"BrokerIP" : "localhost",
+		"BrokerPort" : "8080"
+	},
+	{
+		"Name": "CONSUMER-4",
+		"Type" : "PULL",
+		"ConnectTo" :
+		[
+			"BROKER-1"
+		],
+		"FileName" : "Consumer4Mac.log",
+		"TopicName" : "Mac",
+		"BrokerIP" : "localhost",
+		"BrokerPort" : "8080"
+	},
+	{
+		"Name": "CONSUMER-5",
+		"Type" : "PUSH",
+		"ConnectTo" :
+		[
+			"BROKER-1"
+		],
+		"FileName" : "Consumer5Mac.log",
+		"TopicName" : "Mac",
+		"BrokerIP" : "localhost",
+		"BrokerPort" : "8080"
+	}
+]

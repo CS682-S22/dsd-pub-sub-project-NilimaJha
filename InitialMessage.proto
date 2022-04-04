@@ -10,5 +10,5 @@ message InitialMessageDetails {
   string name = 2;
   string consumerType = 3;
   string topic = 4;
-  int32 initialOffset = 5;
+  uint64 initialOffset = 5;
 }

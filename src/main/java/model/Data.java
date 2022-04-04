@@ -1,22 +1,37 @@
 package model;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * class that contains HashMap to store topic and message relate
  * @author nilimajha
  */
 public class Data {
-    private HashMap<String, MessageInfo> topicToMessageMap;
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private static final Logger logger = LogManager.getLogger(Data.class);
+    private ConcurrentHashMap<String, MessageInfo> topicToMessageMap;
+    private static Data data = null;
 
     /**
      * Constructor to initialise topicToMessageMap.
      */
-    public Data() {
-        this.topicToMessageMap = new HashMap<>();
+    private Data() {
+        this.topicToMessageMap = new ConcurrentHashMap<>();
+    }
+
+    /**
+     * if the Data object is already initialised the reference of that object is passed.
+     * if the object is not yet created then it will create an instance of it are return.
+     * @return Data
+     */
+    public synchronized static Data getData() {
+        if (data == null) {
+            data = new Data();
+        }
+        return data;
     }
 
     /**
@@ -25,13 +40,7 @@ public class Data {
      * @return true/false
      */
     public boolean isTopicAvailable(String topic) {
-        lock.readLock().lock();          // acquire read lock on topicToMessageMap
-        if (topicToMessageMap.containsKey(topic)) {
-            lock.readLock().unlock();    // realising read lock on topicToMessageMap
-            return true;
-        }
-        lock.readLock().unlock();        // realising read lock on topicToMessageMap
-        return false;
+        return topicToMessageMap.containsKey(topic);
     }
 
     /**
@@ -43,14 +52,8 @@ public class Data {
      * @return true
      */
     public boolean addMessage(String topic, byte[] messageByteArray) {
-        lock.writeLock().lock();
-        if (!topicToMessageMap.containsKey(topic)) {
-            System.out.printf("\n[Thread Id : %s] Adding New Topic '%s'\n", Thread.currentThread().getId(), topic);
-            topicToMessageMap.put(topic, new MessageInfo(topic));
-        }
-        topicToMessageMap.get(topic).addNewMessage(messageByteArray);
-        lock.writeLock().unlock();      // realising write lock on topicToMessageMap
-        return true;
+        MessageInfo messageInfo = getMessageInfoForTheTopic(topic);
+        return messageInfo.addNewMessage(messageByteArray);
     }
 
     /**
@@ -59,13 +62,11 @@ public class Data {
      * @param offsetNumber
      * @return message
      */
-    public ArrayList<byte[]> getMessage(String topic, int offsetNumber) {
-        lock.readLock().lock();        // acquire read lock on topicToMessageMap
+    public ArrayList<byte[]> getMessage(String topic, long offsetNumber) {
         ArrayList<byte[]> messageBatch = null;
         if (isTopicAvailable(topic)) {
             messageBatch = topicToMessageMap.get(topic).getMessage(offsetNumber);
         }
-        lock.readLock().unlock();     // realising read lock on topicToMessageMap
         return messageBatch;
     }
 
@@ -73,8 +74,21 @@ public class Data {
      * getter for topicToMessageMap
      * @return
      */
-    public HashMap<String, MessageInfo> getTopicToMessageMap() {
+    public ConcurrentHashMap<String, MessageInfo> getTopicToMessageMap() {
         return topicToMessageMap;
+    }
+
+    /**
+     *
+     * @param topic
+     * @return
+     */
+    public MessageInfo getMessageInfoForTheTopic(String topic) {
+        if (!topicToMessageMap.containsKey(topic)) {
+            logger.info("\nAdding New Topic '" + topic + "'");
+            topicToMessageMap.putIfAbsent(topic, new MessageInfo(topic));
+        }
+        return topicToMessageMap.get(topic);
     }
 
 }

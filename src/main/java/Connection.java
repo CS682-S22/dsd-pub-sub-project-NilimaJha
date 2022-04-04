@@ -1,4 +1,6 @@
 import model.Constants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -17,7 +19,8 @@ import java.util.concurrent.TimeoutException;
  * @author nilimajha
  */
 public class Connection {
-    protected AsynchronousSocketChannel connectionSocket;
+    private static final Logger logger = LogManager.getLogger(Connection.class);
+    private AsynchronousSocketChannel connectionSocket;
     private Future<Integer> incomingMessage;
     private ByteBuffer buffer = ByteBuffer.allocate(Constants.BUFFER_SIZE);
     private Queue<byte[]> messageQueue = new LinkedList<>();
@@ -73,13 +76,13 @@ public class Connection {
         } catch (TimeoutException e) {
             return messageQueue.poll();
         } catch (InterruptedException e) {
-            System.out.printf("\n[Thread Id : %s] Execution Interrupted.\n", Thread.currentThread().getId());
+            logger.error("\nInterruptedException while establishing connection. Error Message : " + e.getMessage());
         } catch (ExecutionException e) {
-            System.out.printf("\n[Thread Id : %s] SOURCE has closed the Connection !!!", Thread.currentThread().getId());
+            logger.info("\nSOURCE has closed the Connection !!!");
             try {
                 this.connectionSocket.close();
             } catch (IOException ex) {
-                ex.printStackTrace();
+                logger.error("\nIOException while establishing connection. Error Message : " + e.getMessage());
             }
         }
         return messageQueue.poll();
@@ -102,16 +105,42 @@ public class Connection {
             try {
                 result.get();
             } catch (InterruptedException e) {
-                System.out.printf("\n[Thread Id : %s] Execution Interrupted.\n", Thread.currentThread().getId());
+                logger.error("\nInterruptedException while writing on the connectionSocket. Error Message : " + e.getMessage());
+                //System.out.printf("\n[Thread Id : %s] Execution Interrupted.\n", Thread.currentThread().getId());
                 return false;
             } catch (ExecutionException e) {
-                System.out.println("\nDESTINATION has closed the Connection !!!");
-                System.out.printf("\n[Thread Id : %s] SOURCE has closed the Connection !!!", Thread.currentThread().getId());
+                logger.info("\nDESTINATION has closed the Connection !!!");
+                logger.info("\nSOURCE has closed the Connection !!!. Error Message : " + e.getMessage());
+                //System.out.println("\nDESTINATION has closed the Connection !!!");
+                //System.out.printf("\n[Thread Id : %s] SOURCE has closed the Connection !!!", Thread.currentThread().getId());
                 return false;
             }
             buffer.clear();
             return true;
         }
         return false;
+    }
+
+    /**
+     * returns the status of connectionSocket.
+     * @return true/false
+     */
+    public boolean connectionIsOpen() {
+        return connectionSocket.isOpen();
+    }
+
+    /**
+     * closes the connectionSocket
+     * @return true/false
+     */
+    public boolean closeConnection() {
+        try {
+            connectionSocket.close();
+        } catch (IOException e) {
+            logger.info("\nIOException occurred while closing the connectionSocket. Error Message : " + e.getMessage());
+           // e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 }

@@ -22,12 +22,9 @@ public class Utility {
      */
     public static boolean argsIsValid (String[] args) {
         boolean isValid = false;
-        if (args.length == 6) {
-            if (args[0].equals("-type") && args[2].equals("-name") && args[4].equals("-configFile")) {
-                if (typeIsValid(args[1]) && fileNameIsValid(args[5])) {
-                    isValid = true;
-                }
-            }
+        if (args.length == 6 && args[0].equals("-type") && args[2].equals("-name")
+                && args[4].equals("-configFile") && typeIsValid(args[1]) && fileNameIsValid(args[5])) {
+            isValid = true;
         }
         return isValid;
     }
@@ -105,18 +102,20 @@ public class Utility {
      */
     public static ConfigInformation extractConsumerOrPublisherConfigInfo(String fileName, String name) {
         List<ConfigInformation> hostDetailsList = null;
+        ConfigInformation pubOrSubInfo = null;
         try {
             Reader configReader = Files.newBufferedReader(Paths.get(fileName));
             hostDetailsList = new Gson().fromJson(configReader, new TypeToken<List<ConfigInformation>>() {}.getType());
             configReader.close();
+
+            for (ConfigInformation eachHostInfo : hostDetailsList) {
+                if (eachHostInfo.getName().equals(name)) {
+                    pubOrSubInfo = eachHostInfo;
+                    break;
+                }
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
-        }
-        ConfigInformation pubOrSubInfo = null;
-        for (ConfigInformation eachHostInfo : hostDetailsList) {
-            if (eachHostInfo.getName().equals(name)) {
-                pubOrSubInfo = eachHostInfo;
-            }
         }
         return pubOrSubInfo;
     }
@@ -131,18 +130,20 @@ public class Utility {
      */
     public static BrokerConfig extractBrokerConfigInfo(String fileName, String name) {
         List<BrokerConfig> brokerDetails = null;
+        BrokerConfig brokerInfo = null;
         try {
             Reader configReader = Files.newBufferedReader(Paths.get(fileName));
             brokerDetails = new Gson().fromJson(configReader, new TypeToken<List<BrokerConfig>>() {}.getType());
             configReader.close();
+
+            for (BrokerConfig eachHostInfo : brokerDetails) {
+                if (eachHostInfo.getName().equals(name)) {
+                    brokerInfo = eachHostInfo;
+                    break;
+                }
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
-        }
-        BrokerConfig brokerInfo = null;
-        for (BrokerConfig eachHostInfo : brokerDetails) {
-            if (eachHostInfo.getName().equals(name)) {
-                brokerInfo = eachHostInfo;
-            }
         }
         return brokerInfo;
     }

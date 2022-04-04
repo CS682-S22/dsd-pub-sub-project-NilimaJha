@@ -31,10 +31,10 @@ public final class ConsumerPullRequest {
         getTopicBytes();
 
     /**
-     * <code>int32 offset = 2;</code>
+     * <code>uint64 offset = 2;</code>
      * @return The offset.
      */
-    int getOffset();
+    long getOffset();
   }
   /**
    * Protobuf type {@code tutorial.ConsumerPullRequestDetails}
@@ -90,7 +90,7 @@ public final class ConsumerPullRequest {
             }
             case 16: {
 
-              offset_ = input.readInt32();
+              offset_ = input.readUInt64();
               break;
             }
             default: {
@@ -164,13 +164,13 @@ public final class ConsumerPullRequest {
     }
 
     public static final int OFFSET_FIELD_NUMBER = 2;
-    private int offset_;
+    private long offset_;
     /**
-     * <code>int32 offset = 2;</code>
+     * <code>uint64 offset = 2;</code>
      * @return The offset.
      */
     @java.lang.Override
-    public int getOffset() {
+    public long getOffset() {
       return offset_;
     }
 
@@ -191,8 +191,8 @@ public final class ConsumerPullRequest {
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(topic_)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, topic_);
       }
-      if (offset_ != 0) {
-        output.writeInt32(2, offset_);
+      if (offset_ != 0L) {
+        output.writeUInt64(2, offset_);
       }
       unknownFields.writeTo(output);
     }
@@ -206,9 +206,9 @@ public final class ConsumerPullRequest {
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(topic_)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, topic_);
       }
-      if (offset_ != 0) {
+      if (offset_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(2, offset_);
+          .computeUInt64Size(2, offset_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -243,7 +243,8 @@ public final class ConsumerPullRequest {
       hash = (37 * hash) + TOPIC_FIELD_NUMBER;
       hash = (53 * hash) + getTopic().hashCode();
       hash = (37 * hash) + OFFSET_FIELD_NUMBER;
-      hash = (53 * hash) + getOffset();
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getOffset());
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -379,7 +380,7 @@ public final class ConsumerPullRequest {
         super.clear();
         topic_ = "";
 
-        offset_ = 0;
+        offset_ = 0L;
 
         return this;
       }
@@ -461,7 +462,7 @@ public final class ConsumerPullRequest {
           topic_ = other.topic_;
           onChanged();
         }
-        if (other.getOffset() != 0) {
+        if (other.getOffset() != 0L) {
           setOffset(other.getOffset());
         }
         this.mergeUnknownFields(other.unknownFields);
@@ -569,33 +570,33 @@ public final class ConsumerPullRequest {
         return this;
       }
 
-      private int offset_ ;
+      private long offset_ ;
       /**
-       * <code>int32 offset = 2;</code>
+       * <code>uint64 offset = 2;</code>
        * @return The offset.
        */
       @java.lang.Override
-      public int getOffset() {
+      public long getOffset() {
         return offset_;
       }
       /**
-       * <code>int32 offset = 2;</code>
+       * <code>uint64 offset = 2;</code>
        * @param value The offset to set.
        * @return This builder for chaining.
        */
-      public Builder setOffset(int value) {
+      public Builder setOffset(long value) {
         
         offset_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>int32 offset = 2;</code>
+       * <code>uint64 offset = 2;</code>
        * @return This builder for chaining.
        */
       public Builder clearOffset() {
         
-        offset_ = 0;
+        offset_ = 0L;
         onChanged();
         return this;
       }
@@ -668,7 +669,7 @@ public final class ConsumerPullRequest {
     java.lang.String[] descriptorData = {
       "\n\031ConsumerPullRequest.proto\022\010tutorial\";\n" +
       "\032ConsumerPullRequestDetails\022\r\n\005topic\030\001 \001" +
-      "(\t\022\016\n\006offset\030\002 \001(\005B\034\n\005protoB\023ConsumerPul" +
+      "(\t\022\016\n\006offset\030\002 \001(\004B\034\n\005protoB\023ConsumerPul" +
       "lRequestb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor

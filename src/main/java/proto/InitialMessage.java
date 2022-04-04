@@ -67,10 +67,10 @@ public final class InitialMessage {
         getTopicBytes();
 
     /**
-     * <code>int32 initialOffset = 5;</code>
+     * <code>uint64 initialOffset = 5;</code>
      * @return The initialOffset.
      */
-    int getInitialOffset();
+    long getInitialOffset();
   }
   /**
    * Protobuf type {@code tutorial.InitialMessageDetails}
@@ -147,7 +147,7 @@ public final class InitialMessage {
             }
             case 40: {
 
-              initialOffset_ = input.readInt32();
+              initialOffset_ = input.readUInt64();
               break;
             }
             default: {
@@ -335,13 +335,13 @@ public final class InitialMessage {
     }
 
     public static final int INITIALOFFSET_FIELD_NUMBER = 5;
-    private int initialOffset_;
+    private long initialOffset_;
     /**
-     * <code>int32 initialOffset = 5;</code>
+     * <code>uint64 initialOffset = 5;</code>
      * @return The initialOffset.
      */
     @java.lang.Override
-    public int getInitialOffset() {
+    public long getInitialOffset() {
       return initialOffset_;
     }
 
@@ -371,8 +371,8 @@ public final class InitialMessage {
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(topic_)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 4, topic_);
       }
-      if (initialOffset_ != 0) {
-        output.writeInt32(5, initialOffset_);
+      if (initialOffset_ != 0L) {
+        output.writeUInt64(5, initialOffset_);
       }
       unknownFields.writeTo(output);
     }
@@ -395,9 +395,9 @@ public final class InitialMessage {
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(topic_)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, topic_);
       }
-      if (initialOffset_ != 0) {
+      if (initialOffset_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(5, initialOffset_);
+          .computeUInt64Size(5, initialOffset_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -444,7 +444,8 @@ public final class InitialMessage {
       hash = (37 * hash) + TOPIC_FIELD_NUMBER;
       hash = (53 * hash) + getTopic().hashCode();
       hash = (37 * hash) + INITIALOFFSET_FIELD_NUMBER;
-      hash = (53 * hash) + getInitialOffset();
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getInitialOffset());
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -586,7 +587,7 @@ public final class InitialMessage {
 
         topic_ = "";
 
-        initialOffset_ = 0;
+        initialOffset_ = 0L;
 
         return this;
       }
@@ -683,7 +684,7 @@ public final class InitialMessage {
           topic_ = other.topic_;
           onChanged();
         }
-        if (other.getInitialOffset() != 0) {
+        if (other.getInitialOffset() != 0L) {
           setInitialOffset(other.getInitialOffset());
         }
         this.mergeUnknownFields(other.unknownFields);
@@ -1019,33 +1020,33 @@ public final class InitialMessage {
         return this;
       }
 
-      private int initialOffset_ ;
+      private long initialOffset_ ;
       /**
-       * <code>int32 initialOffset = 5;</code>
+       * <code>uint64 initialOffset = 5;</code>
        * @return The initialOffset.
        */
       @java.lang.Override
-      public int getInitialOffset() {
+      public long getInitialOffset() {
         return initialOffset_;
       }
       /**
-       * <code>int32 initialOffset = 5;</code>
+       * <code>uint64 initialOffset = 5;</code>
        * @param value The initialOffset to set.
        * @return This builder for chaining.
        */
-      public Builder setInitialOffset(int value) {
+      public Builder setInitialOffset(long value) {
         
         initialOffset_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>int32 initialOffset = 5;</code>
+       * <code>uint64 initialOffset = 5;</code>
        * @return This builder for chaining.
        */
       public Builder clearInitialOffset() {
         
-        initialOffset_ = 0;
+        initialOffset_ = 0L;
         onChanged();
         return this;
       }
@@ -1119,7 +1120,7 @@ public final class InitialMessage {
       "\n\024InitialMessage.proto\022\010tutorial\"{\n\025Init" +
       "ialMessageDetails\022\030\n\020connectionSender\030\001 " +
       "\001(\t\022\014\n\004name\030\002 \001(\t\022\024\n\014consumerType\030\003 \001(\t\022" +
-      "\r\n\005topic\030\004 \001(\t\022\025\n\rinitialOffset\030\005 \001(\005B\027\n" +
+      "\r\n\005topic\030\004 \001(\t\022\025\n\rinitialOffset\030\005 \001(\004B\027\n" +
       "\005protoB\016InitialMessageb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor

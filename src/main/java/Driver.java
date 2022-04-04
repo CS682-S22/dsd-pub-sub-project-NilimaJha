@@ -1,6 +1,8 @@
 import model.BrokerConfig;
 import model.ConfigInformation;
 import model.Constants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
@@ -12,6 +14,7 @@ import java.time.Duration;
  * @author nilimajha
  */
 public class Driver {
+    private static final Logger logger = LogManager.getLogger(Driver.class);
 
     /**
      * main method
@@ -20,7 +23,7 @@ public class Driver {
     public static void main (String[] args) {
         //validate args
         if (!Utility.argsIsValid(args)) {
-            System.out.println("Argument provided is invalid.");
+            logger.info("\nArgument provided is invalid.");
             System.exit(0);
         }
         //parseArgs
@@ -49,6 +52,7 @@ public class Driver {
                 brokerConfig.getBrokerIP(),
                 brokerConfig.getBrokerPort());
 
+        /** ASK ABOUT THIS */
         broker.run();
     }
 
@@ -64,54 +68,54 @@ public class Driver {
                 configInformation.getBrokerIP(),
                 configInformation.getBrokerPort());
 
-        producer.startProducer();
+        if (producer.connectedToBroker()) {
+            logger.info("\n[Now Sending Actual data]");
+            try (BufferedReader bufferedReader = Utility.fileReaderInitializer(configInformation.getFileName())) {
+                String eachLine = bufferedReader.readLine();
+                logger.info("\n[eachLine : " + eachLine + "]");
+                String topic = null;
+                int lineNo = 1;
+                while (eachLine != null) {
+                    if (configInformation.getFileName().equals("Apache.log")) {
+                        String[] messagePart = eachLine.split("] \\[");
+                        if (messagePart.length != 1) {
+                            if (messagePart[1].equals("error")) {
+                                topic = "Apache_error";
+                            } else {
+                                topic = "Apache_notice";
+                            }
+                        }
+                    } else if (configInformation.getFileName().equals("Zookeeper.log")) {
+                        topic = "Zookeeper";
+                    } else if (configInformation.getFileName().equals("Hadoop.log")) {
+                        topic = "Hadoop";
+                    } else {
+                        topic = "Mac";
+                    }
 
-        System.out.printf("\n[Now Sending Actual data]\n");
-        try (BufferedReader bufferedReader = Utility.fileReaderInitializer(configInformation.getFileName())) {
-            String eachLine = bufferedReader.readLine();
-            System.out.printf("\n[eachLine : %s]\n", eachLine);
-            String topic = null;
-            int lineNo = 1;
-            while (eachLine != null) {
-                if (configInformation.getFileName().equals("Apache.log")) {
-                    String[] messagePart = eachLine.split("] \\[");
-                    if (messagePart.length != 1) {
-                        if (messagePart[1].equals("error")) {
-                            topic = "Apache_error";
-                        } else {
-                            topic = "Apache_notice";
+                    logger.info("\n[Now Sending Actual data] [Topic : " + topic + "]");
+                    producer.send(topic, eachLine.getBytes());    // send data
+
+                    if (configInformation.getFileName().equals("Apache.log")) {
+                        String[] messagePart = eachLine.split("] \\[");
+                        if (messagePart.length != 1) {
+                            topic = "Apache";
+                            producer.send(topic, eachLine.getBytes());  // send data
                         }
                     }
-                } else if (configInformation.getFileName().equals("Zookeeper.log")) {
-                    topic = "Zookeeper";
-                } else if (configInformation.getFileName().equals("Hadoop.log")) {
-                    topic = "Hadoop";
-                } else {
-                    topic = "Mac";
+
+                    logger.info("LineNumber : " + lineNo);
+                    lineNo++;
+                    eachLine = bufferedReader.readLine();   // reading next line from the file
                 }
-
-                System.out.printf("\n[Now Sending Actual data] [Topic : %s]\n", topic);
-                producer.send(topic, eachLine.getBytes());    // send data
-
-                if (configInformation.getFileName().equals("Apache.log")) {
-                    String[] messagePart = eachLine.split("] \\[");
-                    if (messagePart.length != 1) {
-                        topic = "Apache";
-                        producer.send(topic, eachLine.getBytes());  // send data
-                    }
-                }
-
-                System.out.printf("LineNumber : %d", lineNo);
-                lineNo++;
-                eachLine = bufferedReader.readLine();   // reading next line from the file
+            } catch (IOException e) {
+                logger.info("\nIOException occurred while initialising BufferedReader. Error Message : " + e.getMessage());
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            Thread.sleep(6000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            try {
+                Thread.sleep(6000);
+            } catch (InterruptedException e) {
+                logger.info("\nInterruptedException occurred with thread.sleep. Error Message : " + e.getMessage());
+            }
         }
         producer.close();
     }
@@ -123,7 +127,7 @@ public class Driver {
      */
     public static void createAndStartConsumer (String configFileName, String consumerName) {
         ConfigInformation configInformation = Utility.extractConsumerOrPublisherConfigInfo(configFileName, consumerName);
-        System.out.printf("\nConsumer Started\n");
+        logger.info("\nConsumer Started\n");
         Consumer consumer = new Consumer(
                 configInformation.getName(),
                 configInformation.getType(),
@@ -133,7 +137,7 @@ public class Driver {
                 0);
         try (FileOutputStream fileWriter = Utility.fileWriterInitializer(configInformation.getFileName())) {
             // Continue to pull messages...forever
-            while(true) {
+            while(consumer.connectedToBroker()) {
                 byte[] message = consumer.poll(Duration.ofMillis(100));
                 // writing data on file.
                 if (message != null) {
@@ -142,7 +146,7 @@ public class Driver {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.info("\nIOException occurred while initialising fileWriter. Error Message : " + e.getMessage());
         }
     }
 }

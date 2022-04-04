@@ -1,3 +1,8 @@
+import model.Constants;
+import model.MessageInfo;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousServerSocketChannel;
@@ -14,11 +19,12 @@ import java.util.concurrent.Future;
  * @author nilimajha
  */
 public class Broker implements Runnable {
+    private static final Logger logger = LogManager.getLogger(Broker.class);
     private boolean shutdown = false;
     private String brokerName;
     private String brokerIP;
     private int brokerPort;
-    private ExecutorService threadPool = Executors.newFixedThreadPool(15);
+    private ExecutorService threadPool = Executors.newFixedThreadPool(Constants.BROKER_THREAD_POOL_SIZE);
 
     /**
      * Constructor
@@ -45,35 +51,32 @@ public class Broker implements Runnable {
         try {
             serverSocket = AsynchronousServerSocketChannel.open();
             serverSocket.bind(new InetSocketAddress(brokerIP, brokerPort));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            // keeps on running when shutdown is false
+            while (!shutdown) {
+                logger.info("\n[Broker : " + brokerName + " BrokerServer is listening on IP : " + brokerIP + " & Port : " + brokerPort);
+                Future<AsynchronousSocketChannel> acceptFuture = serverSocket.accept();
+                AsynchronousSocketChannel socketChannel = null;
 
-        // keeps on running when shutdown is false
-        while (!shutdown) {
-            System.out.printf("\n[Thread Id: %s] [Broker : %s] BrokerServer is listening on IP: %s & Port : %s.\n",
-                    Thread.currentThread().getId(), brokerName ,brokerIP , brokerPort);
-
-            Future<AsynchronousSocketChannel> acceptFuture = serverSocket.accept();
-            AsynchronousSocketChannel socketChannel = null;
-
-            try {
-                socketChannel = acceptFuture.get();
-                if (shutdown) {
-                    return;
+                try {
+                    socketChannel = acceptFuture.get();
+                    if (shutdown) {
+                        return;
+                    }
+                } catch (InterruptedException | ExecutionException e) {
+                    logger.error("\nException while establishing connection. Error Message : " + e.getMessage());
                 }
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
 
-            //checking if the socketChannel is valid.
-            if ((socketChannel != null) && (socketChannel.isOpen())) {
-                Connection newConnection = null;
-                newConnection = new Connection(socketChannel);
-                // give this connection to requestProcessor
-                RequestProcessor requestProcessor = new RequestProcessor(brokerName, newConnection);
-                threadPool.execute(requestProcessor);
+                //checking if the socketChannel is valid.
+                if ((socketChannel != null) && (socketChannel.isOpen())) {
+                    Connection newConnection = null;
+                    newConnection = new Connection(socketChannel);
+                    // give this connection to requestProcessor
+                    RequestProcessor requestProcessor = new RequestProcessor(brokerName, newConnection);
+                    threadPool.execute(requestProcessor);
+                }
             }
+        } catch (IOException e) {
+            logger.error("\nIOException while opening serverSocket connection. Error Message : " + e.getMessage());
         }
     }
 }

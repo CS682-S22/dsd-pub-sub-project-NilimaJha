@@ -8,6 +8,6 @@ option java_outer_classname = "MessageFromBroker";
 message MessageFromBrokerDetails {
   string type = 1;
   string topic = 2;
-  int32 totalMessage = 3;
+  uint64 totalMessage = 3;
   repeated bytes actualMessage = 4;
 }
