@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package tutorial;
+
+option java_package = "proto";
+option java_outer_classname = "ResponseLeaderInfo";
+
+message ResponseLeaderInfoDetails {
+  int32 messageId = 1;
+  string leaderName = 2;
+  string leaderIP = 3;
+  int32 leaderPort = 4;
+}
