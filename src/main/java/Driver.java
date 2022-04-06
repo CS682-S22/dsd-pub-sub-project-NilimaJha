@@ -52,8 +52,15 @@ public class Driver {
                 brokerConfig.getBrokerIP(),
                 brokerConfig.getBrokerPort());
 
-        /** ASK ABOUT THIS */
-        broker.run();
+        Thread thread = new Thread(broker);
+        thread.start();
+
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            logger.error("\nInterruptedException occurred while waiting for broker thread to join. Error Message : " + e.getMessage());
+        }
+//        broker.run();
     }
 
     /**
