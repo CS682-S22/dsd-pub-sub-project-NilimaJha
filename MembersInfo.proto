@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package tutorial;
+
+option java_package = "proto";
+option java_outer_classname = "MembersInfo";
+
+message MembersInfoDetails {
+  int32 memberId = 1;
+  string memberName = 2;
+  string memberIP = 3;
+  int32 memberPort = 4; 
+}

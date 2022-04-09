@@ -14,8 +14,8 @@ public final class ResponseLeaderInfo {
     registerAllExtensions(
         (com.google.protobuf.ExtensionRegistryLite) registry);
   }
-  public interface ResponseLeaderInfoDetailsOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:tutorial.ResponseLeaderInfoDetails)
+  public interface ResponseLeaderAndMembersInfoDetailsOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tutorial.ResponseLeaderAndMembersInfoDetails)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -25,57 +25,87 @@ public final class ResponseLeaderInfo {
     int getMessageId();
 
     /**
-     * <code>string leaderName = 2;</code>
+     * <code>bool infoAvailable = 2;</code>
+     * @return The infoAvailable.
+     */
+    boolean getInfoAvailable();
+
+    /**
+     * <code>string leaderName = 3;</code>
      * @return The leaderName.
      */
     java.lang.String getLeaderName();
     /**
-     * <code>string leaderName = 2;</code>
+     * <code>string leaderName = 3;</code>
      * @return The bytes for leaderName.
      */
     com.google.protobuf.ByteString
         getLeaderNameBytes();
 
     /**
-     * <code>string leaderIP = 3;</code>
+     * <code>string leaderIP = 4;</code>
      * @return The leaderIP.
      */
     java.lang.String getLeaderIP();
     /**
-     * <code>string leaderIP = 3;</code>
+     * <code>string leaderIP = 4;</code>
      * @return The bytes for leaderIP.
      */
     com.google.protobuf.ByteString
         getLeaderIPBytes();
 
     /**
-     * <code>int32 leaderPort = 4;</code>
+     * <code>int32 leaderPort = 5;</code>
      * @return The leaderPort.
      */
     int getLeaderPort();
+
+    /**
+     * <code>int32 brokerId = 6;</code>
+     * @return The brokerId.
+     */
+    int getBrokerId();
+
+    /**
+     * <code>repeated bytes members = 7;</code>
+     * @return A list containing the members.
+     */
+    java.util.List<com.google.protobuf.ByteString> getMembersList();
+    /**
+     * <code>repeated bytes members = 7;</code>
+     * @return The count of members.
+     */
+    int getMembersCount();
+    /**
+     * <code>repeated bytes members = 7;</code>
+     * @param index The index of the element to return.
+     * @return The members at the given index.
+     */
+    com.google.protobuf.ByteString getMembers(int index);
   }
   /**
-   * Protobuf type {@code tutorial.ResponseLeaderInfoDetails}
+   * Protobuf type {@code tutorial.ResponseLeaderAndMembersInfoDetails}
    */
-  public static final class ResponseLeaderInfoDetails extends
+  public static final class ResponseLeaderAndMembersInfoDetails extends
       com.google.protobuf.GeneratedMessageV3 implements
-      // @@protoc_insertion_point(message_implements:tutorial.ResponseLeaderInfoDetails)
-      ResponseLeaderInfoDetailsOrBuilder {
+      // @@protoc_insertion_point(message_implements:tutorial.ResponseLeaderAndMembersInfoDetails)
+      ResponseLeaderAndMembersInfoDetailsOrBuilder {
   private static final long serialVersionUID = 0L;
-    // Use ResponseLeaderInfoDetails.newBuilder() to construct.
-    private ResponseLeaderInfoDetails(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+    // Use ResponseLeaderAndMembersInfoDetails.newBuilder() to construct.
+    private ResponseLeaderAndMembersInfoDetails(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
     }
-    private ResponseLeaderInfoDetails() {
+    private ResponseLeaderAndMembersInfoDetails() {
       leaderName_ = "";
       leaderIP_ = "";
+      members_ = java.util.Collections.emptyList();
     }
 
     @java.lang.Override
     @SuppressWarnings({"unused"})
     protected java.lang.Object newInstance(
         UnusedPrivateParameter unused) {
-      return new ResponseLeaderInfoDetails();
+      return new ResponseLeaderAndMembersInfoDetails();
     }
 
     @java.lang.Override
@@ -83,7 +113,7 @@ public final class ResponseLeaderInfo {
     getUnknownFields() {
       return this.unknownFields;
     }
-    private ResponseLeaderInfoDetails(
+    private ResponseLeaderAndMembersInfoDetails(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -91,6 +121,7 @@ public final class ResponseLeaderInfo {
       if (extensionRegistry == null) {
         throw new java.lang.NullPointerException();
       }
+      int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -106,21 +137,39 @@ public final class ResponseLeaderInfo {
               messageId_ = input.readInt32();
               break;
             }
-            case 18: {
-              java.lang.String s = input.readStringRequireUtf8();
+            case 16: {
 
-              leaderName_ = s;
+              infoAvailable_ = input.readBool();
               break;
             }
             case 26: {
               java.lang.String s = input.readStringRequireUtf8();
 
+              leaderName_ = s;
+              break;
+            }
+            case 34: {
+              java.lang.String s = input.readStringRequireUtf8();
+
               leaderIP_ = s;
               break;
             }
-            case 32: {
+            case 40: {
 
               leaderPort_ = input.readInt32();
+              break;
+            }
+            case 48: {
+
+              brokerId_ = input.readInt32();
+              break;
+            }
+            case 58: {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
+                members_ = new java.util.ArrayList<com.google.protobuf.ByteString>();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              members_.add(input.readBytes());
               break;
             }
             default: {
@@ -138,21 +187,24 @@ public final class ResponseLeaderInfo {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
+          members_ = java.util.Collections.unmodifiableList(members_); // C
+        }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
       }
     }
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return proto.ResponseLeaderInfo.internal_static_tutorial_ResponseLeaderInfoDetails_descriptor;
+      return proto.ResponseLeaderInfo.internal_static_tutorial_ResponseLeaderAndMembersInfoDetails_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return proto.ResponseLeaderInfo.internal_static_tutorial_ResponseLeaderInfoDetails_fieldAccessorTable
+      return proto.ResponseLeaderInfo.internal_static_tutorial_ResponseLeaderAndMembersInfoDetails_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              proto.ResponseLeaderInfo.ResponseLeaderInfoDetails.class, proto.ResponseLeaderInfo.ResponseLeaderInfoDetails.Builder.class);
+              proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails.class, proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails.Builder.class);
     }
 
     public static final int MESSAGEID_FIELD_NUMBER = 1;
@@ -166,10 +218,21 @@ public final class ResponseLeaderInfo {
       return messageId_;
     }
 
-    public static final int LEADERNAME_FIELD_NUMBER = 2;
+    public static final int INFOAVAILABLE_FIELD_NUMBER = 2;
+    private boolean infoAvailable_;
+    /**
+     * <code>bool infoAvailable = 2;</code>
+     * @return The infoAvailable.
+     */
+    @java.lang.Override
+    public boolean getInfoAvailable() {
+      return infoAvailable_;
+    }
+
+    public static final int LEADERNAME_FIELD_NUMBER = 3;
     private volatile java.lang.Object leaderName_;
     /**
-     * <code>string leaderName = 2;</code>
+     * <code>string leaderName = 3;</code>
      * @return The leaderName.
      */
     @java.lang.Override
@@ -186,7 +249,7 @@ public final class ResponseLeaderInfo {
       }
     }
     /**
-     * <code>string leaderName = 2;</code>
+     * <code>string leaderName = 3;</code>
      * @return The bytes for leaderName.
      */
     @java.lang.Override
@@ -204,10 +267,10 @@ public final class ResponseLeaderInfo {
       }
     }
 
-    public static final int LEADERIP_FIELD_NUMBER = 3;
+    public static final int LEADERIP_FIELD_NUMBER = 4;
     private volatile java.lang.Object leaderIP_;
     /**
-     * <code>string leaderIP = 3;</code>
+     * <code>string leaderIP = 4;</code>
      * @return The leaderIP.
      */
     @java.lang.Override
@@ -224,7 +287,7 @@ public final class ResponseLeaderInfo {
       }
     }
     /**
-     * <code>string leaderIP = 3;</code>
+     * <code>string leaderIP = 4;</code>
      * @return The bytes for leaderIP.
      */
     @java.lang.Override
@@ -242,15 +305,53 @@ public final class ResponseLeaderInfo {
       }
     }
 
-    public static final int LEADERPORT_FIELD_NUMBER = 4;
+    public static final int LEADERPORT_FIELD_NUMBER = 5;
     private int leaderPort_;
     /**
-     * <code>int32 leaderPort = 4;</code>
+     * <code>int32 leaderPort = 5;</code>
      * @return The leaderPort.
      */
     @java.lang.Override
     public int getLeaderPort() {
       return leaderPort_;
+    }
+
+    public static final int BROKERID_FIELD_NUMBER = 6;
+    private int brokerId_;
+    /**
+     * <code>int32 brokerId = 6;</code>
+     * @return The brokerId.
+     */
+    @java.lang.Override
+    public int getBrokerId() {
+      return brokerId_;
+    }
+
+    public static final int MEMBERS_FIELD_NUMBER = 7;
+    private java.util.List<com.google.protobuf.ByteString> members_;
+    /**
+     * <code>repeated bytes members = 7;</code>
+     * @return A list containing the members.
+     */
+    @java.lang.Override
+    public java.util.List<com.google.protobuf.ByteString>
+        getMembersList() {
+      return members_;
+    }
+    /**
+     * <code>repeated bytes members = 7;</code>
+     * @return The count of members.
+     */
+    public int getMembersCount() {
+      return members_.size();
+    }
+    /**
+     * <code>repeated bytes members = 7;</code>
+     * @param index The index of the element to return.
+     * @return The members at the given index.
+     */
+    public com.google.protobuf.ByteString getMembers(int index) {
+      return members_.get(index);
     }
 
     private byte memoizedIsInitialized = -1;
@@ -270,14 +371,23 @@ public final class ResponseLeaderInfo {
       if (messageId_ != 0) {
         output.writeInt32(1, messageId_);
       }
+      if (infoAvailable_ != false) {
+        output.writeBool(2, infoAvailable_);
+      }
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(leaderName_)) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, leaderName_);
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, leaderName_);
       }
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(leaderIP_)) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, leaderIP_);
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, leaderIP_);
       }
       if (leaderPort_ != 0) {
-        output.writeInt32(4, leaderPort_);
+        output.writeInt32(5, leaderPort_);
+      }
+      if (brokerId_ != 0) {
+        output.writeInt32(6, brokerId_);
+      }
+      for (int i = 0; i < members_.size(); i++) {
+        output.writeBytes(7, members_.get(i));
       }
       unknownFields.writeTo(output);
     }
@@ -292,15 +402,32 @@ public final class ResponseLeaderInfo {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(1, messageId_);
       }
+      if (infoAvailable_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(2, infoAvailable_);
+      }
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(leaderName_)) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, leaderName_);
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, leaderName_);
       }
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(leaderIP_)) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, leaderIP_);
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, leaderIP_);
       }
       if (leaderPort_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(4, leaderPort_);
+          .computeInt32Size(5, leaderPort_);
+      }
+      if (brokerId_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(6, brokerId_);
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < members_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeBytesSizeNoTag(members_.get(i));
+        }
+        size += dataSize;
+        size += 1 * getMembersList().size();
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -312,19 +439,25 @@ public final class ResponseLeaderInfo {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof proto.ResponseLeaderInfo.ResponseLeaderInfoDetails)) {
+      if (!(obj instanceof proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails)) {
         return super.equals(obj);
       }
-      proto.ResponseLeaderInfo.ResponseLeaderInfoDetails other = (proto.ResponseLeaderInfo.ResponseLeaderInfoDetails) obj;
+      proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails other = (proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails) obj;
 
       if (getMessageId()
           != other.getMessageId()) return false;
+      if (getInfoAvailable()
+          != other.getInfoAvailable()) return false;
       if (!getLeaderName()
           .equals(other.getLeaderName())) return false;
       if (!getLeaderIP()
           .equals(other.getLeaderIP())) return false;
       if (getLeaderPort()
           != other.getLeaderPort()) return false;
+      if (getBrokerId()
+          != other.getBrokerId()) return false;
+      if (!getMembersList()
+          .equals(other.getMembersList())) return false;
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -338,80 +471,89 @@ public final class ResponseLeaderInfo {
       hash = (19 * hash) + getDescriptor().hashCode();
       hash = (37 * hash) + MESSAGEID_FIELD_NUMBER;
       hash = (53 * hash) + getMessageId();
+      hash = (37 * hash) + INFOAVAILABLE_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getInfoAvailable());
       hash = (37 * hash) + LEADERNAME_FIELD_NUMBER;
       hash = (53 * hash) + getLeaderName().hashCode();
       hash = (37 * hash) + LEADERIP_FIELD_NUMBER;
       hash = (53 * hash) + getLeaderIP().hashCode();
       hash = (37 * hash) + LEADERPORT_FIELD_NUMBER;
       hash = (53 * hash) + getLeaderPort();
+      hash = (37 * hash) + BROKERID_FIELD_NUMBER;
+      hash = (53 * hash) + getBrokerId();
+      if (getMembersCount() > 0) {
+        hash = (37 * hash) + MEMBERS_FIELD_NUMBER;
+        hash = (53 * hash) + getMembersList().hashCode();
+      }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
     }
 
-    public static proto.ResponseLeaderInfo.ResponseLeaderInfoDetails parseFrom(
+    public static proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static proto.ResponseLeaderInfo.ResponseLeaderInfoDetails parseFrom(
+    public static proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static proto.ResponseLeaderInfo.ResponseLeaderInfoDetails parseFrom(
+    public static proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static proto.ResponseLeaderInfo.ResponseLeaderInfoDetails parseFrom(
+    public static proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static proto.ResponseLeaderInfo.ResponseLeaderInfoDetails parseFrom(byte[] data)
+    public static proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static proto.ResponseLeaderInfo.ResponseLeaderInfoDetails parseFrom(
+    public static proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static proto.ResponseLeaderInfo.ResponseLeaderInfoDetails parseFrom(java.io.InputStream input)
+    public static proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static proto.ResponseLeaderInfo.ResponseLeaderInfoDetails parseFrom(
+    public static proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    public static proto.ResponseLeaderInfo.ResponseLeaderInfoDetails parseDelimitedFrom(java.io.InputStream input)
+    public static proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input);
     }
-    public static proto.ResponseLeaderInfo.ResponseLeaderInfoDetails parseDelimitedFrom(
+    public static proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static proto.ResponseLeaderInfo.ResponseLeaderInfoDetails parseFrom(
+    public static proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static proto.ResponseLeaderInfo.ResponseLeaderInfoDetails parseFrom(
+    public static proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -424,7 +566,7 @@ public final class ResponseLeaderInfo {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(proto.ResponseLeaderInfo.ResponseLeaderInfoDetails prototype) {
+    public static Builder newBuilder(proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     @java.lang.Override
@@ -440,26 +582,26 @@ public final class ResponseLeaderInfo {
       return builder;
     }
     /**
-     * Protobuf type {@code tutorial.ResponseLeaderInfoDetails}
+     * Protobuf type {@code tutorial.ResponseLeaderAndMembersInfoDetails}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:tutorial.ResponseLeaderInfoDetails)
-        proto.ResponseLeaderInfo.ResponseLeaderInfoDetailsOrBuilder {
+        // @@protoc_insertion_point(builder_implements:tutorial.ResponseLeaderAndMembersInfoDetails)
+        proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetailsOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return proto.ResponseLeaderInfo.internal_static_tutorial_ResponseLeaderInfoDetails_descriptor;
+        return proto.ResponseLeaderInfo.internal_static_tutorial_ResponseLeaderAndMembersInfoDetails_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return proto.ResponseLeaderInfo.internal_static_tutorial_ResponseLeaderInfoDetails_fieldAccessorTable
+        return proto.ResponseLeaderInfo.internal_static_tutorial_ResponseLeaderAndMembersInfoDetails_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                proto.ResponseLeaderInfo.ResponseLeaderInfoDetails.class, proto.ResponseLeaderInfo.ResponseLeaderInfoDetails.Builder.class);
+                proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails.class, proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails.Builder.class);
       }
 
-      // Construct using proto.ResponseLeaderInfo.ResponseLeaderInfoDetails.newBuilder()
+      // Construct using proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
@@ -479,29 +621,35 @@ public final class ResponseLeaderInfo {
         super.clear();
         messageId_ = 0;
 
+        infoAvailable_ = false;
+
         leaderName_ = "";
 
         leaderIP_ = "";
 
         leaderPort_ = 0;
 
+        brokerId_ = 0;
+
+        members_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000001);
         return this;
       }
 
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return proto.ResponseLeaderInfo.internal_static_tutorial_ResponseLeaderInfoDetails_descriptor;
+        return proto.ResponseLeaderInfo.internal_static_tutorial_ResponseLeaderAndMembersInfoDetails_descriptor;
       }
 
       @java.lang.Override
-      public proto.ResponseLeaderInfo.ResponseLeaderInfoDetails getDefaultInstanceForType() {
-        return proto.ResponseLeaderInfo.ResponseLeaderInfoDetails.getDefaultInstance();
+      public proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails getDefaultInstanceForType() {
+        return proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails.getDefaultInstance();
       }
 
       @java.lang.Override
-      public proto.ResponseLeaderInfo.ResponseLeaderInfoDetails build() {
-        proto.ResponseLeaderInfo.ResponseLeaderInfoDetails result = buildPartial();
+      public proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails build() {
+        proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
@@ -509,12 +657,20 @@ public final class ResponseLeaderInfo {
       }
 
       @java.lang.Override
-      public proto.ResponseLeaderInfo.ResponseLeaderInfoDetails buildPartial() {
-        proto.ResponseLeaderInfo.ResponseLeaderInfoDetails result = new proto.ResponseLeaderInfo.ResponseLeaderInfoDetails(this);
+      public proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails buildPartial() {
+        proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails result = new proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails(this);
+        int from_bitField0_ = bitField0_;
         result.messageId_ = messageId_;
+        result.infoAvailable_ = infoAvailable_;
         result.leaderName_ = leaderName_;
         result.leaderIP_ = leaderIP_;
         result.leaderPort_ = leaderPort_;
+        result.brokerId_ = brokerId_;
+        if (((bitField0_ & 0x00000001) != 0)) {
+          members_ = java.util.Collections.unmodifiableList(members_);
+          bitField0_ = (bitField0_ & ~0x00000001);
+        }
+        result.members_ = members_;
         onBuilt();
         return result;
       }
@@ -553,18 +709,21 @@ public final class ResponseLeaderInfo {
       }
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof proto.ResponseLeaderInfo.ResponseLeaderInfoDetails) {
-          return mergeFrom((proto.ResponseLeaderInfo.ResponseLeaderInfoDetails)other);
+        if (other instanceof proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails) {
+          return mergeFrom((proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(proto.ResponseLeaderInfo.ResponseLeaderInfoDetails other) {
-        if (other == proto.ResponseLeaderInfo.ResponseLeaderInfoDetails.getDefaultInstance()) return this;
+      public Builder mergeFrom(proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails other) {
+        if (other == proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails.getDefaultInstance()) return this;
         if (other.getMessageId() != 0) {
           setMessageId(other.getMessageId());
+        }
+        if (other.getInfoAvailable() != false) {
+          setInfoAvailable(other.getInfoAvailable());
         }
         if (!other.getLeaderName().isEmpty()) {
           leaderName_ = other.leaderName_;
@@ -576,6 +735,19 @@ public final class ResponseLeaderInfo {
         }
         if (other.getLeaderPort() != 0) {
           setLeaderPort(other.getLeaderPort());
+        }
+        if (other.getBrokerId() != 0) {
+          setBrokerId(other.getBrokerId());
+        }
+        if (!other.members_.isEmpty()) {
+          if (members_.isEmpty()) {
+            members_ = other.members_;
+            bitField0_ = (bitField0_ & ~0x00000001);
+          } else {
+            ensureMembersIsMutable();
+            members_.addAll(other.members_);
+          }
+          onChanged();
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -592,11 +764,11 @@ public final class ResponseLeaderInfo {
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        proto.ResponseLeaderInfo.ResponseLeaderInfoDetails parsedMessage = null;
+        proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails parsedMessage = null;
         try {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (proto.ResponseLeaderInfo.ResponseLeaderInfoDetails) e.getUnfinishedMessage();
+          parsedMessage = (proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails) e.getUnfinishedMessage();
           throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
@@ -605,6 +777,7 @@ public final class ResponseLeaderInfo {
         }
         return this;
       }
+      private int bitField0_;
 
       private int messageId_ ;
       /**
@@ -637,9 +810,40 @@ public final class ResponseLeaderInfo {
         return this;
       }
 
+      private boolean infoAvailable_ ;
+      /**
+       * <code>bool infoAvailable = 2;</code>
+       * @return The infoAvailable.
+       */
+      @java.lang.Override
+      public boolean getInfoAvailable() {
+        return infoAvailable_;
+      }
+      /**
+       * <code>bool infoAvailable = 2;</code>
+       * @param value The infoAvailable to set.
+       * @return This builder for chaining.
+       */
+      public Builder setInfoAvailable(boolean value) {
+        
+        infoAvailable_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bool infoAvailable = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearInfoAvailable() {
+        
+        infoAvailable_ = false;
+        onChanged();
+        return this;
+      }
+
       private java.lang.Object leaderName_ = "";
       /**
-       * <code>string leaderName = 2;</code>
+       * <code>string leaderName = 3;</code>
        * @return The leaderName.
        */
       public java.lang.String getLeaderName() {
@@ -655,7 +859,7 @@ public final class ResponseLeaderInfo {
         }
       }
       /**
-       * <code>string leaderName = 2;</code>
+       * <code>string leaderName = 3;</code>
        * @return The bytes for leaderName.
        */
       public com.google.protobuf.ByteString
@@ -672,7 +876,7 @@ public final class ResponseLeaderInfo {
         }
       }
       /**
-       * <code>string leaderName = 2;</code>
+       * <code>string leaderName = 3;</code>
        * @param value The leaderName to set.
        * @return This builder for chaining.
        */
@@ -687,7 +891,7 @@ public final class ResponseLeaderInfo {
         return this;
       }
       /**
-       * <code>string leaderName = 2;</code>
+       * <code>string leaderName = 3;</code>
        * @return This builder for chaining.
        */
       public Builder clearLeaderName() {
@@ -697,7 +901,7 @@ public final class ResponseLeaderInfo {
         return this;
       }
       /**
-       * <code>string leaderName = 2;</code>
+       * <code>string leaderName = 3;</code>
        * @param value The bytes for leaderName to set.
        * @return This builder for chaining.
        */
@@ -715,7 +919,7 @@ public final class ResponseLeaderInfo {
 
       private java.lang.Object leaderIP_ = "";
       /**
-       * <code>string leaderIP = 3;</code>
+       * <code>string leaderIP = 4;</code>
        * @return The leaderIP.
        */
       public java.lang.String getLeaderIP() {
@@ -731,7 +935,7 @@ public final class ResponseLeaderInfo {
         }
       }
       /**
-       * <code>string leaderIP = 3;</code>
+       * <code>string leaderIP = 4;</code>
        * @return The bytes for leaderIP.
        */
       public com.google.protobuf.ByteString
@@ -748,7 +952,7 @@ public final class ResponseLeaderInfo {
         }
       }
       /**
-       * <code>string leaderIP = 3;</code>
+       * <code>string leaderIP = 4;</code>
        * @param value The leaderIP to set.
        * @return This builder for chaining.
        */
@@ -763,7 +967,7 @@ public final class ResponseLeaderInfo {
         return this;
       }
       /**
-       * <code>string leaderIP = 3;</code>
+       * <code>string leaderIP = 4;</code>
        * @return This builder for chaining.
        */
       public Builder clearLeaderIP() {
@@ -773,7 +977,7 @@ public final class ResponseLeaderInfo {
         return this;
       }
       /**
-       * <code>string leaderIP = 3;</code>
+       * <code>string leaderIP = 4;</code>
        * @param value The bytes for leaderIP to set.
        * @return This builder for chaining.
        */
@@ -791,7 +995,7 @@ public final class ResponseLeaderInfo {
 
       private int leaderPort_ ;
       /**
-       * <code>int32 leaderPort = 4;</code>
+       * <code>int32 leaderPort = 5;</code>
        * @return The leaderPort.
        */
       @java.lang.Override
@@ -799,7 +1003,7 @@ public final class ResponseLeaderInfo {
         return leaderPort_;
       }
       /**
-       * <code>int32 leaderPort = 4;</code>
+       * <code>int32 leaderPort = 5;</code>
        * @param value The leaderPort to set.
        * @return This builder for chaining.
        */
@@ -810,12 +1014,128 @@ public final class ResponseLeaderInfo {
         return this;
       }
       /**
-       * <code>int32 leaderPort = 4;</code>
+       * <code>int32 leaderPort = 5;</code>
        * @return This builder for chaining.
        */
       public Builder clearLeaderPort() {
         
         leaderPort_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int brokerId_ ;
+      /**
+       * <code>int32 brokerId = 6;</code>
+       * @return The brokerId.
+       */
+      @java.lang.Override
+      public int getBrokerId() {
+        return brokerId_;
+      }
+      /**
+       * <code>int32 brokerId = 6;</code>
+       * @param value The brokerId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setBrokerId(int value) {
+        
+        brokerId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int32 brokerId = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearBrokerId() {
+        
+        brokerId_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private java.util.List<com.google.protobuf.ByteString> members_ = java.util.Collections.emptyList();
+      private void ensureMembersIsMutable() {
+        if (!((bitField0_ & 0x00000001) != 0)) {
+          members_ = new java.util.ArrayList<com.google.protobuf.ByteString>(members_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+      /**
+       * <code>repeated bytes members = 7;</code>
+       * @return A list containing the members.
+       */
+      public java.util.List<com.google.protobuf.ByteString>
+          getMembersList() {
+        return ((bitField0_ & 0x00000001) != 0) ?
+                 java.util.Collections.unmodifiableList(members_) : members_;
+      }
+      /**
+       * <code>repeated bytes members = 7;</code>
+       * @return The count of members.
+       */
+      public int getMembersCount() {
+        return members_.size();
+      }
+      /**
+       * <code>repeated bytes members = 7;</code>
+       * @param index The index of the element to return.
+       * @return The members at the given index.
+       */
+      public com.google.protobuf.ByteString getMembers(int index) {
+        return members_.get(index);
+      }
+      /**
+       * <code>repeated bytes members = 7;</code>
+       * @param index The index to set the value at.
+       * @param value The members to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMembers(
+          int index, com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureMembersIsMutable();
+        members_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated bytes members = 7;</code>
+       * @param value The members to add.
+       * @return This builder for chaining.
+       */
+      public Builder addMembers(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureMembersIsMutable();
+        members_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated bytes members = 7;</code>
+       * @param values The members to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllMembers(
+          java.lang.Iterable<? extends com.google.protobuf.ByteString> values) {
+        ensureMembersIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, members_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated bytes members = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMembers() {
+        members_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
@@ -832,51 +1152,51 @@ public final class ResponseLeaderInfo {
       }
 
 
-      // @@protoc_insertion_point(builder_scope:tutorial.ResponseLeaderInfoDetails)
+      // @@protoc_insertion_point(builder_scope:tutorial.ResponseLeaderAndMembersInfoDetails)
     }
 
-    // @@protoc_insertion_point(class_scope:tutorial.ResponseLeaderInfoDetails)
-    private static final proto.ResponseLeaderInfo.ResponseLeaderInfoDetails DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:tutorial.ResponseLeaderAndMembersInfoDetails)
+    private static final proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new proto.ResponseLeaderInfo.ResponseLeaderInfoDetails();
+      DEFAULT_INSTANCE = new proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails();
     }
 
-    public static proto.ResponseLeaderInfo.ResponseLeaderInfoDetails getDefaultInstance() {
+    public static proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<ResponseLeaderInfoDetails>
-        PARSER = new com.google.protobuf.AbstractParser<ResponseLeaderInfoDetails>() {
+    private static final com.google.protobuf.Parser<ResponseLeaderAndMembersInfoDetails>
+        PARSER = new com.google.protobuf.AbstractParser<ResponseLeaderAndMembersInfoDetails>() {
       @java.lang.Override
-      public ResponseLeaderInfoDetails parsePartialFrom(
+      public ResponseLeaderAndMembersInfoDetails parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-        return new ResponseLeaderInfoDetails(input, extensionRegistry);
+        return new ResponseLeaderAndMembersInfoDetails(input, extensionRegistry);
       }
     };
 
-    public static com.google.protobuf.Parser<ResponseLeaderInfoDetails> parser() {
+    public static com.google.protobuf.Parser<ResponseLeaderAndMembersInfoDetails> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<ResponseLeaderInfoDetails> getParserForType() {
+    public com.google.protobuf.Parser<ResponseLeaderAndMembersInfoDetails> getParserForType() {
       return PARSER;
     }
 
     @java.lang.Override
-    public proto.ResponseLeaderInfo.ResponseLeaderInfoDetails getDefaultInstanceForType() {
+    public proto.ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
   }
 
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_tutorial_ResponseLeaderInfoDetails_descriptor;
+    internal_static_tutorial_ResponseLeaderAndMembersInfoDetails_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_tutorial_ResponseLeaderInfoDetails_fieldAccessorTable;
+      internal_static_tutorial_ResponseLeaderAndMembersInfoDetails_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -886,22 +1206,24 @@ public final class ResponseLeaderInfo {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\030ResponseLeaderInfo.proto\022\010tutorial\"h\n\031" +
-      "ResponseLeaderInfoDetails\022\021\n\tmessageId\030\001" +
-      " \001(\005\022\022\n\nleaderName\030\002 \001(\t\022\020\n\010leaderIP\030\003 \001" +
-      "(\t\022\022\n\nleaderPort\030\004 \001(\005B\033\n\005protoB\022Respons" +
-      "eLeaderInfob\006proto3"
+      "\n\030ResponseLeaderInfo.proto\022\010tutorial\"\254\001\n" +
+      "#ResponseLeaderAndMembersInfoDetails\022\021\n\t" +
+      "messageId\030\001 \001(\005\022\025\n\rinfoAvailable\030\002 \001(\010\022\022" +
+      "\n\nleaderName\030\003 \001(\t\022\020\n\010leaderIP\030\004 \001(\t\022\022\n\n" +
+      "leaderPort\030\005 \001(\005\022\020\n\010brokerId\030\006 \001(\005\022\017\n\007me" +
+      "mbers\030\007 \003(\014B\033\n\005protoB\022ResponseLeaderInfo" +
+      "b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
         });
-    internal_static_tutorial_ResponseLeaderInfoDetails_descriptor =
+    internal_static_tutorial_ResponseLeaderAndMembersInfoDetails_descriptor =
       getDescriptor().getMessageTypes().get(0);
-    internal_static_tutorial_ResponseLeaderInfoDetails_fieldAccessorTable = new
+    internal_static_tutorial_ResponseLeaderAndMembersInfoDetails_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_tutorial_ResponseLeaderInfoDetails_descriptor,
-        new java.lang.String[] { "MessageId", "LeaderName", "LeaderIP", "LeaderPort", });
+        internal_static_tutorial_ResponseLeaderAndMembersInfoDetails_descriptor,
+        new java.lang.String[] { "MessageId", "InfoAvailable", "LeaderName", "LeaderIP", "LeaderPort", "BrokerId", "Members", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

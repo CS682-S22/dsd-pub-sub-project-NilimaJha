@@ -9,7 +9,5 @@ message UpdateLeaderInfoDetails {
   int32 messageId = 1;
   string senderType = 2;
   string brokerName = 3;
-  string brokerId = 4;
-  string brokerIP = 5;
-  int32 brokerPort = 6;
+  int32 brokerId = 4;
 }

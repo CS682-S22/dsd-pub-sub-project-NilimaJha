@@ -49,34 +49,10 @@ public final class UpdateLeaderInfo {
         getBrokerNameBytes();
 
     /**
-     * <code>string brokerId = 4;</code>
+     * <code>int32 brokerId = 4;</code>
      * @return The brokerId.
      */
-    java.lang.String getBrokerId();
-    /**
-     * <code>string brokerId = 4;</code>
-     * @return The bytes for brokerId.
-     */
-    com.google.protobuf.ByteString
-        getBrokerIdBytes();
-
-    /**
-     * <code>string brokerIP = 5;</code>
-     * @return The brokerIP.
-     */
-    java.lang.String getBrokerIP();
-    /**
-     * <code>string brokerIP = 5;</code>
-     * @return The bytes for brokerIP.
-     */
-    com.google.protobuf.ByteString
-        getBrokerIPBytes();
-
-    /**
-     * <code>int32 brokerPort = 6;</code>
-     * @return The brokerPort.
-     */
-    int getBrokerPort();
+    int getBrokerId();
   }
   /**
    * Protobuf type {@code tutorial.UpdateLeaderInfoDetails}
@@ -93,8 +69,6 @@ public final class UpdateLeaderInfo {
     private UpdateLeaderInfoDetails() {
       senderType_ = "";
       brokerName_ = "";
-      brokerId_ = "";
-      brokerIP_ = "";
     }
 
     @java.lang.Override
@@ -144,21 +118,9 @@ public final class UpdateLeaderInfo {
               brokerName_ = s;
               break;
             }
-            case 34: {
-              java.lang.String s = input.readStringRequireUtf8();
+            case 32: {
 
-              brokerId_ = s;
-              break;
-            }
-            case 42: {
-              java.lang.String s = input.readStringRequireUtf8();
-
-              brokerIP_ = s;
-              break;
-            }
-            case 48: {
-
-              brokerPort_ = input.readInt32();
+              brokerId_ = input.readInt32();
               break;
             }
             default: {
@@ -281,90 +243,14 @@ public final class UpdateLeaderInfo {
     }
 
     public static final int BROKERID_FIELD_NUMBER = 4;
-    private volatile java.lang.Object brokerId_;
+    private int brokerId_;
     /**
-     * <code>string brokerId = 4;</code>
+     * <code>int32 brokerId = 4;</code>
      * @return The brokerId.
      */
     @java.lang.Override
-    public java.lang.String getBrokerId() {
-      java.lang.Object ref = brokerId_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        brokerId_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string brokerId = 4;</code>
-     * @return The bytes for brokerId.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getBrokerIdBytes() {
-      java.lang.Object ref = brokerId_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        brokerId_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int BROKERIP_FIELD_NUMBER = 5;
-    private volatile java.lang.Object brokerIP_;
-    /**
-     * <code>string brokerIP = 5;</code>
-     * @return The brokerIP.
-     */
-    @java.lang.Override
-    public java.lang.String getBrokerIP() {
-      java.lang.Object ref = brokerIP_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        brokerIP_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string brokerIP = 5;</code>
-     * @return The bytes for brokerIP.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getBrokerIPBytes() {
-      java.lang.Object ref = brokerIP_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        brokerIP_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int BROKERPORT_FIELD_NUMBER = 6;
-    private int brokerPort_;
-    /**
-     * <code>int32 brokerPort = 6;</code>
-     * @return The brokerPort.
-     */
-    @java.lang.Override
-    public int getBrokerPort() {
-      return brokerPort_;
+    public int getBrokerId() {
+      return brokerId_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -390,14 +276,8 @@ public final class UpdateLeaderInfo {
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(brokerName_)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 3, brokerName_);
       }
-      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(brokerId_)) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, brokerId_);
-      }
-      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(brokerIP_)) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 5, brokerIP_);
-      }
-      if (brokerPort_ != 0) {
-        output.writeInt32(6, brokerPort_);
+      if (brokerId_ != 0) {
+        output.writeInt32(4, brokerId_);
       }
       unknownFields.writeTo(output);
     }
@@ -418,15 +298,9 @@ public final class UpdateLeaderInfo {
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(brokerName_)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, brokerName_);
       }
-      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(brokerId_)) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, brokerId_);
-      }
-      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(brokerIP_)) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, brokerIP_);
-      }
-      if (brokerPort_ != 0) {
+      if (brokerId_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(6, brokerPort_);
+          .computeInt32Size(4, brokerId_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -449,12 +323,8 @@ public final class UpdateLeaderInfo {
           .equals(other.getSenderType())) return false;
       if (!getBrokerName()
           .equals(other.getBrokerName())) return false;
-      if (!getBrokerId()
-          .equals(other.getBrokerId())) return false;
-      if (!getBrokerIP()
-          .equals(other.getBrokerIP())) return false;
-      if (getBrokerPort()
-          != other.getBrokerPort()) return false;
+      if (getBrokerId()
+          != other.getBrokerId()) return false;
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -473,11 +343,7 @@ public final class UpdateLeaderInfo {
       hash = (37 * hash) + BROKERNAME_FIELD_NUMBER;
       hash = (53 * hash) + getBrokerName().hashCode();
       hash = (37 * hash) + BROKERID_FIELD_NUMBER;
-      hash = (53 * hash) + getBrokerId().hashCode();
-      hash = (37 * hash) + BROKERIP_FIELD_NUMBER;
-      hash = (53 * hash) + getBrokerIP().hashCode();
-      hash = (37 * hash) + BROKERPORT_FIELD_NUMBER;
-      hash = (53 * hash) + getBrokerPort();
+      hash = (53 * hash) + getBrokerId();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -617,11 +483,7 @@ public final class UpdateLeaderInfo {
 
         brokerName_ = "";
 
-        brokerId_ = "";
-
-        brokerIP_ = "";
-
-        brokerPort_ = 0;
+        brokerId_ = 0;
 
         return this;
       }
@@ -653,8 +515,6 @@ public final class UpdateLeaderInfo {
         result.senderType_ = senderType_;
         result.brokerName_ = brokerName_;
         result.brokerId_ = brokerId_;
-        result.brokerIP_ = brokerIP_;
-        result.brokerPort_ = brokerPort_;
         onBuilt();
         return result;
       }
@@ -714,16 +574,8 @@ public final class UpdateLeaderInfo {
           brokerName_ = other.brokerName_;
           onChanged();
         }
-        if (!other.getBrokerId().isEmpty()) {
-          brokerId_ = other.brokerId_;
-          onChanged();
-        }
-        if (!other.getBrokerIP().isEmpty()) {
-          brokerIP_ = other.brokerIP_;
-          onChanged();
-        }
-        if (other.getBrokerPort() != 0) {
-          setBrokerPort(other.getBrokerPort());
+        if (other.getBrokerId() != 0) {
+          setBrokerId(other.getBrokerId());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -937,185 +789,33 @@ public final class UpdateLeaderInfo {
         return this;
       }
 
-      private java.lang.Object brokerId_ = "";
+      private int brokerId_ ;
       /**
-       * <code>string brokerId = 4;</code>
+       * <code>int32 brokerId = 4;</code>
        * @return The brokerId.
        */
-      public java.lang.String getBrokerId() {
-        java.lang.Object ref = brokerId_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          brokerId_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
+      @java.lang.Override
+      public int getBrokerId() {
+        return brokerId_;
       }
       /**
-       * <code>string brokerId = 4;</code>
-       * @return The bytes for brokerId.
-       */
-      public com.google.protobuf.ByteString
-          getBrokerIdBytes() {
-        java.lang.Object ref = brokerId_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          brokerId_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string brokerId = 4;</code>
+       * <code>int32 brokerId = 4;</code>
        * @param value The brokerId to set.
        * @return This builder for chaining.
        */
-      public Builder setBrokerId(
-          java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  
+      public Builder setBrokerId(int value) {
+        
         brokerId_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>string brokerId = 4;</code>
+       * <code>int32 brokerId = 4;</code>
        * @return This builder for chaining.
        */
       public Builder clearBrokerId() {
         
-        brokerId_ = getDefaultInstance().getBrokerId();
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string brokerId = 4;</code>
-       * @param value The bytes for brokerId to set.
-       * @return This builder for chaining.
-       */
-      public Builder setBrokerIdBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  checkByteStringIsUtf8(value);
-        
-        brokerId_ = value;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object brokerIP_ = "";
-      /**
-       * <code>string brokerIP = 5;</code>
-       * @return The brokerIP.
-       */
-      public java.lang.String getBrokerIP() {
-        java.lang.Object ref = brokerIP_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          brokerIP_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string brokerIP = 5;</code>
-       * @return The bytes for brokerIP.
-       */
-      public com.google.protobuf.ByteString
-          getBrokerIPBytes() {
-        java.lang.Object ref = brokerIP_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          brokerIP_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string brokerIP = 5;</code>
-       * @param value The brokerIP to set.
-       * @return This builder for chaining.
-       */
-      public Builder setBrokerIP(
-          java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  
-        brokerIP_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string brokerIP = 5;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearBrokerIP() {
-        
-        brokerIP_ = getDefaultInstance().getBrokerIP();
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string brokerIP = 5;</code>
-       * @param value The bytes for brokerIP to set.
-       * @return This builder for chaining.
-       */
-      public Builder setBrokerIPBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  checkByteStringIsUtf8(value);
-        
-        brokerIP_ = value;
-        onChanged();
-        return this;
-      }
-
-      private int brokerPort_ ;
-      /**
-       * <code>int32 brokerPort = 6;</code>
-       * @return The brokerPort.
-       */
-      @java.lang.Override
-      public int getBrokerPort() {
-        return brokerPort_;
-      }
-      /**
-       * <code>int32 brokerPort = 6;</code>
-       * @param value The brokerPort to set.
-       * @return This builder for chaining.
-       */
-      public Builder setBrokerPort(int value) {
-        
-        brokerPort_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>int32 brokerPort = 6;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearBrokerPort() {
-        
-        brokerPort_ = 0;
+        brokerId_ = 0;
         onChanged();
         return this;
       }
@@ -1186,12 +886,11 @@ public final class UpdateLeaderInfo {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\026UpdateLeaderInfo.proto\022\010tutorial\"\214\001\n\027U" +
-      "pdateLeaderInfoDetails\022\021\n\tmessageId\030\001 \001(" +
-      "\005\022\022\n\nsenderType\030\002 \001(\t\022\022\n\nbrokerName\030\003 \001(" +
-      "\t\022\020\n\010brokerId\030\004 \001(\t\022\020\n\010brokerIP\030\005 \001(\t\022\022\n" +
-      "\nbrokerPort\030\006 \001(\005B\031\n\005protoB\020UpdateLeader" +
-      "Infob\006proto3"
+      "\n\026UpdateLeaderInfo.proto\022\010tutorial\"f\n\027Up" +
+      "dateLeaderInfoDetails\022\021\n\tmessageId\030\001 \001(\005" +
+      "\022\022\n\nsenderType\030\002 \001(\t\022\022\n\nbrokerName\030\003 \001(\t" +
+      "\022\020\n\010brokerId\030\004 \001(\005B\031\n\005protoB\020UpdateLeade" +
+      "rInfob\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -1202,7 +901,7 @@ public final class UpdateLeaderInfo {
     internal_static_tutorial_UpdateLeaderInfoDetails_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tutorial_UpdateLeaderInfoDetails_descriptor,
-        new java.lang.String[] { "MessageId", "SenderType", "BrokerName", "BrokerId", "BrokerIP", "BrokerPort", });
+        new java.lang.String[] { "MessageId", "SenderType", "BrokerName", "BrokerId", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
