@@ -2,6 +2,7 @@ package model;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import util.Constants;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -15,7 +16,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @author nilimajha
  */
 public class MessageInfo {
-
     private static final Logger logger = LogManager.getLogger(MessageInfo.class);
     private ArrayList<Long> flushedMessageOffset;
     private ArrayList<Long> inMemoryMessageOffset;
@@ -26,6 +26,8 @@ public class MessageInfo {
     private String topicSegmentFileName;
     private boolean topicIsAvailable = true;
     private String topic;
+    private BrokerInfo thisBrokerInfo = null;
+    private MembershipTable membershipTable = MembershipTable.getMembershipTable(Constants.BROKER);
     // lock for inMemory data store
     private final ReentrantReadWriteLock inMemoryDSLock = new ReentrantReadWriteLock();
     // lock for persistent storage and flushedMessageOffset ArrayList.
@@ -36,12 +38,13 @@ public class MessageInfo {
      * Constructor to initialise class attributes.
      * @param topic topic to which this MessageInfo object belongs.
      */
-    public MessageInfo(String topic) {
+    public MessageInfo(String topic, BrokerInfo thisBroker) {
         this.flushedMessageOffset = new ArrayList<>();
         this.inMemoryMessageOffset = new ArrayList<>();
         this.inMemoryMessage = new ArrayList<>();
         this.topicSegmentFileName = topic + ".log";
         this.topic = topic;
+        this.thisBrokerInfo = thisBroker;
         startTimer();
         fileWriterInitializer(this.topicSegmentFileName);
         fileReaderInitializer(this.topicSegmentFileName);
@@ -128,10 +131,13 @@ public class MessageInfo {
         inMemoryDSLock.writeLock().lock();
         inMemoryMessageOffset.add(lastOffSet.get());
         inMemoryMessage.add(message);
-        lastOffSet.addAndGet(message.length);
-
+        if (membershipTable.getLeaderId() == thisBrokerInfo.getBrokerId()) {
+            logger.info("[ThreadId : " + Thread.currentThread().getId() + " Sending message to Follower.");
+            membershipTable.sendSynchronousData(lastOffSet.get(), topic, message, lastOffSet.addAndGet(message.length)); // replicating data on the followers.
+        } else {
+            lastOffSet.addAndGet(message.length);
+        }
         logger.info("\n[ADD] Added new message on Topic " + topic + ". [In-memory buffer size : " + inMemoryMessageOffset.size() + "]");
-
         if (inMemoryMessageOffset.size() == Constants.TOTAL_IN_MEMORY_MESSAGE_SIZE) {
             timer.cancel();
             flushOnFile();

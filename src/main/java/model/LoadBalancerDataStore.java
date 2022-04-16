@@ -1,6 +1,8 @@
-import model.Constants;
+package model;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import util.Constants;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -53,7 +55,7 @@ public class LoadBalancerDataStore {
      */
     public void addNewMemberIntoMembershipTable(int memberId, String memberName, String memberIP, int memberPort) {
         BrokerInfo brokerInfo = new BrokerInfo(memberName, memberId, memberIP, memberPort);
-        logger.info("\nAdding new broker into the memberShipList. LoadBalancerDataStore.");
+        logger.info("\nAdding new broker into the memberShipList. model.LoadBalancerDataStore.");
         logger.info("\nAdded Id : " + brokerInfo.getBrokerId() + " name : " + brokerInfo.getBrokerName() +
                 " IP : " + brokerInfo.getBrokerIP() + " port : " + brokerInfo.getBrokerPort());
         membershipTable.addMember(memberId, brokerInfo);

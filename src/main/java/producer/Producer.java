@@ -1,15 +1,18 @@
+package producer;
+
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import customeException.ConnectionClosedException;
-import model.Constants;
+import util.Constants;
+import model.Node;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import proto.*;
 
 
 /**
- * Class extends Node class and is a producer
+ * Class extends model.Node class and is a producer
  * @author nilimajha
  */
 public class Producer extends Node {
@@ -49,7 +52,7 @@ public class Producer extends Node {
             logger.info("LeaderBrokerIp : " + leaderBrokerIP);
             closeLoadBalancerConnection();
         } catch (ConnectionClosedException e) {
-            logger.info("\nException occurred while connecting to LoadBalancer. Error Message : " + e.getMessage());
+            logger.info("\nException occurred while connecting to loadBalancer.LoadBalancer. Error Message : " + e.getMessage());
             System.exit(0);
         }
 
@@ -113,7 +116,7 @@ public class Producer extends Node {
     }
 
     /**
-     * creates the Producer Initial packet.
+     * creates the producer.Producer Initial packet.
      * @return byte[] array
      */
     public byte[] createInitialMessagePacket1(int messageId) {
@@ -167,7 +170,7 @@ public class Producer extends Node {
 
     /**
      * sends message to the currentLeaderBroker and if LeaderBroker fails then
-     * connect to the new leader by getting info from LoadBalancer.
+     * connect to the new leader by getting info from loadBalancer.LoadBalancer.
      * @param topic
      * @param data
      * @return

@@ -1,8 +1,16 @@
-import model.Constants;
+package model;
+
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
+import connection.Connection;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import proto.ReplicateMessage;
+import util.Constants;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Membership table keeps the information of all the broker members.
@@ -47,7 +55,7 @@ public class MembershipTable {
         if (!membershipInfo.containsKey(id)) {
             BrokerInfo previousBrokerInfo = membershipInfo.putIfAbsent(id, brokerInfo);
             if (previousBrokerInfo == null) {
-                logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] New Member is added in the MembershipTable.size : " + membershipInfo.size());
+                logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] New Member is added in the model.MembershipTable.size : " + membershipInfo.size());
             }
         } else {
             logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] broker.Broker already exist in the list. MemberShipTable. size : " + membershipInfo.size());
@@ -95,7 +103,7 @@ public class MembershipTable {
 
     /**
      * returns the current leader information from the membershipTable.
-     * @return BrokerInfo leader broker info.
+     * @return model.BrokerInfo leader broker info.
      */
     public BrokerInfo getLeaderInfo() {
         logger.info("\nSize : " + membershipInfo.size() + " LeaderId : " + leaderId);
@@ -124,5 +132,22 @@ public class MembershipTable {
      */
     public boolean isMember(int memberID) {
         return membershipInfo.containsKey(memberID);
+    }
+
+    /**
+     * methods sends the message/actual_data over the DataConnection established between two broker.
+     * @param message message published
+     */
+    public void sendSynchronousData(long thisMessageOffset, String topic, byte[] message, long expectedAckNumber) {
+        Any any = Any.pack(ReplicateMessage.ReplicateMessageDetails.newBuilder()
+                .setSynchronous(true)
+                .setMessageId(thisMessageOffset)
+                .setTopic(topic)
+                .setMessage(ByteString.copyFrom(message))
+                .build());
+        for (Map.Entry<Integer, BrokerInfo> eachMember : membershipInfo.entrySet()) {
+            logger.info("[ThreadId : " + Thread.currentThread().getId() + " Calling member.sendData.");
+            eachMember.getValue().sendData(any.toByteArray(), expectedAckNumber);
+        }
     }
 }

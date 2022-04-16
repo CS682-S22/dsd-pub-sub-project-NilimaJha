@@ -2,6 +2,7 @@ package model;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import util.Constants;
 
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,13 +14,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Data {
     private static final Logger logger = LogManager.getLogger(Data.class);
     private ConcurrentHashMap<String, MessageInfo> topicToMessageMap;
+    private MembershipTable membershipTable = MembershipTable.getMembershipTable(Constants.BROKER);
+    private BrokerInfo thisBrokerInfo;
     private static Data data = null;
 
     /**
      * Constructor to initialise topicToMessageMap.
      */
-    private Data() {
+    private Data(BrokerInfo thisBrokerInfo) {
         this.topicToMessageMap = new ConcurrentHashMap<>();
+        this.thisBrokerInfo = thisBrokerInfo;
     }
 
     /**
@@ -27,9 +31,9 @@ public class Data {
      * if the object is not yet created then it will create an instance of it are return.
      * @return Data
      */
-    public synchronized static Data getData() {
+    public synchronized static Data getData(BrokerInfo thisBrokerInfo) {
         if (data == null) {
-            data = new Data();
+            data = new Data(thisBrokerInfo);
         }
         return data;
     }
@@ -53,6 +57,7 @@ public class Data {
      */
     public boolean addMessage(String topic, byte[] messageByteArray) {
         MessageInfo messageInfo = getMessageInfoForTheTopic(topic);
+        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " Adding new message.");
         return messageInfo.addNewMessage(messageByteArray);
     }
 
@@ -86,7 +91,7 @@ public class Data {
     public MessageInfo getMessageInfoForTheTopic(String topic) {
         if (!topicToMessageMap.containsKey(topic)) {
             logger.info("\nAdding New Topic '" + topic + "'");
-            topicToMessageMap.putIfAbsent(topic, new MessageInfo(topic));
+            topicToMessageMap.putIfAbsent(topic, new MessageInfo(topic, thisBrokerInfo));
         }
         return topicToMessageMap.get(topic);
     }

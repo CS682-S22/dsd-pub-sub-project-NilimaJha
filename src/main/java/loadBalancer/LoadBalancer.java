@@ -1,4 +1,8 @@
-import model.Constants;
+package loadBalancer;
+
+import connection.Connection;
+import model.LoadBalancerDataStore;
+import util.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -20,7 +24,7 @@ public class LoadBalancer {
      * will have a serverSocket running and accepting incoming request.
      * initial setup message.
      * if broker.Broker -> assign id -> add it to the brokerLIST
-     * if Producer -> add to the producerLIST
+     * if producer.Producer -> add to the producerLIST
      * IF CONSUMER -> add it to consumerLIST
      */
 
@@ -59,7 +63,7 @@ public class LoadBalancer {
             // keeps on running when shutdown is false
             while (!shutdown) {
                 logger.info("\n[Thread Id : " + Thread.currentThread().getId() +
-                        " [LoadBalancer : " + loadBalancerName +
+                        " [loadBalancer.LoadBalancer : " + loadBalancerName +
                         " LoadBalancerServer is listening on IP : " + loadBalancerIP +
                         " & Port : " + loadBalancerPort);
                 Future<AsynchronousSocketChannel> acceptFuture = serverSocket.accept();

@@ -1,10 +1,16 @@
+package driver;
+
 import broker.Broker;
+import consumer.Consumer;
+import loadBalancer.LoadBalancer;
 import model.BrokerConfig;
 import model.ConfigInformation;
-import model.Constants;
+import producer.Producer;
+import util.Constants;
 import model.LoadBalancerConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import util.Utility;
 
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
@@ -12,7 +18,7 @@ import java.io.IOException;
 import java.time.Duration;
 
 /**
- * Driver class that contains main method.
+ * driver.Driver class that contains main method.
  * @author nilimajha
  */
 public class Driver {
@@ -39,7 +45,7 @@ public class Driver {
             createAndStartBroker(configFileName, hostName);
         } else if (hostType.equals(Constants.PRODUCER)) {
             createAndStartProducer(configFileName, hostName);
-        } else { //Consumer
+        } else { //consumer.Consumer
             createAndStartConsumer(configFileName, hostName);
         }
     }
@@ -89,9 +95,9 @@ public class Driver {
     }
 
     /**
-     * method Creates Producer object and starts it
+     * method Creates producer.Producer object and starts it
      * @param configFileName producerConfigFileName
-     * @param producerName Name of Producer
+     * @param producerName Name of producer.Producer
      */
     public static void createAndStartProducer (String configFileName, String producerName) {
         ConfigInformation configInformation = Utility.extractConsumerOrPublisherConfigInfo(configFileName, producerName);
@@ -154,13 +160,13 @@ public class Driver {
     }
 
     /**
-     * method Creates Consumer object and starts it
+     * method Creates consumer.Consumer object and starts it
      * @param configFileName consumerConfigFileName
      * @param consumerName Name of consumer
      */
     public static void createAndStartConsumer (String configFileName, String consumerName) {
         ConfigInformation configInformation = Utility.extractConsumerOrPublisherConfigInfo(configFileName, consumerName);
-        logger.info("\nConsumer Started\n");
+        logger.info("\nconsumer.Consumer Started\n");
         Consumer consumer = new Consumer(
                 configInformation.getName(),
                 configInformation.getType(),

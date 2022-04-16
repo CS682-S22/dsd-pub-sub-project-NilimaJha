@@ -1,12 +1,15 @@
+package model;
+
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
+import connection.Connection;
 import customeException.ConnectionClosedException;
-import model.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import proto.RequestLeaderAndMembersInfo;
 import proto.ResponseLeaderInfo;
+import util.Constants;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -18,7 +21,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
- * Parent class for Producer and Consumer class.
+ * Parent class for producer.Producer and consumer.Consumer class.
  * @author nilimajha
  */
 public class Node {
@@ -43,8 +46,8 @@ public class Node {
 
     /**
      * constructor for producer class attributes
-     * @param loadBalancerIP LoadBalancer IP
-     * @param loadBalancerPort LoadBalancer port
+     * @param loadBalancerIP loadBalancer.LoadBalancer IP
+     * @param loadBalancerPort loadBalancer.LoadBalancer port
      */
     public Node (String name, String nodeType, String loadBalancerName, String loadBalancerIP, int loadBalancerPort) {
         this.name = name;
@@ -56,8 +59,8 @@ public class Node {
 
     /**
      * constructor for producer class attributes
-     * @param loadBalancerIP LoadBalancer IP
-     * @param loadBalancerPort LoadBalancer port
+     * @param loadBalancerIP loadBalancer.LoadBalancer IP
+     * @param loadBalancerPort loadBalancer.LoadBalancer port
      */
     public Node (String name, String nodeType, String thisBrokerIP, int thisBrokerPort, String loadBalancerName, String loadBalancerIP, int loadBalancerPort) {
         this.name = name;
@@ -124,7 +127,7 @@ public class Node {
             int messageId = 1;
             boolean responseReceived = false;
             while (!responseReceived) {
-                logger.info("\nRequesting leader's info from the LoadBalancer.");
+                logger.info("\nRequesting leader's info from the loadBalancer.LoadBalancer.");
                 loadBalancerConnection.send(getRequestLeaderInfoMessage(messageId));
                 logger.info("\nRequest sent for Leader info and Membership table.");
                 byte[] receivedResponse = null;
@@ -149,7 +152,7 @@ public class Node {
                                     synchronized (waitObj) {
                                         startTimer();
                                         try {
-                                            logger.info("\nLeader's info is not available at LoadBalancer yet. Waiting for 6000 millis...");
+                                            logger.info("\nLeader's info is not available at loadBalancer.LoadBalancer yet. Waiting for 6000 millis...");
                                             waitObj.wait();
                                         } catch (InterruptedException e) {
                                             logger.error("\nInterruptedException occurred. Error Message : " + e.getMessage());
@@ -182,7 +185,7 @@ public class Node {
     }
 
     /**
-     * creates appropriate Leader request message to the LoadBalancer.
+     * creates appropriate Leader request message to the loadBalancer.LoadBalancer.
      * @return requestLeaderInfoMessage
      */
     public byte[] getRequestLeaderInfoMessage(int messageId) {
@@ -223,7 +226,7 @@ public class Node {
             Future<Void> futureSocket = clientSocket.connect(brokerAddress);
             try {
                 futureSocket.get();
-                logger.info("\n[Connection Successful]");
+                logger.info("\n[connection.Connection Successful]");
                 connection = new Connection(clientSocket);
                 connected = true;
             } catch (InterruptedException | ExecutionException e) {

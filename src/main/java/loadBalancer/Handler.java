@@ -1,8 +1,13 @@
+package loadBalancer;
+
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
+import connection.Connection;
 import customeException.ConnectionClosedException;
-import model.Constants;
+import model.BrokerInfo;
+import model.LoadBalancerDataStore;
+import util.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import proto.*;
@@ -137,7 +142,7 @@ public class Handler implements Runnable {
     }
 
     /**
-     * method creates MemberInfo protobuff of each BrokerInfo obj in membership table
+     * method creates MemberInfo protobuff of each model.BrokerInfo obj in membership table
      * and converts them into byte array and returns the list of it.
      * @return membersInfoBytesList
      */

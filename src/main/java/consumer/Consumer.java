@@ -1,7 +1,10 @@
+package consumer;
+
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import customeException.ConnectionClosedException;
-import model.Constants;
+import util.Constants;
+import model.Node;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import proto.ConsumerPullRequest;
@@ -17,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
- * Class extends Node class and is a Consumer
+ * Class extends model.Node class and is a consumer.Consumer
  * @author nilimajha
  */
 public class Consumer extends Node {
@@ -112,7 +115,7 @@ public class Consumer extends Node {
     }
 
     /**
-     * method sends Consumer Initial setup packet to the broker.
+     * method sends consumer.Consumer Initial setup packet to the broker.
      */
     public boolean sendInitialSetupMessage() {
         //send initial message
@@ -228,7 +231,7 @@ public class Consumer extends Node {
                             } catch (InterruptedException e) {
                                 logger.error("\nInterruptedException occurred while trying to put new message into list. Error Message : " + e.getMessage());
                             }
-                            if (consumerType.equals(model.Constants.CONSUMER_PULL)) {
+                            if (consumerType.equals(Constants.CONSUMER_PULL)) {
                                 offset.addAndGet(actualMessageBytes.length); // incrementing offset value to the next message offset
                             }
                         }

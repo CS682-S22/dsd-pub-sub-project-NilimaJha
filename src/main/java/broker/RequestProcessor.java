@@ -1,21 +1,22 @@
+package broker;
+
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
+import connection.Connection;
 import customeException.ConnectionClosedException;
-import model.Constants;
+import model.BrokerInfo;
+import model.MembershipTable;
+import util.Constants;
 import model.Data;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import proto.*;
+import util.Utility;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.channels.AsynchronousSocketChannel;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -42,32 +43,32 @@ public class RequestProcessor implements Runnable {
     private HeartBeatModule heartBeatModule;
 
     /**
-     * Constructor that initialises Connection class object and also model.Data
+     * Constructor that initialises connection.Connection class object and also model.Data
      * @param connection
      */
     public RequestProcessor(String brokerName, Connection connection, BrokerInfo thisBrokerInfo) {
         this.brokerName = brokerName;
         this.thisBrokerInfo = thisBrokerInfo;
         this.connection = connection;
-        this.data = Data.getData();
+        this.data = Data.getData(thisBrokerInfo);
         this.membershipTable = MembershipTable.getMembershipTable(Constants.BROKER);
         this.heartBeatModule = HeartBeatModule.getHeartBeatModule();
     }
 
     /**
-     * Constructor that initialises Connection class object and also model.Data
+     * Constructor that initialises connection.Connection class object and also model.Data
      * @param connection
      */
     public RequestProcessor(String brokerName, Connection connection, BrokerInfo thisBrokerInfo,
                             String connectionWith, BrokerInfo connectionBrokerInfo, String brokerConnectionType) {
-        logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] RequestProcessor for connection of type : " + brokerConnectionType);
+        logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] broker.RequestProcessor for connection of type : " + brokerConnectionType);
         this.brokerName = brokerName;
         this.thisBrokerInfo = thisBrokerInfo;
         this.connection = connection;
         this.connectionWith = connectionWith;
         this.connectionBrokerInfo = connectionBrokerInfo;
         this.brokerConnectionType = brokerConnectionType;
-        this.data = Data.getData();
+        this.data = Data.getData(thisBrokerInfo);
         this.membershipTable = MembershipTable.getMembershipTable(Constants.BROKER);
         this.heartBeatModule = HeartBeatModule.getHeartBeatModule();
     }
@@ -111,7 +112,7 @@ public class RequestProcessor implements Runnable {
      */
     public void start() {
         // start receiving message
-        System.out.println("[Thread Id : " + Thread.currentThread().getId() + "] inside RequestProcessor. Connection With : " + connectionWith);
+        System.out.println("[Thread Id : " + Thread.currentThread().getId() + "] inside broker.RequestProcessor. connection.Connection With : " + connectionWith);
         while (connectionWith == null) {
             try {
                 byte[] receivedMessage = connection.receive();
@@ -141,7 +142,7 @@ public class RequestProcessor implements Runnable {
         } else if (connectionWith.equals(Constants.CONSUMER) && consumerType.equals(Constants.CONSUMER_PUSH)) {
             handlePushConsumer();
         } else if (connectionWith.equals(Constants.BROKER)) {
-            logger.info("[Thread Id : " + Thread.currentThread().getId() + "] Connection With : " + connectionWith + " ConnectionType : " + brokerConnectionType);
+            logger.info("[Thread Id : " + Thread.currentThread().getId() + "] connection.Connection With : " + connectionWith + " ConnectionType : " + brokerConnectionType);
             handleBroker();
         }
     }
@@ -179,7 +180,7 @@ public class RequestProcessor implements Runnable {
                         consumerType = Constants.CONSUMER_PULL;    // PULL consumer
                         logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] Received InitialPacket from "
                                 + initialMessageDetails.getName() +
-                                " Consumer Type : " + consumerType);
+                                " consumer.Consumer Type : " + consumerType);
                         // send initial setup ack
                         try {
                             connection.send(getInitialSetupACK());
@@ -195,7 +196,7 @@ public class RequestProcessor implements Runnable {
                         pushBasedConsumerTopic = initialMessageDetails.getTopic();
                         logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] Received InitialPacket from "
                                 + initialMessageDetails.getName() +
-                                " Consumer Type : " + consumerType +
+                                " consumer.Consumer Type : " + consumerType +
                                 ", InitialOffset : " + offset +
                                 ", Topic : " + pushBasedConsumerTopic);
                         // send initial setup ack
@@ -226,11 +227,11 @@ public class RequestProcessor implements Runnable {
                             membershipTable.addMember(connectionBrokerInfo.getBrokerId(), connectionBrokerInfo);
                             heartBeatModule.updateHeartBeat(connectionBrokerInfo.getBrokerId());
                             logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] ConnectionType : " + initialMessageDetails.getConnectionType() +
-                                    " HeartBeat Connection added to the list.");
+                                    " HeartBeat connection.Connection added to the list.");
                             try {
                                 // send initial setup ack
                                 connection.send(getInitialSetupACK());
-                                //setting up dataConnection with this Broker to send data.
+                                //setting up dataConnection with this broker.Broker to send data.
                                 Connection dataConnection = Utility.establishConnection(
                                         connectionBrokerInfo.getBrokerIP(),
                                         connectionBrokerInfo.getBrokerPort());
@@ -336,12 +337,12 @@ public class RequestProcessor implements Runnable {
      * continuously receives publish message from publisher and add it to the topic.
      */
     public void handlePublisher() {
-        logger.info("\nHandle Producer. Connection is open : " + connection.connectionIsOpen() +
+        logger.info("\nHandle producer.Producer. connection.Connection is open : " + connection.connectionIsOpen() +
                 " LeaderId :" + membershipTable.getLeaderId() +
-                " This Broker Id : " + thisBrokerInfo.getBrokerId());
+                " This broker.Broker Id : " + thisBrokerInfo.getBrokerId());
         while (connection.connectionIsOpen() &&
                 membershipTable.getLeaderId() == thisBrokerInfo.getBrokerId()) {
-            logger.info("\nHandling Producer.");
+            logger.info("\nHandling producer.Producer.");
             try {
                 byte[] message = connection.receive();
                 if (message != null) {
@@ -484,7 +485,7 @@ public class RequestProcessor implements Runnable {
      * and takes action accordingly.
      */
     public void handleBroker() {
-        logger.info("\nHandling Broker. ConnectionType : " + brokerConnectionType);
+        logger.info("\nHandling broker.Broker. ConnectionType : " + brokerConnectionType);
         while (connection.connectionIsOpen()) {
             //wait to receive message from broker
             //if message is heartbeat message update hb hashmap
@@ -506,11 +507,21 @@ public class RequestProcessor implements Runnable {
                             logger.info("\nReceived Heart Beat Message from " + connectionBrokerInfo.getBrokerName());
                             // updating heartbeat message received time.
                             heartBeatModule.updateHeartBeat(connectionBrokerInfo.getBrokerId());
-                        } else if (any.is(DataMessage.DataMessageDetails.class)
+                        } else if (any.is(ReplicateMessage.ReplicateMessageDetails.class)
                                 && brokerConnectionType.equals(Constants.DATA_CONNECTION)) {
-                            logger.info("\nReceived DataConnection type of connection.");
+                            logger.info("\nReceived Data over DataConnection type of connection.");
                             //wait to receive the message /data
+                            ReplicateMessage.ReplicateMessageDetails replicateMessageDetails =
+                                    any.unpack(ReplicateMessage.ReplicateMessageDetails.class);
+                            data.addMessage(replicateMessageDetails.getTopic(), replicateMessageDetails.getMessage().toByteArray());
                             //send ack
+                            long ackNum = replicateMessageDetails.getMessageId() + replicateMessageDetails.getMessage().size();
+                            Any any1 = Any.pack(ReplicateSuccessACK.ReplicateSuccessACKDetails.newBuilder()
+                                    .setAckNum(ackNum)
+                                    .setTopic(replicateMessageDetails.getTopic())
+                                    .build());
+                            logger.info("sending Ack for replication data.");
+                            connection.send(any1.toByteArray());
                         }
                     } catch (InvalidProtocolBufferException e) {
                         logger.error("\nInvalidProtocolBufferException occurred while decoding publish message. Error Message : " + e.getMessage());

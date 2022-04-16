@@ -1,14 +1,21 @@
+package broker;
+
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
+import connection.Connection;
 import customeException.ConnectionClosedException;
-import model.Constants;
+import model.BrokerInfo;
+import model.MembershipTable;
+import model.Node;
+import util.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import proto.InitialMessage;
 import proto.InitialSetupDone;
 import proto.MembersInfo;
 import proto.UpdateLeaderInfo;
+import util.Utility;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -20,9 +27,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
- * Broker class that keeps a serverSocket open to
+ * broker.Broker class that keeps a serverSocket open to
  * listen for new connection request from producer and consumer.
- * Creates new RequestProcessor object for each incoming request.
+ * Creates new broker.RequestProcessor object for each incoming request.
  * @author nilimajha
  */
 public class Broker extends Node implements Runnable {
@@ -188,7 +195,7 @@ public class Broker extends Node implements Runnable {
             getLeaderAndMembersInfo();
             if (memberList.isEmpty() && leaderBrokerId == 0) {
                 // this broker is the first broker in the membershipTable.
-                //registering itself as Leader at LoadBalancer
+                //registering itself as Leader at loadBalancer.LoadBalancer
                 sendUpdateLeaderMessageToLB();
                 membershipTable.updateLeader(thisBrokerInfo.getBrokerId());
             }
@@ -205,7 +212,7 @@ public class Broker extends Node implements Runnable {
      * run opens a serverSocket and keeps listening for
      * new connection request from producer or consumer.
      * once it receives a connection request it creates a
-     * connection object and hands it to the RequestProcessor class object.
+     * connection object and hands it to the broker.RequestProcessor class object.
      */
     @Override
     public void run() {
@@ -221,7 +228,7 @@ public class Broker extends Node implements Runnable {
             serverSocket.bind(new InetSocketAddress(thisBrokerInfo.getBrokerIP(), thisBrokerInfo.getBrokerPort()));
             // keeps on running when shutdown is false
             while (!shutdown) {
-                logger.info("\n[Broker : " + thisBrokerInfo.getBrokerName() +
+                logger.info("\n[broker.Broker : " + thisBrokerInfo.getBrokerName() +
                         " BrokerServer is listening on IP : " + thisBrokerInfo.getBrokerIP() +
                         " & Port : " + thisBrokerInfo.getBrokerPort());
                 Future<AsynchronousSocketChannel> acceptFuture = serverSocket.accept();
@@ -241,7 +248,7 @@ public class Broker extends Node implements Runnable {
                     Connection newConnection = null;
                     newConnection = new Connection(socketChannel);
                     // give this connection to requestProcessor
-                    logger.info("\nReceived new Connection.");
+                    logger.info("\nReceived new connection.Connection.");
                     RequestProcessor requestProcessor = new RequestProcessor(thisBrokerInfo.getBrokerName(),
                             newConnection, thisBrokerInfo);
                     threadPool.execute(requestProcessor);

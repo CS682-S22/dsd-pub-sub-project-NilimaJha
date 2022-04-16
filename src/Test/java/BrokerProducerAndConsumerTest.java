@@ -1,13 +1,10 @@
-import com.google.protobuf.ByteString;
-import com.google.protobuf.InvalidProtocolBufferException;
+import broker.Broker;
+import consumer.Consumer;
 import customeException.ConnectionClosedException;
-import model.Constants;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
-import proto.ConsumerPullRequest;
-import proto.InitialMessage;
-import proto.PublisherPublishMessage;
+import producer.Producer;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -26,13 +23,13 @@ public class BrokerProducerAndConsumerTest {
     static Consumer consumer = null;
 
     /**
-     * initialises the broker, producer, Consumer
+     * initialises the broker, producer, consumer.Consumer
      */
     @Before
     public void init() {
         System.out.println("inside init...");
         if (broker == null) {
-            System.out.println("Initialising Broker...");
+            System.out.println("Initialising broker.Broker...");
             broker = new Broker("BROKER-TEST", "localhost", 9090, "Load-Balancer", "localhost", 8080);
             threadPool.execute(broker);
 
@@ -45,16 +42,16 @@ public class BrokerProducerAndConsumerTest {
             producer = new Producer("PRODUCER-TEST", "LB-1", "localhost", 9090);
             producer.startProducer();
 
-            consumer = new Consumer("CONSUMER-TEST", "PULL", "LoadBalancer-1", "localhost", 9090, "Test", 0);
+            consumer = new Consumer("CONSUMER-TEST", "PULL", "loadBalancer.LoadBalancer-1", "localhost", 9090, "Test", 0);
 
             System.out.println("producer started...");
         } else {
-            System.out.println("Broker is not null...");
+            System.out.println("broker.Broker is not null...");
         }
     }
 
 //    /**
-//     * Tests the type of packet createInitialMessage from Producer Class.
+//     * Tests the type of packet createInitialMessage from producer.Producer Class.
 //     */
 //    @Test
 //    public void createProducerInitialMessagePacketTest1() {
@@ -69,12 +66,12 @@ public class BrokerProducerAndConsumerTest {
 //                e.printStackTrace();
 //            }
 //        } else {
-//            System.out.println("1.Producer is null [createProducerInitialMessagePacketTest1]");
+//            System.out.println("1.producer.Producer is null [createProducerInitialMessagePacketTest1]");
 //        }
 //    }
 
 //    /**
-//     * Tests the sender filed of packet createInitialMessage from Producer Class.
+//     * Tests the sender filed of packet createInitialMessage from producer.Producer Class.
 //     */
 //    @Test
 //    public void createProducerInitialMessagePacketTest2() {
@@ -91,12 +88,12 @@ public class BrokerProducerAndConsumerTest {
 //                e.printStackTrace();
 //            }
 //        } else {
-//            System.out.println("2.Producer is null [createProducerInitialMessagePacketTest2]");
+//            System.out.println("2.producer.Producer is null [createProducerInitialMessagePacketTest2]");
 //        }
 //    }
 
 //    /**
-//     * Tests the name of the sender of packet createInitialMessage from Producer Class.
+//     * Tests the name of the sender of packet createInitialMessage from producer.Producer Class.
 //     */
 //    @Test
 //    public void createProducerInitialMessagePacketTest3() {
@@ -113,7 +110,7 @@ public class BrokerProducerAndConsumerTest {
 //                e.printStackTrace();
 //            }
 //        } else {
-//            System.out.println("3.Producer is null [createProducerInitialMessagePacketTest3]");
+//            System.out.println("3.producer.Producer is null [createProducerInitialMessagePacketTest3]");
 //        }
 //    }
 
@@ -135,7 +132,7 @@ public class BrokerProducerAndConsumerTest {
 //                e.printStackTrace();
 //            }
 //        } else {
-//            System.out.println("4.Producer is null [createPublishMessagePacketTest1]");
+//            System.out.println("4.producer.Producer is null [createPublishMessagePacketTest1]");
 //        }
 //    }
 
@@ -159,7 +156,7 @@ public class BrokerProducerAndConsumerTest {
 //                e.printStackTrace();
 //            }
 //        } else {
-//            System.out.println("5.Producer is null [createPublishMessagePacketTest2]");
+//            System.out.println("5.producer.Producer is null [createPublishMessagePacketTest2]");
 //        }
 //    }
 
@@ -183,30 +180,30 @@ public class BrokerProducerAndConsumerTest {
 //                e.printStackTrace();
 //            }
 //        } else {
-//            System.out.println("6.Producer is null [createPublishMessagePacketTest3]");
+//            System.out.println("6.producer.Producer is null [createPublishMessagePacketTest3]");
 //        }
 //    }
 
     /**
      * test send Packet at the producer.
      */
-    @Test
-    public void producerSendPacketTest1() {
-        if (broker != null && producer != null) {
-            if (producer.connection.connectionIsOpen()) {
-                byte[] messageToBePublished = "Test-Message".getBytes();
-                assertTrue(producer.send("Test", messageToBePublished));
-                System.out.println("9.Success.");
-            } else {
-                System.out.println("9.a.Producer producer.connection.connectionSocket is closed [producerSendPacketTest1]");
-            }
-        } else {
-            System.out.println("9.b.Broker and Producer is null [producerSendPacketTest1]");
-        }
-    }
+//    @Test
+//    public void producerSendPacketTest1() {
+//        if (broker != null && producer != null) {
+//            if (producer.connection.connectionIsOpen()) {
+//                byte[] messageToBePublished = "Test-Message".getBytes();
+//                assertTrue(producer.send("Test", messageToBePublished));
+//                System.out.println("9.Success.");
+//            } else {
+//                System.out.println("9.a.producer.Producer producer.connection.connectionSocket is closed [producerSendPacketTest1]");
+//            }
+//        } else {
+//            System.out.println("9.b.broker.Broker and producer.Producer is null [producerSendPacketTest1]");
+//        }
+//    }
 
     /**
-     * test the connectTo method of the Node class
+     * test the connectTo method of the model.Node class
      */
     @Test
     public void consumerConnectToBrokerTest() {
@@ -220,12 +217,12 @@ public class BrokerProducerAndConsumerTest {
             assertTrue(connected);
             System.out.println("10.Success.");
         } else {
-            System.out.println("10.Broker is null [consumerConnectToBrokerTest]");
+            System.out.println("10.broker.Broker is null [consumerConnectToBrokerTest]");
         }
     }
 
 //    /**
-//     * test the initialMessagePacket from Consumer side.
+//     * test the initialMessagePacket from consumer.Consumer side.
 //     */
 //    @Test
 //    public void createConsumerInitialMessagePacketTest1() {
@@ -243,12 +240,12 @@ public class BrokerProducerAndConsumerTest {
 //                e.printStackTrace();
 //            }
 //        } else {
-//            System.out.println("11.Consumer is null [createConsumerInitialMessagePacketTest1]");
+//            System.out.println("11.consumer.Consumer is null [createConsumerInitialMessagePacketTest1]");
 //        }
 //    }
 
 //    /**
-//     * test the initialMessagePacket from Consumer side.
+//     * test the initialMessagePacket from consumer.Consumer side.
 //     */
 //    @Test
 //    public void createConsumerInitialMessagePacketTest2() {
@@ -266,12 +263,12 @@ public class BrokerProducerAndConsumerTest {
 //                e.printStackTrace();
 //            }
 //        } else {
-//            System.out.println("12.Consumer is null [createConsumerInitialMessagePacketTest2]");
+//            System.out.println("12.consumer.Consumer is null [createConsumerInitialMessagePacketTest2]");
 //        }
 //    }
 
 //    /**
-//     * test createPullRequestMessagePacket at Producer.
+//     * test createPullRequestMessagePacket at producer.Producer.
 //     */
 //    @Test
 //    public void createConsumerPullRequestMessagePacketTest3() {
@@ -287,12 +284,12 @@ public class BrokerProducerAndConsumerTest {
 //                e.printStackTrace();
 //            }
 //        } else {
-//            System.out.println("13.Consumer is null [createConsumerPullRequestMessagePacketTest3]");
+//            System.out.println("13.consumer.Consumer is null [createConsumerPullRequestMessagePacketTest3]");
 //        }
 //    }
 
 //    /**
-//     * test createPullRequestMessagePacket at Producer.
+//     * test createPullRequestMessagePacket at producer.Producer.
 //     */
 //    @Test
 //    public void createConsumerPullRequestMessagePacketTest4() {
@@ -310,12 +307,12 @@ public class BrokerProducerAndConsumerTest {
 //                e.printStackTrace();
 //            }
 //        } else {
-//            System.out.println("14.Consumer is null [createConsumerPullRequestMessagePacketTest3]");
+//            System.out.println("14.consumer.Consumer is null [createConsumerPullRequestMessagePacketTest3]");
 //        }
 //    }
 
 //    /**
-//     * test createPullRequestMessagePacket at Producer.
+//     * test createPullRequestMessagePacket at producer.Producer.
 //     */
 //    @Test
 //    public void createConsumerPullRequestMessagePacketTest5() {
@@ -333,40 +330,40 @@ public class BrokerProducerAndConsumerTest {
 //                e.printStackTrace();
 //            }
 //        } else {
-//            System.out.println("15.Consumer is null [createConsumerPullRequestMessagePacketTest4]");
+//            System.out.println("15.consumer.Consumer is null [createConsumerPullRequestMessagePacketTest4]");
 //        }
 //    }
 
-    /**
-     * Pulling messages from broker.
-     */
-    @Test
-    public void receiveMessageFromBroker1() {
-        if (consumer != null && producer != null && producer.connection.connectionIsOpen() && broker != null) {
-            for(int i = 0; i < 11; i++) {
-                String message = "Test-Message";
-                byte[] messageBytes = message.getBytes();
-                producer.send("Test", messageBytes);
-            }
-            assertTrue(consumer.pullMessageFromBroker());
-            System.out.println("16.Success.");
-        } else {
-            System.out.println("16.Condition is false [receiveMessageFromBroker1]");
-        }
-    }
+//    /**
+//     * Pulling messages from broker.
+//     */
+//    @Test
+//    public void receiveMessageFromBroker1() {
+//        if (consumer != null && producer != null && producer.connection.connectionIsOpen() && broker != null) {
+//            for(int i = 0; i < 11; i++) {
+//                String message = "Test-Message";
+//                byte[] messageBytes = message.getBytes();
+//                producer.send("Test", messageBytes);
+//            }
+//            assertTrue(consumer.pullMessageFromBroker());
+//            System.out.println("16.Success.");
+//        } else {
+//            System.out.println("16.Condition is false [receiveMessageFromBroker1]");
+//        }
+//    }
 
-    /**
-     * Tests the createInitialMessage from Consumer Class.
-     */
-    @Test
-    public void consumerSendInitialPacketToBrokerTest() {
-        if (broker != null && consumer.connection.connectionIsOpen()) {
-            assertTrue(consumer.sendInitialSetupMessage());
-            System.out.println("18.Success.");
-        } else {
-            System.out.println("18.CONSUMER IS NOT YET CONNECTED TO BROKER.");
-        }
-    }
+//    /**
+//     * Tests the createInitialMessage from consumer.Consumer Class.
+//     */
+//    @Test
+//    public void consumerSendInitialPacketToBrokerTest() {
+//        if (broker != null && consumer.connection.connectionIsOpen()) {
+//            assertTrue(consumer.sendInitialSetupMessage());
+//            System.out.println("18.Success.");
+//        } else {
+//            System.out.println("18.CONSUMER IS NOT YET CONNECTED TO BROKER.");
+//        }
+//    }
 
     /**
      * waits for 30000 millis after the execution of the entire function.

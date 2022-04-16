@@ -1,5 +1,7 @@
+package connection;
+
 import customeException.ConnectionClosedException;
-import model.Constants;
+import util.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -83,9 +85,9 @@ public class Connection {
                 logger.error("\nInterruptedException while establishing connection. Error Message : " + e.getMessage());
             } catch (ExecutionException e) {
                 if (e.getCause().toString().equals(Constants.BROKEN_PIPE)) {
-                    logger.info("\nConnection is closed by other host!!!");
+                    logger.info("\nconnection.Connection is closed by other host!!!");
                     isConnected = false;
-                    throw new ConnectionClosedException("Connection is closed by other host!!!");
+                    throw new ConnectionClosedException("connection.Connection is closed by other host!!!");
                 }
                 try {
                     this.connectionSocket.close();
@@ -120,7 +122,7 @@ public class Connection {
             } catch (ExecutionException e) {
                 if (e.getCause().toString().equals(Constants.BROKEN_PIPE)) {
                     isConnected = false;
-                    throw new ConnectionClosedException("Connection is closed by other host!!!");
+                    throw new ConnectionClosedException("connection.Connection is closed by other host!!!");
                 } else {
                     logger.error("\nExecutionException occurred. Error Message : " + e.getMessage());
                 }
@@ -129,7 +131,7 @@ public class Connection {
             buffer.clear();
             return true;
         } else {
-            logger.info("Connection is not connected............");
+            logger.info("connection.Connection is not connected............");
         }
         return false;
     }

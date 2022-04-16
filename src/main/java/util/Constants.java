@@ -1,4 +1,4 @@
-package model;
+package util;
 
 /**
  * Constant class to hold various Constants.

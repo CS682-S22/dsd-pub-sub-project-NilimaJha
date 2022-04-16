@@ -1,6 +1,13 @@
+package model;
+
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import connection.Connection;
 import customeException.ConnectionClosedException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import proto.ReplicateSuccessACK;
+import util.Constants;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -136,14 +143,42 @@ public class BrokerInfo {
     /**
      * send message over the dataConnection
      */
-    public void sendData(byte[] message) {
+    public void sendData(byte[] message, long expectedAckNumber) {
         dataConnectionLock.writeLock().lock();
-        try {
-            connection.send(message);
-        } catch (ConnectionClosedException e) {
-            logger.info("\n" + e.getMessage());
-            connection.closeConnection();
+        if (dataConnection != null && dataConnection.isConnected()) {
+            int retries = 0;
+            boolean sentSuccessful = false;
+            while (!sentSuccessful && retries < Constants.MAX_RETRIES) {
+                try {
+                    logger.info("[ThreadId : " + Thread.currentThread().getId() + " sending data using DataConnection.");
+                    dataConnection.send(message);
+                    // receive ack
+                    byte[] receivedACK = dataConnection.receive();
+                    if (receivedACK != null) {
+                        Any any = Any.parseFrom(receivedACK);
+                        if (any.is(ReplicateSuccessACK.ReplicateSuccessACKDetails.class)) {
+                            ReplicateSuccessACK.ReplicateSuccessACKDetails replicateSuccessACK =
+                                    any.unpack(ReplicateSuccessACK.ReplicateSuccessACKDetails.class);
+                            logger.info("[ThreadId : " + Thread.currentThread().getId() + " Received replicated ack.");
+                            if (replicateSuccessACK.getAckNum() == expectedAckNumber) {
+                                sentSuccessful = true;
+                                logger.info("[ThreadId : " + Thread.currentThread().getId() + " received ack was correct.");
+                                break;
+                            }
+                            retries++;
+                        }
+                    } else {
+                        retries++;
+                    }
+                } catch (ConnectionClosedException e) {
+                    logger.info("\n" + e.getMessage());
+                    dataConnection.closeConnection();
+                } catch (InvalidProtocolBufferException e) {
+                    logger.error("\nInvalidProtocolBufferException occurred while decoding receivedAck for replication message. Error Message : " + e.getMessage());
+                }
+            }
+
         }
-        sendOverConnectionLock.writeLock().unlock();
+        dataConnectionLock.writeLock().unlock();
     }
 }

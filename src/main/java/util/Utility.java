@@ -1,8 +1,10 @@
+package util;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import connection.Connection;
 import model.BrokerConfig;
 import model.ConfigInformation;
-import model.Constants;
 import model.LoadBalancerConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,7 +19,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
- * Utility class to store the helper functions.
+ * util.Utility class to store the helper functions.
  * @author nilimajha
  */
 public class Utility {
