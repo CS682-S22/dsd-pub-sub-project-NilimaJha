@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package tutorial;
+
+option java_package = "proto";
+option java_outer_classname = "HeartBeatMessage";
+
+message HeartBeatMessageDetails {
+  bool heartBeat = 1;
+}

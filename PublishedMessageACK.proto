@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package tutorial;
+
+option java_package = "proto";
+option java_outer_classname = "PublishedMessageACK";
+
+message PublishedMessageACKDetails {
+  uint32 ACKnum = 1;
+  string topic = 2;
+  bool status = 3;
+}

@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package tutorial;
+
+option java_package = "proto";
+option java_outer_classname = "DataMessage";
+
+message DataMessageDetails {
+  uint32 messageId = 1;
+  string mode = 2;
+  string topic = 3;
+  bytes message = 4;
+}
