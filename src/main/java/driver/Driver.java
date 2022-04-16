@@ -1,3 +1,4 @@
+import broker.Broker;
 import model.BrokerConfig;
 import model.ConfigInformation;
 import model.Constants;
@@ -44,7 +45,7 @@ public class Driver {
     }
 
     /**
-     * method Creates Broker object and starts it
+     * method Creates broker.Broker object and starts it
      * @param configFileName broker Config Filename
      * @param brokerName broker name
      */
@@ -58,7 +59,7 @@ public class Driver {
                 brokerConfig.getLoadBalancerIP(),
                 brokerConfig.getLoadBalancerPort());
 
-        logger.info("\nBroker name : " + broker.getName() + "Broker IP : " );
+        logger.info("\nbroker.Broker name : " + broker.getName() + "broker.Broker IP : " );
 
         Thread thread = new Thread(broker);
         thread.start();

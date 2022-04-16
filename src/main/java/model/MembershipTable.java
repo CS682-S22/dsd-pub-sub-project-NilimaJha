@@ -1,9 +1,7 @@
 import model.Constants;
-import model.Data;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -52,7 +50,7 @@ public class MembershipTable {
                 logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] New Member is added in the MembershipTable.size : " + membershipInfo.size());
             }
         } else {
-            logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] Broker already exist in the list. MemberShipTable. size : " + membershipInfo.size());
+            logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] broker.Broker already exist in the list. MemberShipTable. size : " + membershipInfo.size());
         }
         return true;
     }
@@ -66,7 +64,7 @@ public class MembershipTable {
 
     /**
      * sets the isActive attribute of the brokerInfo associated with the given id as false.
-     * @param id ID of Broker
+     * @param id ID of broker.Broker
      */
     public void markMemberFailed(int id) {
         logger.info("\nMember failed :" + id);

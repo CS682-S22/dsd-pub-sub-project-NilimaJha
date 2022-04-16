@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package tutorial;
+
+option java_package = "proto";
+option java_outer_classname = "ReplicateMessage";
+
+message ReplicateMessageDetails {
+  bool synchronous = 1;
+  uint64 messageId = 2;
+  string topic = 3;
+  bytes message = 4;
+}

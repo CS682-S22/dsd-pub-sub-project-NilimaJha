@@ -19,7 +19,7 @@ public class LoadBalancer {
     /**
      * will have a serverSocket running and accepting incoming request.
      * initial setup message.
-     * if Broker -> assign id -> add it to the brokerLIST
+     * if broker.Broker -> assign id -> add it to the brokerLIST
      * if Producer -> add to the producerLIST
      * IF CONSUMER -> add it to consumerLIST
      */

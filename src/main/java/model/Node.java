@@ -111,7 +111,7 @@ public class Node {
                 throw new ConnectionClosedException("No Host running on the given IP & port!!!");
             }
         } catch (IOException e) {
-            logger.error("\nIOException occurred while connecting to Broker.");
+            logger.error("\nIOException occurred while connecting to broker.Broker.");
         }
     }
 
@@ -219,7 +219,7 @@ public class Node {
         try {
             clientSocket = AsynchronousSocketChannel.open();
             InetSocketAddress brokerAddress = new InetSocketAddress(leaderBrokerIP, leaderBrokerPort);
-            logger.info("\n[Connecting To Broker]");
+            logger.info("\n[Connecting To broker.Broker]");
             Future<Void> futureSocket = clientSocket.connect(brokerAddress);
             try {
                 futureSocket.get();
@@ -231,7 +231,7 @@ public class Node {
                 throw new ConnectionClosedException("No host is running on the given IP and Port.");
             }
         } catch (IOException e) {
-            logger.error("\nIOException occurred while connecting to Broker. Error Message : " + e.getMessage());
+            logger.error("\nIOException occurred while connecting to broker.Broker. Error Message : " + e.getMessage());
         }
         return connected;
     }

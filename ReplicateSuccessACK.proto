@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package tutorial;
+
+option java_package = "proto";
+option java_outer_classname = "ReplicateSuccessACK";
+
+message ReplicateSuccessACKDetails {
+  bool synchronous = 1;
+  uint64 ackNum = 2;
+  string topic = 3;
+}

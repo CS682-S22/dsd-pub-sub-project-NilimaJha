@@ -36,7 +36,7 @@ public class Consumer extends Node {
      * @param consumerType consumer type
      * @param loadBalancerName name of loadBalancer
      * @param loadBalancerIP broker Ip
-     * @param loadBalancerPort Broker port
+     * @param loadBalancerPort broker.Broker port
      * @param topic topic from which this consumer will get data
      * @param startingPosition offset from which the consumer will start pulling data.
      */
@@ -74,7 +74,7 @@ public class Consumer extends Node {
 
     /**
      * first connects to the broker and
-     * sets itself up with Broker by sending InitialPacket.
+     * sets itself up with broker.Broker by sending InitialPacket.
      * then after receive data from broker by
      * calling appropriate function as per the time of consumer
      */
@@ -171,7 +171,7 @@ public class Consumer extends Node {
      */
     public boolean pullMessageFromBroker() {
         byte[] requestMessagePacket = createPullRequestMessagePacket();
-        logger.info("\n[SEND] Sending pull request to Broker for Offset " + offset.get());
+        logger.info("\n[SEND] Sending pull request to broker.Broker for Offset " + offset.get());
         try {
             connection.send(requestMessagePacket); // sending pull request to the broker
         } catch (ConnectionClosedException e) {
@@ -188,7 +188,7 @@ public class Consumer extends Node {
         try {
             byte[] brokerMessage = connection.receive();
             if (brokerMessage != null) {
-                logger.info("\n[RECEIVE] Received Response from Broker.");
+                logger.info("\n[RECEIVE] Received Response from broker.Broker.");
                 successful = extractDataFromBrokerResponse(brokerMessage);
             }
         } catch (ConnectionClosedException e) {
@@ -236,7 +236,7 @@ public class Consumer extends Node {
                     }
                 }
             } catch (InvalidProtocolBufferException e) {
-                logger.info("\nInvalidProtocolBufferException occurred while decoding message from Broker. Error Message : " + e.getMessage());
+                logger.info("\nInvalidProtocolBufferException occurred while decoding message from broker.Broker. Error Message : " + e.getMessage());
             }
         }
         return success;

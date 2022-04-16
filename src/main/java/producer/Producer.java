@@ -77,7 +77,7 @@ public class Producer extends Node {
     }
 
     /**
-     * creates and sends Initial Packet to the Broker.
+     * creates and sends Initial Packet to the broker.Broker.
      */
     public boolean sendInitialSetupMessage() {
         boolean initialSetupDone = false;
