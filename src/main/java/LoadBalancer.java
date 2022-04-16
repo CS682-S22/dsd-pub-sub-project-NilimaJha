@@ -11,6 +11,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+/**
+ *
+ * @author nilimajha
+ */
 public class LoadBalancer {
     /**
      * will have a serverSocket running and accepting incoming request.
@@ -25,7 +29,7 @@ public class LoadBalancer {
     private String loadBalancerName;
     private String loadBalancerIP;
     private int loadBalancerPort;
-    private LeaderInfo leaderInfo = null;
+    private LoadBalancerDataStore loadBalancerDataStore = null;
     private ExecutorService threadPool = Executors.newFixedThreadPool(Constants.LOAD_BALANCER_THREAD_POOL_SIZE);
 
     /**
@@ -38,6 +42,7 @@ public class LoadBalancer {
         this.loadBalancerName = loadBalancerName;
         this.loadBalancerIP = loadBalancerIP;
         this.loadBalancerPort = loadBalancerPort;
+        this.loadBalancerDataStore = LoadBalancerDataStore.getLoadBalancerDataStore();
     }
 
     /**
@@ -47,13 +52,16 @@ public class LoadBalancer {
      */
     public void startLoadBalancer() {
         AsynchronousServerSocketChannel serverSocket = null;
+        System.out.println("Inside Start loadBalancer...");
         try {
             serverSocket = AsynchronousServerSocketChannel.open();
             serverSocket.bind(new InetSocketAddress(loadBalancerIP, loadBalancerPort));
             // keeps on running when shutdown is false
             while (!shutdown) {
-                logger.info("\n[LoadBalancer : " + loadBalancerName + " BrokerServer is listening on IP : "
-                        + loadBalancerIP + " & Port : " + loadBalancerPort);
+                logger.info("\n[Thread Id : " + Thread.currentThread().getId() +
+                        " [LoadBalancer : " + loadBalancerName +
+                        " LoadBalancerServer is listening on IP : " + loadBalancerIP +
+                        " & Port : " + loadBalancerPort);
                 Future<AsynchronousSocketChannel> acceptFuture = serverSocket.accept();
                 AsynchronousSocketChannel socketChannel = null;
                 try {
@@ -69,9 +77,10 @@ public class LoadBalancer {
                 if ((socketChannel != null) && (socketChannel.isOpen())) {
                     Connection connection = null;
                     connection = new Connection(socketChannel);
-                    // give this connection to requestProcessor
-                    Handler handler = new Handler(connection, loadBalancerName, leaderInfo);
-                    threadPool.execute(requestProcessor);
+                    // give this connection to handler
+                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " New connection established.");
+                    Handler handler = new Handler(connection, loadBalancerName, loadBalancerDataStore);
+                    threadPool.execute(handler);
                 }
             }
         } catch (IOException e) {

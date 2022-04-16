@@ -1,6 +1,7 @@
 import model.BrokerConfig;
 import model.ConfigInformation;
 import model.Constants;
+import model.LoadBalancerConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -31,7 +32,9 @@ public class Driver {
         String hostName = Utility.getNameFromArgs(args);
         String configFileName = Utility.getConfigFilename(args);
 
-        if (hostType.equals(Constants.BROKER)) {
+        if (hostType.equals(Constants.LOAD_BALANCER)) {
+            createAndStartLoadBalancer(configFileName, hostName);
+        } else if (hostType.equals(Constants.BROKER)) {
             createAndStartBroker(configFileName, hostName);
         } else if (hostType.equals(Constants.PRODUCER)) {
             createAndStartProducer(configFileName, hostName);
@@ -50,7 +53,12 @@ public class Driver {
         Broker broker = new Broker(
                 brokerConfig.getName(),
                 brokerConfig.getBrokerIP(),
-                brokerConfig.getBrokerPort());
+                brokerConfig.getBrokerPort(),
+                brokerConfig.getLoadBalancerName(),
+                brokerConfig.getLoadBalancerIP(),
+                brokerConfig.getLoadBalancerPort());
+
+        logger.info("\nBroker name : " + broker.getName() + "Broker IP : " );
 
         Thread thread = new Thread(broker);
         thread.start();
@@ -64,6 +72,22 @@ public class Driver {
     }
 
     /**
+     * method Creates loadBalancer object and starts it
+     * @param configFileName loadBalancerConfig Filename
+     * @param loadBalancerName loadBalancer name
+     */
+    public static void createAndStartLoadBalancer (String configFileName, String loadBalancerName) {
+        System.out.println("LOAD-BALANCER");
+        LoadBalancerConfig loadBalancerConfig = Utility.extractLoadBalancerInfo(configFileName, loadBalancerName);
+        LoadBalancer loadBalancer = new LoadBalancer(
+                loadBalancerConfig.getName(),
+                loadBalancerConfig.getLoadBalancerIP(),
+                loadBalancerConfig.getLoadBalancerPort());
+        System.out.println("Starting Load Balancer.....");
+        loadBalancer.startLoadBalancer();
+    }
+
+    /**
      * method Creates Producer object and starts it
      * @param configFileName producerConfigFileName
      * @param producerName Name of Producer
@@ -72,8 +96,9 @@ public class Driver {
         ConfigInformation configInformation = Utility.extractConsumerOrPublisherConfigInfo(configFileName, producerName);
         Producer producer = new Producer(
                 configInformation.getName(),
-                configInformation.getBrokerIP(),
-                configInformation.getBrokerPort());
+                configInformation.getLoadBalancerName(),
+                configInformation.getLoadBalancerIP(),
+                configInformation.getLoadBalancerPort());
 
         if (producer.connectedToBroker()) {
             logger.info("\n[Now Sending Actual data]");
@@ -107,7 +132,7 @@ public class Driver {
                         String[] messagePart = eachLine.split("] \\[");
                         if (messagePart.length != 1) {
                             topic = "Apache";
-                            producer.send(topic, eachLine.getBytes());  // send data
+                            logger.info("produced : " + producer.send(topic, eachLine.getBytes()));  // send data
                         }
                     }
 
@@ -138,6 +163,7 @@ public class Driver {
         Consumer consumer = new Consumer(
                 configInformation.getName(),
                 configInformation.getType(),
+                "Load-Balancer",
                 configInformation.getBrokerIP(),
                 configInformation.getBrokerPort(),
                 configInformation.getTopicName(),
