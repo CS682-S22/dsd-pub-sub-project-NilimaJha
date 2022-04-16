@@ -3,13 +3,18 @@ import com.google.gson.reflect.TypeToken;
 import model.BrokerConfig;
 import model.ConfigInformation;
 import model.Constants;
+import model.LoadBalancerConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
+import java.net.InetSocketAddress;
+import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
  * Utility class to store the helper functions.
@@ -38,7 +43,7 @@ public class Utility {
      * @return true/false
      */
     public static boolean typeIsValid (String type) {
-        return type.equals(Constants.PRODUCER) || type.equals(Constants.CONSUMER) || type.equals(Constants.BROKER);
+        return type.equals(Constants.PRODUCER) || type.equals(Constants.CONSUMER) || type.equals(Constants.BROKER) || type.equals(Constants.LOAD_BALANCER);
     }
 
     /**
@@ -118,9 +123,37 @@ public class Utility {
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("\nException occurred. Error Message :" + ex.getMessage());
         }
         return pubOrSubInfo;
+    }
+
+    /**
+     * reads configFile and returns BrokerInformation class obj
+     * which contains all the information of the producer or consumer
+     * whose name is provided.
+     * @param fileName config file name
+     * @param name name provided in the args
+     * @return BrokerConfig
+     */
+    public static LoadBalancerConfig extractLoadBalancerInfo(String fileName, String name) {
+        List<LoadBalancerConfig> loadBalancerDetails = null;
+        LoadBalancerConfig loadBalancerInfo = null;
+        try {
+            Reader configReader = Files.newBufferedReader(Paths.get(fileName));
+            loadBalancerDetails = new Gson().fromJson(configReader, new TypeToken<List<LoadBalancerConfig>>() {}.getType());
+            configReader.close();
+
+            for (LoadBalancerConfig eachHostInfo : loadBalancerDetails) {
+                if (eachHostInfo.getName().equals(name)) {
+                    loadBalancerInfo = eachHostInfo;
+                    break;
+                }
+            }
+        } catch (Exception ex) {
+            logger.error("\nException Occurred. Error Message : " + ex.getMessage());
+        }
+        return loadBalancerInfo;
     }
 
     /**
@@ -183,5 +216,34 @@ public class Utility {
             logger.error("\nIOException occurred while initialising BufferedReader on file " + inputFileName + ". Error Message : " + e.getMessage());
         }
         return bufferedReader;
+    }
+
+    /**
+     *
+     * @param memberIP
+     * @param memberPort
+     * @return
+     */
+    public static Connection establishConnection(String memberIP, int memberPort) {
+        AsynchronousSocketChannel clientSocket = null;
+        Connection connection = null;
+        try {
+            clientSocket = AsynchronousSocketChannel.open();
+            InetSocketAddress brokerAddress = new InetSocketAddress(memberIP, memberPort);
+            logger.info("\n[Connecting To Member] BrokerIP : "
+                    + memberIP + " BrokerPort : " + memberPort);
+            Future<Void> futureSocket = clientSocket.connect(brokerAddress);
+
+            futureSocket.get();
+            logger.info("\n[Connected to Member.]");
+            connection = new Connection(clientSocket); //connection established with this member.
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return connection;
     }
 }
