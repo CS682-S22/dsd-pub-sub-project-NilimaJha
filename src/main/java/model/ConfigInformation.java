@@ -14,6 +14,9 @@ public class ConfigInformation {
     private String TopicName;
     private String BrokerIP;
     private int BrokerPort;
+    private String LoadBalancerName;
+    private String LoadBalancerIP;
+    private int LoadBalancerPort;
 
     /**
      * Constructor
@@ -43,6 +46,27 @@ public class ConfigInformation {
         this.TopicName = TopicName;
         this.BrokerIP = BrokerIP;
         this.BrokerPort = BrokerPort;
+    }
+
+    /**
+     * Constructor
+     * @param Name
+     * @param Type
+     * @param ConnectTo
+     * @param FileName
+     * @param TopicName
+     * @param LoadBalancerName
+     * @param LoadBalancerIP
+     * @param LoadBalancerPort
+     */
+    public ConfigInformation(String Name, String Type, ArrayList<String> ConnectTo, String FileName, String TopicName, String LoadBalancerName, String LoadBalancerIP, int LoadBalancerPort) {
+        this.Name = Name;
+        this.Type = Type;
+        this.ConnectTo = ConnectTo;
+        this.FileName = FileName;
+        this.TopicName = TopicName;
+        this.BrokerIP = LoadBalancerIP;
+        this.BrokerPort = LoadBalancerPort;
     }
 
     /**
@@ -99,5 +123,29 @@ public class ConfigInformation {
      */
     public int getBrokerPort() {
         return BrokerPort;
+    }
+
+    /**
+     * getter for LoadBalancerIP
+     * @return LoadBalancerIP
+     */
+    public String getLoadBalancerIP() {
+        return LoadBalancerIP;
+    }
+
+    /**
+     * getter for LoadBalancerPort
+     * @return LoadBalancerPort
+     */
+    public int getLoadBalancerPort() {
+        return LoadBalancerPort;
+    }
+
+    /**
+     * getter for LoadBalancerName
+     * @return LoadBalancerName
+     */
+    public String getLoadBalancerName() {
+        return LoadBalancerName;
     }
 }
