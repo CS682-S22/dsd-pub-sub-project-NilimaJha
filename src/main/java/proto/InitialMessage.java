@@ -19,58 +19,106 @@ public final class InitialMessage {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>string connectionSender = 1;</code>
+     * <code>uint32 messageId = 1;</code>
+     * @return The messageId.
+     */
+    int getMessageId();
+
+    /**
+     * <code>string connectionSender = 2;</code>
      * @return The connectionSender.
      */
     java.lang.String getConnectionSender();
     /**
-     * <code>string connectionSender = 1;</code>
+     * <code>string connectionSender = 2;</code>
      * @return The bytes for connectionSender.
      */
     com.google.protobuf.ByteString
         getConnectionSenderBytes();
 
     /**
-     * <code>string name = 2;</code>
+     * <code>string name = 3;</code>
      * @return The name.
      */
     java.lang.String getName();
     /**
-     * <code>string name = 2;</code>
+     * <code>string name = 3;</code>
      * @return The bytes for name.
      */
     com.google.protobuf.ByteString
         getNameBytes();
 
     /**
-     * <code>string consumerType = 3;</code>
+     * <code>uint32 nextMessageId = 4;</code>
+     * @return The nextMessageId.
+     */
+    int getNextMessageId();
+
+    /**
+     * <code>string consumerType = 5;</code>
      * @return The consumerType.
      */
     java.lang.String getConsumerType();
     /**
-     * <code>string consumerType = 3;</code>
+     * <code>string consumerType = 5;</code>
      * @return The bytes for consumerType.
      */
     com.google.protobuf.ByteString
         getConsumerTypeBytes();
 
     /**
-     * <code>string topic = 4;</code>
+     * <code>string topic = 6;</code>
      * @return The topic.
      */
     java.lang.String getTopic();
     /**
-     * <code>string topic = 4;</code>
+     * <code>string topic = 6;</code>
      * @return The bytes for topic.
      */
     com.google.protobuf.ByteString
         getTopicBytes();
 
     /**
-     * <code>uint64 initialOffset = 5;</code>
+     * <code>uint64 initialOffset = 7;</code>
      * @return The initialOffset.
      */
     long getInitialOffset();
+
+    /**
+     * <code>uint32 brokerId = 8;</code>
+     * @return The brokerId.
+     */
+    int getBrokerId();
+
+    /**
+     * <code>string brokerIP = 9;</code>
+     * @return The brokerIP.
+     */
+    java.lang.String getBrokerIP();
+    /**
+     * <code>string brokerIP = 9;</code>
+     * @return The bytes for brokerIP.
+     */
+    com.google.protobuf.ByteString
+        getBrokerIPBytes();
+
+    /**
+     * <code>uint32 brokerPort = 10;</code>
+     * @return The brokerPort.
+     */
+    int getBrokerPort();
+
+    /**
+     * <code>string connectionType = 11;</code>
+     * @return The connectionType.
+     */
+    java.lang.String getConnectionType();
+    /**
+     * <code>string connectionType = 11;</code>
+     * @return The bytes for connectionType.
+     */
+    com.google.protobuf.ByteString
+        getConnectionTypeBytes();
   }
   /**
    * Protobuf type {@code tutorial.InitialMessageDetails}
@@ -89,6 +137,8 @@ public final class InitialMessage {
       name_ = "";
       consumerType_ = "";
       topic_ = "";
+      brokerIP_ = "";
+      connectionType_ = "";
     }
 
     @java.lang.Override
@@ -121,33 +171,65 @@ public final class InitialMessage {
             case 0:
               done = true;
               break;
-            case 10: {
-              java.lang.String s = input.readStringRequireUtf8();
+            case 8: {
 
-              connectionSender_ = s;
+              messageId_ = input.readUInt32();
               break;
             }
             case 18: {
               java.lang.String s = input.readStringRequireUtf8();
 
-              name_ = s;
+              connectionSender_ = s;
               break;
             }
             case 26: {
               java.lang.String s = input.readStringRequireUtf8();
 
+              name_ = s;
+              break;
+            }
+            case 32: {
+
+              nextMessageId_ = input.readUInt32();
+              break;
+            }
+            case 42: {
+              java.lang.String s = input.readStringRequireUtf8();
+
               consumerType_ = s;
               break;
             }
-            case 34: {
+            case 50: {
               java.lang.String s = input.readStringRequireUtf8();
 
               topic_ = s;
               break;
             }
-            case 40: {
+            case 56: {
 
               initialOffset_ = input.readUInt64();
+              break;
+            }
+            case 64: {
+
+              brokerId_ = input.readUInt32();
+              break;
+            }
+            case 74: {
+              java.lang.String s = input.readStringRequireUtf8();
+
+              brokerIP_ = s;
+              break;
+            }
+            case 80: {
+
+              brokerPort_ = input.readUInt32();
+              break;
+            }
+            case 90: {
+              java.lang.String s = input.readStringRequireUtf8();
+
+              connectionType_ = s;
               break;
             }
             default: {
@@ -182,10 +264,21 @@ public final class InitialMessage {
               proto.InitialMessage.InitialMessageDetails.class, proto.InitialMessage.InitialMessageDetails.Builder.class);
     }
 
-    public static final int CONNECTIONSENDER_FIELD_NUMBER = 1;
+    public static final int MESSAGEID_FIELD_NUMBER = 1;
+    private int messageId_;
+    /**
+     * <code>uint32 messageId = 1;</code>
+     * @return The messageId.
+     */
+    @java.lang.Override
+    public int getMessageId() {
+      return messageId_;
+    }
+
+    public static final int CONNECTIONSENDER_FIELD_NUMBER = 2;
     private volatile java.lang.Object connectionSender_;
     /**
-     * <code>string connectionSender = 1;</code>
+     * <code>string connectionSender = 2;</code>
      * @return The connectionSender.
      */
     @java.lang.Override
@@ -202,7 +295,7 @@ public final class InitialMessage {
       }
     }
     /**
-     * <code>string connectionSender = 1;</code>
+     * <code>string connectionSender = 2;</code>
      * @return The bytes for connectionSender.
      */
     @java.lang.Override
@@ -220,10 +313,10 @@ public final class InitialMessage {
       }
     }
 
-    public static final int NAME_FIELD_NUMBER = 2;
+    public static final int NAME_FIELD_NUMBER = 3;
     private volatile java.lang.Object name_;
     /**
-     * <code>string name = 2;</code>
+     * <code>string name = 3;</code>
      * @return The name.
      */
     @java.lang.Override
@@ -240,7 +333,7 @@ public final class InitialMessage {
       }
     }
     /**
-     * <code>string name = 2;</code>
+     * <code>string name = 3;</code>
      * @return The bytes for name.
      */
     @java.lang.Override
@@ -258,10 +351,21 @@ public final class InitialMessage {
       }
     }
 
-    public static final int CONSUMERTYPE_FIELD_NUMBER = 3;
+    public static final int NEXTMESSAGEID_FIELD_NUMBER = 4;
+    private int nextMessageId_;
+    /**
+     * <code>uint32 nextMessageId = 4;</code>
+     * @return The nextMessageId.
+     */
+    @java.lang.Override
+    public int getNextMessageId() {
+      return nextMessageId_;
+    }
+
+    public static final int CONSUMERTYPE_FIELD_NUMBER = 5;
     private volatile java.lang.Object consumerType_;
     /**
-     * <code>string consumerType = 3;</code>
+     * <code>string consumerType = 5;</code>
      * @return The consumerType.
      */
     @java.lang.Override
@@ -278,7 +382,7 @@ public final class InitialMessage {
       }
     }
     /**
-     * <code>string consumerType = 3;</code>
+     * <code>string consumerType = 5;</code>
      * @return The bytes for consumerType.
      */
     @java.lang.Override
@@ -296,10 +400,10 @@ public final class InitialMessage {
       }
     }
 
-    public static final int TOPIC_FIELD_NUMBER = 4;
+    public static final int TOPIC_FIELD_NUMBER = 6;
     private volatile java.lang.Object topic_;
     /**
-     * <code>string topic = 4;</code>
+     * <code>string topic = 6;</code>
      * @return The topic.
      */
     @java.lang.Override
@@ -316,7 +420,7 @@ public final class InitialMessage {
       }
     }
     /**
-     * <code>string topic = 4;</code>
+     * <code>string topic = 6;</code>
      * @return The bytes for topic.
      */
     @java.lang.Override
@@ -334,15 +438,113 @@ public final class InitialMessage {
       }
     }
 
-    public static final int INITIALOFFSET_FIELD_NUMBER = 5;
+    public static final int INITIALOFFSET_FIELD_NUMBER = 7;
     private long initialOffset_;
     /**
-     * <code>uint64 initialOffset = 5;</code>
+     * <code>uint64 initialOffset = 7;</code>
      * @return The initialOffset.
      */
     @java.lang.Override
     public long getInitialOffset() {
       return initialOffset_;
+    }
+
+    public static final int BROKERID_FIELD_NUMBER = 8;
+    private int brokerId_;
+    /**
+     * <code>uint32 brokerId = 8;</code>
+     * @return The brokerId.
+     */
+    @java.lang.Override
+    public int getBrokerId() {
+      return brokerId_;
+    }
+
+    public static final int BROKERIP_FIELD_NUMBER = 9;
+    private volatile java.lang.Object brokerIP_;
+    /**
+     * <code>string brokerIP = 9;</code>
+     * @return The brokerIP.
+     */
+    @java.lang.Override
+    public java.lang.String getBrokerIP() {
+      java.lang.Object ref = brokerIP_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        brokerIP_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string brokerIP = 9;</code>
+     * @return The bytes for brokerIP.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getBrokerIPBytes() {
+      java.lang.Object ref = brokerIP_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        brokerIP_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int BROKERPORT_FIELD_NUMBER = 10;
+    private int brokerPort_;
+    /**
+     * <code>uint32 brokerPort = 10;</code>
+     * @return The brokerPort.
+     */
+    @java.lang.Override
+    public int getBrokerPort() {
+      return brokerPort_;
+    }
+
+    public static final int CONNECTIONTYPE_FIELD_NUMBER = 11;
+    private volatile java.lang.Object connectionType_;
+    /**
+     * <code>string connectionType = 11;</code>
+     * @return The connectionType.
+     */
+    @java.lang.Override
+    public java.lang.String getConnectionType() {
+      java.lang.Object ref = connectionType_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        connectionType_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string connectionType = 11;</code>
+     * @return The bytes for connectionType.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getConnectionTypeBytes() {
+      java.lang.Object ref = connectionType_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        connectionType_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
     }
 
     private byte memoizedIsInitialized = -1;
@@ -359,20 +561,38 @@ public final class InitialMessage {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      if (messageId_ != 0) {
+        output.writeUInt32(1, messageId_);
+      }
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(connectionSender_)) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, connectionSender_);
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, connectionSender_);
       }
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(name_)) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, name_);
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, name_);
+      }
+      if (nextMessageId_ != 0) {
+        output.writeUInt32(4, nextMessageId_);
       }
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(consumerType_)) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, consumerType_);
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 5, consumerType_);
       }
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(topic_)) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, topic_);
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 6, topic_);
       }
       if (initialOffset_ != 0L) {
-        output.writeUInt64(5, initialOffset_);
+        output.writeUInt64(7, initialOffset_);
+      }
+      if (brokerId_ != 0) {
+        output.writeUInt32(8, brokerId_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(brokerIP_)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 9, brokerIP_);
+      }
+      if (brokerPort_ != 0) {
+        output.writeUInt32(10, brokerPort_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(connectionType_)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 11, connectionType_);
       }
       unknownFields.writeTo(output);
     }
@@ -383,21 +603,43 @@ public final class InitialMessage {
       if (size != -1) return size;
 
       size = 0;
+      if (messageId_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(1, messageId_);
+      }
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(connectionSender_)) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, connectionSender_);
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, connectionSender_);
       }
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(name_)) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, name_);
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, name_);
+      }
+      if (nextMessageId_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(4, nextMessageId_);
       }
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(consumerType_)) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, consumerType_);
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, consumerType_);
       }
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(topic_)) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, topic_);
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(6, topic_);
       }
       if (initialOffset_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt64Size(5, initialOffset_);
+          .computeUInt64Size(7, initialOffset_);
+      }
+      if (brokerId_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(8, brokerId_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(brokerIP_)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(9, brokerIP_);
+      }
+      if (brokerPort_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(10, brokerPort_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(connectionType_)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(11, connectionType_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -414,16 +656,28 @@ public final class InitialMessage {
       }
       proto.InitialMessage.InitialMessageDetails other = (proto.InitialMessage.InitialMessageDetails) obj;
 
+      if (getMessageId()
+          != other.getMessageId()) return false;
       if (!getConnectionSender()
           .equals(other.getConnectionSender())) return false;
       if (!getName()
           .equals(other.getName())) return false;
+      if (getNextMessageId()
+          != other.getNextMessageId()) return false;
       if (!getConsumerType()
           .equals(other.getConsumerType())) return false;
       if (!getTopic()
           .equals(other.getTopic())) return false;
       if (getInitialOffset()
           != other.getInitialOffset()) return false;
+      if (getBrokerId()
+          != other.getBrokerId()) return false;
+      if (!getBrokerIP()
+          .equals(other.getBrokerIP())) return false;
+      if (getBrokerPort()
+          != other.getBrokerPort()) return false;
+      if (!getConnectionType()
+          .equals(other.getConnectionType())) return false;
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -435,10 +689,14 @@ public final class InitialMessage {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + MESSAGEID_FIELD_NUMBER;
+      hash = (53 * hash) + getMessageId();
       hash = (37 * hash) + CONNECTIONSENDER_FIELD_NUMBER;
       hash = (53 * hash) + getConnectionSender().hashCode();
       hash = (37 * hash) + NAME_FIELD_NUMBER;
       hash = (53 * hash) + getName().hashCode();
+      hash = (37 * hash) + NEXTMESSAGEID_FIELD_NUMBER;
+      hash = (53 * hash) + getNextMessageId();
       hash = (37 * hash) + CONSUMERTYPE_FIELD_NUMBER;
       hash = (53 * hash) + getConsumerType().hashCode();
       hash = (37 * hash) + TOPIC_FIELD_NUMBER;
@@ -446,6 +704,14 @@ public final class InitialMessage {
       hash = (37 * hash) + INITIALOFFSET_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getInitialOffset());
+      hash = (37 * hash) + BROKERID_FIELD_NUMBER;
+      hash = (53 * hash) + getBrokerId();
+      hash = (37 * hash) + BROKERIP_FIELD_NUMBER;
+      hash = (53 * hash) + getBrokerIP().hashCode();
+      hash = (37 * hash) + BROKERPORT_FIELD_NUMBER;
+      hash = (53 * hash) + getBrokerPort();
+      hash = (37 * hash) + CONNECTIONTYPE_FIELD_NUMBER;
+      hash = (53 * hash) + getConnectionType().hashCode();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -579,15 +845,27 @@ public final class InitialMessage {
       @java.lang.Override
       public Builder clear() {
         super.clear();
+        messageId_ = 0;
+
         connectionSender_ = "";
 
         name_ = "";
+
+        nextMessageId_ = 0;
 
         consumerType_ = "";
 
         topic_ = "";
 
         initialOffset_ = 0L;
+
+        brokerId_ = 0;
+
+        brokerIP_ = "";
+
+        brokerPort_ = 0;
+
+        connectionType_ = "";
 
         return this;
       }
@@ -615,11 +893,17 @@ public final class InitialMessage {
       @java.lang.Override
       public proto.InitialMessage.InitialMessageDetails buildPartial() {
         proto.InitialMessage.InitialMessageDetails result = new proto.InitialMessage.InitialMessageDetails(this);
+        result.messageId_ = messageId_;
         result.connectionSender_ = connectionSender_;
         result.name_ = name_;
+        result.nextMessageId_ = nextMessageId_;
         result.consumerType_ = consumerType_;
         result.topic_ = topic_;
         result.initialOffset_ = initialOffset_;
+        result.brokerId_ = brokerId_;
+        result.brokerIP_ = brokerIP_;
+        result.brokerPort_ = brokerPort_;
+        result.connectionType_ = connectionType_;
         onBuilt();
         return result;
       }
@@ -668,6 +952,9 @@ public final class InitialMessage {
 
       public Builder mergeFrom(proto.InitialMessage.InitialMessageDetails other) {
         if (other == proto.InitialMessage.InitialMessageDetails.getDefaultInstance()) return this;
+        if (other.getMessageId() != 0) {
+          setMessageId(other.getMessageId());
+        }
         if (!other.getConnectionSender().isEmpty()) {
           connectionSender_ = other.connectionSender_;
           onChanged();
@@ -675,6 +962,9 @@ public final class InitialMessage {
         if (!other.getName().isEmpty()) {
           name_ = other.name_;
           onChanged();
+        }
+        if (other.getNextMessageId() != 0) {
+          setNextMessageId(other.getNextMessageId());
         }
         if (!other.getConsumerType().isEmpty()) {
           consumerType_ = other.consumerType_;
@@ -686,6 +976,20 @@ public final class InitialMessage {
         }
         if (other.getInitialOffset() != 0L) {
           setInitialOffset(other.getInitialOffset());
+        }
+        if (other.getBrokerId() != 0) {
+          setBrokerId(other.getBrokerId());
+        }
+        if (!other.getBrokerIP().isEmpty()) {
+          brokerIP_ = other.brokerIP_;
+          onChanged();
+        }
+        if (other.getBrokerPort() != 0) {
+          setBrokerPort(other.getBrokerPort());
+        }
+        if (!other.getConnectionType().isEmpty()) {
+          connectionType_ = other.connectionType_;
+          onChanged();
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -716,9 +1020,40 @@ public final class InitialMessage {
         return this;
       }
 
+      private int messageId_ ;
+      /**
+       * <code>uint32 messageId = 1;</code>
+       * @return The messageId.
+       */
+      @java.lang.Override
+      public int getMessageId() {
+        return messageId_;
+      }
+      /**
+       * <code>uint32 messageId = 1;</code>
+       * @param value The messageId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMessageId(int value) {
+        
+        messageId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 messageId = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMessageId() {
+        
+        messageId_ = 0;
+        onChanged();
+        return this;
+      }
+
       private java.lang.Object connectionSender_ = "";
       /**
-       * <code>string connectionSender = 1;</code>
+       * <code>string connectionSender = 2;</code>
        * @return The connectionSender.
        */
       public java.lang.String getConnectionSender() {
@@ -734,7 +1069,7 @@ public final class InitialMessage {
         }
       }
       /**
-       * <code>string connectionSender = 1;</code>
+       * <code>string connectionSender = 2;</code>
        * @return The bytes for connectionSender.
        */
       public com.google.protobuf.ByteString
@@ -751,7 +1086,7 @@ public final class InitialMessage {
         }
       }
       /**
-       * <code>string connectionSender = 1;</code>
+       * <code>string connectionSender = 2;</code>
        * @param value The connectionSender to set.
        * @return This builder for chaining.
        */
@@ -766,7 +1101,7 @@ public final class InitialMessage {
         return this;
       }
       /**
-       * <code>string connectionSender = 1;</code>
+       * <code>string connectionSender = 2;</code>
        * @return This builder for chaining.
        */
       public Builder clearConnectionSender() {
@@ -776,7 +1111,7 @@ public final class InitialMessage {
         return this;
       }
       /**
-       * <code>string connectionSender = 1;</code>
+       * <code>string connectionSender = 2;</code>
        * @param value The bytes for connectionSender to set.
        * @return This builder for chaining.
        */
@@ -794,7 +1129,7 @@ public final class InitialMessage {
 
       private java.lang.Object name_ = "";
       /**
-       * <code>string name = 2;</code>
+       * <code>string name = 3;</code>
        * @return The name.
        */
       public java.lang.String getName() {
@@ -810,7 +1145,7 @@ public final class InitialMessage {
         }
       }
       /**
-       * <code>string name = 2;</code>
+       * <code>string name = 3;</code>
        * @return The bytes for name.
        */
       public com.google.protobuf.ByteString
@@ -827,7 +1162,7 @@ public final class InitialMessage {
         }
       }
       /**
-       * <code>string name = 2;</code>
+       * <code>string name = 3;</code>
        * @param value The name to set.
        * @return This builder for chaining.
        */
@@ -842,7 +1177,7 @@ public final class InitialMessage {
         return this;
       }
       /**
-       * <code>string name = 2;</code>
+       * <code>string name = 3;</code>
        * @return This builder for chaining.
        */
       public Builder clearName() {
@@ -852,7 +1187,7 @@ public final class InitialMessage {
         return this;
       }
       /**
-       * <code>string name = 2;</code>
+       * <code>string name = 3;</code>
        * @param value The bytes for name to set.
        * @return This builder for chaining.
        */
@@ -868,9 +1203,40 @@ public final class InitialMessage {
         return this;
       }
 
+      private int nextMessageId_ ;
+      /**
+       * <code>uint32 nextMessageId = 4;</code>
+       * @return The nextMessageId.
+       */
+      @java.lang.Override
+      public int getNextMessageId() {
+        return nextMessageId_;
+      }
+      /**
+       * <code>uint32 nextMessageId = 4;</code>
+       * @param value The nextMessageId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNextMessageId(int value) {
+        
+        nextMessageId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 nextMessageId = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNextMessageId() {
+        
+        nextMessageId_ = 0;
+        onChanged();
+        return this;
+      }
+
       private java.lang.Object consumerType_ = "";
       /**
-       * <code>string consumerType = 3;</code>
+       * <code>string consumerType = 5;</code>
        * @return The consumerType.
        */
       public java.lang.String getConsumerType() {
@@ -886,7 +1252,7 @@ public final class InitialMessage {
         }
       }
       /**
-       * <code>string consumerType = 3;</code>
+       * <code>string consumerType = 5;</code>
        * @return The bytes for consumerType.
        */
       public com.google.protobuf.ByteString
@@ -903,7 +1269,7 @@ public final class InitialMessage {
         }
       }
       /**
-       * <code>string consumerType = 3;</code>
+       * <code>string consumerType = 5;</code>
        * @param value The consumerType to set.
        * @return This builder for chaining.
        */
@@ -918,7 +1284,7 @@ public final class InitialMessage {
         return this;
       }
       /**
-       * <code>string consumerType = 3;</code>
+       * <code>string consumerType = 5;</code>
        * @return This builder for chaining.
        */
       public Builder clearConsumerType() {
@@ -928,7 +1294,7 @@ public final class InitialMessage {
         return this;
       }
       /**
-       * <code>string consumerType = 3;</code>
+       * <code>string consumerType = 5;</code>
        * @param value The bytes for consumerType to set.
        * @return This builder for chaining.
        */
@@ -946,7 +1312,7 @@ public final class InitialMessage {
 
       private java.lang.Object topic_ = "";
       /**
-       * <code>string topic = 4;</code>
+       * <code>string topic = 6;</code>
        * @return The topic.
        */
       public java.lang.String getTopic() {
@@ -962,7 +1328,7 @@ public final class InitialMessage {
         }
       }
       /**
-       * <code>string topic = 4;</code>
+       * <code>string topic = 6;</code>
        * @return The bytes for topic.
        */
       public com.google.protobuf.ByteString
@@ -979,7 +1345,7 @@ public final class InitialMessage {
         }
       }
       /**
-       * <code>string topic = 4;</code>
+       * <code>string topic = 6;</code>
        * @param value The topic to set.
        * @return This builder for chaining.
        */
@@ -994,7 +1360,7 @@ public final class InitialMessage {
         return this;
       }
       /**
-       * <code>string topic = 4;</code>
+       * <code>string topic = 6;</code>
        * @return This builder for chaining.
        */
       public Builder clearTopic() {
@@ -1004,7 +1370,7 @@ public final class InitialMessage {
         return this;
       }
       /**
-       * <code>string topic = 4;</code>
+       * <code>string topic = 6;</code>
        * @param value The bytes for topic to set.
        * @return This builder for chaining.
        */
@@ -1022,7 +1388,7 @@ public final class InitialMessage {
 
       private long initialOffset_ ;
       /**
-       * <code>uint64 initialOffset = 5;</code>
+       * <code>uint64 initialOffset = 7;</code>
        * @return The initialOffset.
        */
       @java.lang.Override
@@ -1030,7 +1396,7 @@ public final class InitialMessage {
         return initialOffset_;
       }
       /**
-       * <code>uint64 initialOffset = 5;</code>
+       * <code>uint64 initialOffset = 7;</code>
        * @param value The initialOffset to set.
        * @return This builder for chaining.
        */
@@ -1041,12 +1407,226 @@ public final class InitialMessage {
         return this;
       }
       /**
-       * <code>uint64 initialOffset = 5;</code>
+       * <code>uint64 initialOffset = 7;</code>
        * @return This builder for chaining.
        */
       public Builder clearInitialOffset() {
         
         initialOffset_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private int brokerId_ ;
+      /**
+       * <code>uint32 brokerId = 8;</code>
+       * @return The brokerId.
+       */
+      @java.lang.Override
+      public int getBrokerId() {
+        return brokerId_;
+      }
+      /**
+       * <code>uint32 brokerId = 8;</code>
+       * @param value The brokerId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setBrokerId(int value) {
+        
+        brokerId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 brokerId = 8;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearBrokerId() {
+        
+        brokerId_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object brokerIP_ = "";
+      /**
+       * <code>string brokerIP = 9;</code>
+       * @return The brokerIP.
+       */
+      public java.lang.String getBrokerIP() {
+        java.lang.Object ref = brokerIP_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          brokerIP_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string brokerIP = 9;</code>
+       * @return The bytes for brokerIP.
+       */
+      public com.google.protobuf.ByteString
+          getBrokerIPBytes() {
+        java.lang.Object ref = brokerIP_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          brokerIP_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string brokerIP = 9;</code>
+       * @param value The brokerIP to set.
+       * @return This builder for chaining.
+       */
+      public Builder setBrokerIP(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        brokerIP_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string brokerIP = 9;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearBrokerIP() {
+        
+        brokerIP_ = getDefaultInstance().getBrokerIP();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string brokerIP = 9;</code>
+       * @param value The bytes for brokerIP to set.
+       * @return This builder for chaining.
+       */
+      public Builder setBrokerIPBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        
+        brokerIP_ = value;
+        onChanged();
+        return this;
+      }
+
+      private int brokerPort_ ;
+      /**
+       * <code>uint32 brokerPort = 10;</code>
+       * @return The brokerPort.
+       */
+      @java.lang.Override
+      public int getBrokerPort() {
+        return brokerPort_;
+      }
+      /**
+       * <code>uint32 brokerPort = 10;</code>
+       * @param value The brokerPort to set.
+       * @return This builder for chaining.
+       */
+      public Builder setBrokerPort(int value) {
+        
+        brokerPort_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 brokerPort = 10;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearBrokerPort() {
+        
+        brokerPort_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object connectionType_ = "";
+      /**
+       * <code>string connectionType = 11;</code>
+       * @return The connectionType.
+       */
+      public java.lang.String getConnectionType() {
+        java.lang.Object ref = connectionType_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          connectionType_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string connectionType = 11;</code>
+       * @return The bytes for connectionType.
+       */
+      public com.google.protobuf.ByteString
+          getConnectionTypeBytes() {
+        java.lang.Object ref = connectionType_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          connectionType_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string connectionType = 11;</code>
+       * @param value The connectionType to set.
+       * @return This builder for chaining.
+       */
+      public Builder setConnectionType(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        connectionType_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string connectionType = 11;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearConnectionType() {
+        
+        connectionType_ = getDefaultInstance().getConnectionType();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string connectionType = 11;</code>
+       * @param value The bytes for connectionType to set.
+       * @return This builder for chaining.
+       */
+      public Builder setConnectionTypeBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        
+        connectionType_ = value;
         onChanged();
         return this;
       }
@@ -1117,11 +1697,14 @@ public final class InitialMessage {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\024InitialMessage.proto\022\010tutorial\"{\n\025Init" +
-      "ialMessageDetails\022\030\n\020connectionSender\030\001 " +
-      "\001(\t\022\014\n\004name\030\002 \001(\t\022\024\n\014consumerType\030\003 \001(\t\022" +
-      "\r\n\005topic\030\004 \001(\t\022\025\n\rinitialOffset\030\005 \001(\004B\027\n" +
-      "\005protoB\016InitialMessageb\006proto3"
+      "\n\024InitialMessage.proto\022\010tutorial\"\365\001\n\025Ini" +
+      "tialMessageDetails\022\021\n\tmessageId\030\001 \001(\r\022\030\n" +
+      "\020connectionSender\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\022\025\n" +
+      "\rnextMessageId\030\004 \001(\r\022\024\n\014consumerType\030\005 \001" +
+      "(\t\022\r\n\005topic\030\006 \001(\t\022\025\n\rinitialOffset\030\007 \001(\004" +
+      "\022\020\n\010brokerId\030\010 \001(\r\022\020\n\010brokerIP\030\t \001(\t\022\022\n\n" +
+      "brokerPort\030\n \001(\r\022\026\n\016connectionType\030\013 \001(\t" +
+      "B\027\n\005protoB\016InitialMessageb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -1132,7 +1715,7 @@ public final class InitialMessage {
     internal_static_tutorial_InitialMessageDetails_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tutorial_InitialMessageDetails_descriptor,
-        new java.lang.String[] { "ConnectionSender", "Name", "ConsumerType", "Topic", "InitialOffset", });
+        new java.lang.String[] { "MessageId", "ConnectionSender", "Name", "NextMessageId", "ConsumerType", "Topic", "InitialOffset", "BrokerId", "BrokerIP", "BrokerPort", "ConnectionType", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

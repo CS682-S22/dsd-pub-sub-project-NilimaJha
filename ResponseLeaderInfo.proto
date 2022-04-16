@@ -8,9 +8,10 @@ option java_outer_classname = "ResponseLeaderInfo";
 message ResponseLeaderAndMembersInfoDetails {
   int32 messageId = 1;
   bool infoAvailable = 2;
-  string leaderName = 3;
-  string leaderIP = 4;
-  int32 leaderPort = 5;
-  int32 brokerId = 6;
-  repeated bytes members = 7;
+  uint32 leaderID = 3;
+  string leaderName = 4;
+  string leaderIP = 5;
+  int32 leaderPort = 6;
+  int32 brokerId = 7;
+  repeated bytes members = 8;
 }

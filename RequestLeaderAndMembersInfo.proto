@@ -10,4 +10,6 @@ message RequestLeaderAndMembersInfoDetails {
   string requestSenderType = 2;
   string requestSenderName = 3;
   bool assignBrokerId = 4;
+  string brokerIP = 5;
+  uint32 brokerPort = 6;
 }

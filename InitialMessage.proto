@@ -6,9 +6,15 @@ option java_package = "proto";
 option java_outer_classname = "InitialMessage";
 
 message InitialMessageDetails {
-  string connectionSender = 1;
-  string name = 2;
-  string consumerType = 3;
-  string topic = 4;
-  uint64 initialOffset = 5;
+  uint32 messageId = 1;
+  string connectionSender = 2;
+  string name = 3;
+  uint32 nextMessageId = 4;
+  string consumerType = 5;
+  string topic = 6;
+  uint64 initialOffset = 7;
+  uint32 brokerId = 8;
+  string brokerIP = 9;
+  uint32 brokerPort = 10;
+  string connectionType = 11;
 }

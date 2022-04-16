@@ -7,7 +7,7 @@ option java_outer_classname = "UpdateLeaderInfo";
 
 message UpdateLeaderInfoDetails {
   int32 messageId = 1;
-  string senderType = 2;
+  string requestSenderType = 2;
   string brokerName = 3;
   int32 brokerId = 4;
 }

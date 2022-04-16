@@ -31,53 +31,59 @@ public final class ResponseLeaderInfo {
     boolean getInfoAvailable();
 
     /**
-     * <code>string leaderName = 3;</code>
+     * <code>uint32 leaderID = 3;</code>
+     * @return The leaderID.
+     */
+    int getLeaderID();
+
+    /**
+     * <code>string leaderName = 4;</code>
      * @return The leaderName.
      */
     java.lang.String getLeaderName();
     /**
-     * <code>string leaderName = 3;</code>
+     * <code>string leaderName = 4;</code>
      * @return The bytes for leaderName.
      */
     com.google.protobuf.ByteString
         getLeaderNameBytes();
 
     /**
-     * <code>string leaderIP = 4;</code>
+     * <code>string leaderIP = 5;</code>
      * @return The leaderIP.
      */
     java.lang.String getLeaderIP();
     /**
-     * <code>string leaderIP = 4;</code>
+     * <code>string leaderIP = 5;</code>
      * @return The bytes for leaderIP.
      */
     com.google.protobuf.ByteString
         getLeaderIPBytes();
 
     /**
-     * <code>int32 leaderPort = 5;</code>
+     * <code>int32 leaderPort = 6;</code>
      * @return The leaderPort.
      */
     int getLeaderPort();
 
     /**
-     * <code>int32 brokerId = 6;</code>
+     * <code>int32 brokerId = 7;</code>
      * @return The brokerId.
      */
     int getBrokerId();
 
     /**
-     * <code>repeated bytes members = 7;</code>
+     * <code>repeated bytes members = 8;</code>
      * @return A list containing the members.
      */
     java.util.List<com.google.protobuf.ByteString> getMembersList();
     /**
-     * <code>repeated bytes members = 7;</code>
+     * <code>repeated bytes members = 8;</code>
      * @return The count of members.
      */
     int getMembersCount();
     /**
-     * <code>repeated bytes members = 7;</code>
+     * <code>repeated bytes members = 8;</code>
      * @param index The index of the element to return.
      * @return The members at the given index.
      */
@@ -142,29 +148,34 @@ public final class ResponseLeaderInfo {
               infoAvailable_ = input.readBool();
               break;
             }
-            case 26: {
-              java.lang.String s = input.readStringRequireUtf8();
+            case 24: {
 
-              leaderName_ = s;
+              leaderID_ = input.readUInt32();
               break;
             }
             case 34: {
               java.lang.String s = input.readStringRequireUtf8();
 
-              leaderIP_ = s;
+              leaderName_ = s;
               break;
             }
-            case 40: {
+            case 42: {
+              java.lang.String s = input.readStringRequireUtf8();
 
-              leaderPort_ = input.readInt32();
+              leaderIP_ = s;
               break;
             }
             case 48: {
 
+              leaderPort_ = input.readInt32();
+              break;
+            }
+            case 56: {
+
               brokerId_ = input.readInt32();
               break;
             }
-            case 58: {
+            case 66: {
               if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 members_ = new java.util.ArrayList<com.google.protobuf.ByteString>();
                 mutable_bitField0_ |= 0x00000001;
@@ -229,10 +240,21 @@ public final class ResponseLeaderInfo {
       return infoAvailable_;
     }
 
-    public static final int LEADERNAME_FIELD_NUMBER = 3;
+    public static final int LEADERID_FIELD_NUMBER = 3;
+    private int leaderID_;
+    /**
+     * <code>uint32 leaderID = 3;</code>
+     * @return The leaderID.
+     */
+    @java.lang.Override
+    public int getLeaderID() {
+      return leaderID_;
+    }
+
+    public static final int LEADERNAME_FIELD_NUMBER = 4;
     private volatile java.lang.Object leaderName_;
     /**
-     * <code>string leaderName = 3;</code>
+     * <code>string leaderName = 4;</code>
      * @return The leaderName.
      */
     @java.lang.Override
@@ -249,7 +271,7 @@ public final class ResponseLeaderInfo {
       }
     }
     /**
-     * <code>string leaderName = 3;</code>
+     * <code>string leaderName = 4;</code>
      * @return The bytes for leaderName.
      */
     @java.lang.Override
@@ -267,10 +289,10 @@ public final class ResponseLeaderInfo {
       }
     }
 
-    public static final int LEADERIP_FIELD_NUMBER = 4;
+    public static final int LEADERIP_FIELD_NUMBER = 5;
     private volatile java.lang.Object leaderIP_;
     /**
-     * <code>string leaderIP = 4;</code>
+     * <code>string leaderIP = 5;</code>
      * @return The leaderIP.
      */
     @java.lang.Override
@@ -287,7 +309,7 @@ public final class ResponseLeaderInfo {
       }
     }
     /**
-     * <code>string leaderIP = 4;</code>
+     * <code>string leaderIP = 5;</code>
      * @return The bytes for leaderIP.
      */
     @java.lang.Override
@@ -305,10 +327,10 @@ public final class ResponseLeaderInfo {
       }
     }
 
-    public static final int LEADERPORT_FIELD_NUMBER = 5;
+    public static final int LEADERPORT_FIELD_NUMBER = 6;
     private int leaderPort_;
     /**
-     * <code>int32 leaderPort = 5;</code>
+     * <code>int32 leaderPort = 6;</code>
      * @return The leaderPort.
      */
     @java.lang.Override
@@ -316,10 +338,10 @@ public final class ResponseLeaderInfo {
       return leaderPort_;
     }
 
-    public static final int BROKERID_FIELD_NUMBER = 6;
+    public static final int BROKERID_FIELD_NUMBER = 7;
     private int brokerId_;
     /**
-     * <code>int32 brokerId = 6;</code>
+     * <code>int32 brokerId = 7;</code>
      * @return The brokerId.
      */
     @java.lang.Override
@@ -327,10 +349,10 @@ public final class ResponseLeaderInfo {
       return brokerId_;
     }
 
-    public static final int MEMBERS_FIELD_NUMBER = 7;
+    public static final int MEMBERS_FIELD_NUMBER = 8;
     private java.util.List<com.google.protobuf.ByteString> members_;
     /**
-     * <code>repeated bytes members = 7;</code>
+     * <code>repeated bytes members = 8;</code>
      * @return A list containing the members.
      */
     @java.lang.Override
@@ -339,14 +361,14 @@ public final class ResponseLeaderInfo {
       return members_;
     }
     /**
-     * <code>repeated bytes members = 7;</code>
+     * <code>repeated bytes members = 8;</code>
      * @return The count of members.
      */
     public int getMembersCount() {
       return members_.size();
     }
     /**
-     * <code>repeated bytes members = 7;</code>
+     * <code>repeated bytes members = 8;</code>
      * @param index The index of the element to return.
      * @return The members at the given index.
      */
@@ -374,20 +396,23 @@ public final class ResponseLeaderInfo {
       if (infoAvailable_ != false) {
         output.writeBool(2, infoAvailable_);
       }
+      if (leaderID_ != 0) {
+        output.writeUInt32(3, leaderID_);
+      }
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(leaderName_)) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, leaderName_);
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, leaderName_);
       }
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(leaderIP_)) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, leaderIP_);
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 5, leaderIP_);
       }
       if (leaderPort_ != 0) {
-        output.writeInt32(5, leaderPort_);
+        output.writeInt32(6, leaderPort_);
       }
       if (brokerId_ != 0) {
-        output.writeInt32(6, brokerId_);
+        output.writeInt32(7, brokerId_);
       }
       for (int i = 0; i < members_.size(); i++) {
-        output.writeBytes(7, members_.get(i));
+        output.writeBytes(8, members_.get(i));
       }
       unknownFields.writeTo(output);
     }
@@ -406,19 +431,23 @@ public final class ResponseLeaderInfo {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(2, infoAvailable_);
       }
+      if (leaderID_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(3, leaderID_);
+      }
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(leaderName_)) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, leaderName_);
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, leaderName_);
       }
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(leaderIP_)) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, leaderIP_);
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, leaderIP_);
       }
       if (leaderPort_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(5, leaderPort_);
+          .computeInt32Size(6, leaderPort_);
       }
       if (brokerId_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(6, brokerId_);
+          .computeInt32Size(7, brokerId_);
       }
       {
         int dataSize = 0;
@@ -448,6 +477,8 @@ public final class ResponseLeaderInfo {
           != other.getMessageId()) return false;
       if (getInfoAvailable()
           != other.getInfoAvailable()) return false;
+      if (getLeaderID()
+          != other.getLeaderID()) return false;
       if (!getLeaderName()
           .equals(other.getLeaderName())) return false;
       if (!getLeaderIP()
@@ -474,6 +505,8 @@ public final class ResponseLeaderInfo {
       hash = (37 * hash) + INFOAVAILABLE_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
           getInfoAvailable());
+      hash = (37 * hash) + LEADERID_FIELD_NUMBER;
+      hash = (53 * hash) + getLeaderID();
       hash = (37 * hash) + LEADERNAME_FIELD_NUMBER;
       hash = (53 * hash) + getLeaderName().hashCode();
       hash = (37 * hash) + LEADERIP_FIELD_NUMBER;
@@ -623,6 +656,8 @@ public final class ResponseLeaderInfo {
 
         infoAvailable_ = false;
 
+        leaderID_ = 0;
+
         leaderName_ = "";
 
         leaderIP_ = "";
@@ -662,6 +697,7 @@ public final class ResponseLeaderInfo {
         int from_bitField0_ = bitField0_;
         result.messageId_ = messageId_;
         result.infoAvailable_ = infoAvailable_;
+        result.leaderID_ = leaderID_;
         result.leaderName_ = leaderName_;
         result.leaderIP_ = leaderIP_;
         result.leaderPort_ = leaderPort_;
@@ -724,6 +760,9 @@ public final class ResponseLeaderInfo {
         }
         if (other.getInfoAvailable() != false) {
           setInfoAvailable(other.getInfoAvailable());
+        }
+        if (other.getLeaderID() != 0) {
+          setLeaderID(other.getLeaderID());
         }
         if (!other.getLeaderName().isEmpty()) {
           leaderName_ = other.leaderName_;
@@ -841,9 +880,40 @@ public final class ResponseLeaderInfo {
         return this;
       }
 
+      private int leaderID_ ;
+      /**
+       * <code>uint32 leaderID = 3;</code>
+       * @return The leaderID.
+       */
+      @java.lang.Override
+      public int getLeaderID() {
+        return leaderID_;
+      }
+      /**
+       * <code>uint32 leaderID = 3;</code>
+       * @param value The leaderID to set.
+       * @return This builder for chaining.
+       */
+      public Builder setLeaderID(int value) {
+        
+        leaderID_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 leaderID = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearLeaderID() {
+        
+        leaderID_ = 0;
+        onChanged();
+        return this;
+      }
+
       private java.lang.Object leaderName_ = "";
       /**
-       * <code>string leaderName = 3;</code>
+       * <code>string leaderName = 4;</code>
        * @return The leaderName.
        */
       public java.lang.String getLeaderName() {
@@ -859,7 +929,7 @@ public final class ResponseLeaderInfo {
         }
       }
       /**
-       * <code>string leaderName = 3;</code>
+       * <code>string leaderName = 4;</code>
        * @return The bytes for leaderName.
        */
       public com.google.protobuf.ByteString
@@ -876,7 +946,7 @@ public final class ResponseLeaderInfo {
         }
       }
       /**
-       * <code>string leaderName = 3;</code>
+       * <code>string leaderName = 4;</code>
        * @param value The leaderName to set.
        * @return This builder for chaining.
        */
@@ -891,7 +961,7 @@ public final class ResponseLeaderInfo {
         return this;
       }
       /**
-       * <code>string leaderName = 3;</code>
+       * <code>string leaderName = 4;</code>
        * @return This builder for chaining.
        */
       public Builder clearLeaderName() {
@@ -901,7 +971,7 @@ public final class ResponseLeaderInfo {
         return this;
       }
       /**
-       * <code>string leaderName = 3;</code>
+       * <code>string leaderName = 4;</code>
        * @param value The bytes for leaderName to set.
        * @return This builder for chaining.
        */
@@ -919,7 +989,7 @@ public final class ResponseLeaderInfo {
 
       private java.lang.Object leaderIP_ = "";
       /**
-       * <code>string leaderIP = 4;</code>
+       * <code>string leaderIP = 5;</code>
        * @return The leaderIP.
        */
       public java.lang.String getLeaderIP() {
@@ -935,7 +1005,7 @@ public final class ResponseLeaderInfo {
         }
       }
       /**
-       * <code>string leaderIP = 4;</code>
+       * <code>string leaderIP = 5;</code>
        * @return The bytes for leaderIP.
        */
       public com.google.protobuf.ByteString
@@ -952,7 +1022,7 @@ public final class ResponseLeaderInfo {
         }
       }
       /**
-       * <code>string leaderIP = 4;</code>
+       * <code>string leaderIP = 5;</code>
        * @param value The leaderIP to set.
        * @return This builder for chaining.
        */
@@ -967,7 +1037,7 @@ public final class ResponseLeaderInfo {
         return this;
       }
       /**
-       * <code>string leaderIP = 4;</code>
+       * <code>string leaderIP = 5;</code>
        * @return This builder for chaining.
        */
       public Builder clearLeaderIP() {
@@ -977,7 +1047,7 @@ public final class ResponseLeaderInfo {
         return this;
       }
       /**
-       * <code>string leaderIP = 4;</code>
+       * <code>string leaderIP = 5;</code>
        * @param value The bytes for leaderIP to set.
        * @return This builder for chaining.
        */
@@ -995,7 +1065,7 @@ public final class ResponseLeaderInfo {
 
       private int leaderPort_ ;
       /**
-       * <code>int32 leaderPort = 5;</code>
+       * <code>int32 leaderPort = 6;</code>
        * @return The leaderPort.
        */
       @java.lang.Override
@@ -1003,7 +1073,7 @@ public final class ResponseLeaderInfo {
         return leaderPort_;
       }
       /**
-       * <code>int32 leaderPort = 5;</code>
+       * <code>int32 leaderPort = 6;</code>
        * @param value The leaderPort to set.
        * @return This builder for chaining.
        */
@@ -1014,7 +1084,7 @@ public final class ResponseLeaderInfo {
         return this;
       }
       /**
-       * <code>int32 leaderPort = 5;</code>
+       * <code>int32 leaderPort = 6;</code>
        * @return This builder for chaining.
        */
       public Builder clearLeaderPort() {
@@ -1026,7 +1096,7 @@ public final class ResponseLeaderInfo {
 
       private int brokerId_ ;
       /**
-       * <code>int32 brokerId = 6;</code>
+       * <code>int32 brokerId = 7;</code>
        * @return The brokerId.
        */
       @java.lang.Override
@@ -1034,7 +1104,7 @@ public final class ResponseLeaderInfo {
         return brokerId_;
       }
       /**
-       * <code>int32 brokerId = 6;</code>
+       * <code>int32 brokerId = 7;</code>
        * @param value The brokerId to set.
        * @return This builder for chaining.
        */
@@ -1045,7 +1115,7 @@ public final class ResponseLeaderInfo {
         return this;
       }
       /**
-       * <code>int32 brokerId = 6;</code>
+       * <code>int32 brokerId = 7;</code>
        * @return This builder for chaining.
        */
       public Builder clearBrokerId() {
@@ -1063,7 +1133,7 @@ public final class ResponseLeaderInfo {
          }
       }
       /**
-       * <code>repeated bytes members = 7;</code>
+       * <code>repeated bytes members = 8;</code>
        * @return A list containing the members.
        */
       public java.util.List<com.google.protobuf.ByteString>
@@ -1072,14 +1142,14 @@ public final class ResponseLeaderInfo {
                  java.util.Collections.unmodifiableList(members_) : members_;
       }
       /**
-       * <code>repeated bytes members = 7;</code>
+       * <code>repeated bytes members = 8;</code>
        * @return The count of members.
        */
       public int getMembersCount() {
         return members_.size();
       }
       /**
-       * <code>repeated bytes members = 7;</code>
+       * <code>repeated bytes members = 8;</code>
        * @param index The index of the element to return.
        * @return The members at the given index.
        */
@@ -1087,7 +1157,7 @@ public final class ResponseLeaderInfo {
         return members_.get(index);
       }
       /**
-       * <code>repeated bytes members = 7;</code>
+       * <code>repeated bytes members = 8;</code>
        * @param index The index to set the value at.
        * @param value The members to set.
        * @return This builder for chaining.
@@ -1103,7 +1173,7 @@ public final class ResponseLeaderInfo {
         return this;
       }
       /**
-       * <code>repeated bytes members = 7;</code>
+       * <code>repeated bytes members = 8;</code>
        * @param value The members to add.
        * @return This builder for chaining.
        */
@@ -1117,7 +1187,7 @@ public final class ResponseLeaderInfo {
         return this;
       }
       /**
-       * <code>repeated bytes members = 7;</code>
+       * <code>repeated bytes members = 8;</code>
        * @param values The members to add.
        * @return This builder for chaining.
        */
@@ -1130,7 +1200,7 @@ public final class ResponseLeaderInfo {
         return this;
       }
       /**
-       * <code>repeated bytes members = 7;</code>
+       * <code>repeated bytes members = 8;</code>
        * @return This builder for chaining.
        */
       public Builder clearMembers() {
@@ -1206,13 +1276,13 @@ public final class ResponseLeaderInfo {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\030ResponseLeaderInfo.proto\022\010tutorial\"\254\001\n" +
+      "\n\030ResponseLeaderInfo.proto\022\010tutorial\"\276\001\n" +
       "#ResponseLeaderAndMembersInfoDetails\022\021\n\t" +
-      "messageId\030\001 \001(\005\022\025\n\rinfoAvailable\030\002 \001(\010\022\022" +
-      "\n\nleaderName\030\003 \001(\t\022\020\n\010leaderIP\030\004 \001(\t\022\022\n\n" +
-      "leaderPort\030\005 \001(\005\022\020\n\010brokerId\030\006 \001(\005\022\017\n\007me" +
-      "mbers\030\007 \003(\014B\033\n\005protoB\022ResponseLeaderInfo" +
-      "b\006proto3"
+      "messageId\030\001 \001(\005\022\025\n\rinfoAvailable\030\002 \001(\010\022\020" +
+      "\n\010leaderID\030\003 \001(\r\022\022\n\nleaderName\030\004 \001(\t\022\020\n\010" +
+      "leaderIP\030\005 \001(\t\022\022\n\nleaderPort\030\006 \001(\005\022\020\n\010br" +
+      "okerId\030\007 \001(\005\022\017\n\007members\030\010 \003(\014B\033\n\005protoB\022" +
+      "ResponseLeaderInfob\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -1223,7 +1293,7 @@ public final class ResponseLeaderInfo {
     internal_static_tutorial_ResponseLeaderAndMembersInfoDetails_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tutorial_ResponseLeaderAndMembersInfoDetails_descriptor,
-        new java.lang.String[] { "MessageId", "InfoAvailable", "LeaderName", "LeaderIP", "LeaderPort", "BrokerId", "Members", });
+        new java.lang.String[] { "MessageId", "InfoAvailable", "LeaderID", "LeaderName", "LeaderIP", "LeaderPort", "BrokerId", "Members", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

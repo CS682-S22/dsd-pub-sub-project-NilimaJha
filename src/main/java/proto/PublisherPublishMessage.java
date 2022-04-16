@@ -19,19 +19,25 @@ public final class PublisherPublishMessage {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>string topic = 1;</code>
+     * <code>int32 messageId = 1;</code>
+     * @return The messageId.
+     */
+    int getMessageId();
+
+    /**
+     * <code>string topic = 2;</code>
      * @return The topic.
      */
     java.lang.String getTopic();
     /**
-     * <code>string topic = 1;</code>
+     * <code>string topic = 2;</code>
      * @return The bytes for topic.
      */
     com.google.protobuf.ByteString
         getTopicBytes();
 
     /**
-     * <code>bytes message = 2;</code>
+     * <code>bytes message = 3;</code>
      * @return The message.
      */
     com.google.protobuf.ByteString getMessage();
@@ -83,13 +89,18 @@ public final class PublisherPublishMessage {
             case 0:
               done = true;
               break;
-            case 10: {
+            case 8: {
+
+              messageId_ = input.readInt32();
+              break;
+            }
+            case 18: {
               java.lang.String s = input.readStringRequireUtf8();
 
               topic_ = s;
               break;
             }
-            case 18: {
+            case 26: {
 
               message_ = input.readBytes();
               break;
@@ -126,10 +137,21 @@ public final class PublisherPublishMessage {
               proto.PublisherPublishMessage.PublisherPublishMessageDetails.class, proto.PublisherPublishMessage.PublisherPublishMessageDetails.Builder.class);
     }
 
-    public static final int TOPIC_FIELD_NUMBER = 1;
+    public static final int MESSAGEID_FIELD_NUMBER = 1;
+    private int messageId_;
+    /**
+     * <code>int32 messageId = 1;</code>
+     * @return The messageId.
+     */
+    @java.lang.Override
+    public int getMessageId() {
+      return messageId_;
+    }
+
+    public static final int TOPIC_FIELD_NUMBER = 2;
     private volatile java.lang.Object topic_;
     /**
-     * <code>string topic = 1;</code>
+     * <code>string topic = 2;</code>
      * @return The topic.
      */
     @java.lang.Override
@@ -146,7 +168,7 @@ public final class PublisherPublishMessage {
       }
     }
     /**
-     * <code>string topic = 1;</code>
+     * <code>string topic = 2;</code>
      * @return The bytes for topic.
      */
     @java.lang.Override
@@ -164,10 +186,10 @@ public final class PublisherPublishMessage {
       }
     }
 
-    public static final int MESSAGE_FIELD_NUMBER = 2;
+    public static final int MESSAGE_FIELD_NUMBER = 3;
     private com.google.protobuf.ByteString message_;
     /**
-     * <code>bytes message = 2;</code>
+     * <code>bytes message = 3;</code>
      * @return The message.
      */
     @java.lang.Override
@@ -189,11 +211,14 @@ public final class PublisherPublishMessage {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      if (messageId_ != 0) {
+        output.writeInt32(1, messageId_);
+      }
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(topic_)) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, topic_);
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, topic_);
       }
       if (!message_.isEmpty()) {
-        output.writeBytes(2, message_);
+        output.writeBytes(3, message_);
       }
       unknownFields.writeTo(output);
     }
@@ -204,12 +229,16 @@ public final class PublisherPublishMessage {
       if (size != -1) return size;
 
       size = 0;
+      if (messageId_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(1, messageId_);
+      }
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(topic_)) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, topic_);
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, topic_);
       }
       if (!message_.isEmpty()) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, message_);
+          .computeBytesSize(3, message_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -226,6 +255,8 @@ public final class PublisherPublishMessage {
       }
       proto.PublisherPublishMessage.PublisherPublishMessageDetails other = (proto.PublisherPublishMessage.PublisherPublishMessageDetails) obj;
 
+      if (getMessageId()
+          != other.getMessageId()) return false;
       if (!getTopic()
           .equals(other.getTopic())) return false;
       if (!getMessage()
@@ -241,6 +272,8 @@ public final class PublisherPublishMessage {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + MESSAGEID_FIELD_NUMBER;
+      hash = (53 * hash) + getMessageId();
       hash = (37 * hash) + TOPIC_FIELD_NUMBER;
       hash = (53 * hash) + getTopic().hashCode();
       hash = (37 * hash) + MESSAGE_FIELD_NUMBER;
@@ -378,6 +411,8 @@ public final class PublisherPublishMessage {
       @java.lang.Override
       public Builder clear() {
         super.clear();
+        messageId_ = 0;
+
         topic_ = "";
 
         message_ = com.google.protobuf.ByteString.EMPTY;
@@ -408,6 +443,7 @@ public final class PublisherPublishMessage {
       @java.lang.Override
       public proto.PublisherPublishMessage.PublisherPublishMessageDetails buildPartial() {
         proto.PublisherPublishMessage.PublisherPublishMessageDetails result = new proto.PublisherPublishMessage.PublisherPublishMessageDetails(this);
+        result.messageId_ = messageId_;
         result.topic_ = topic_;
         result.message_ = message_;
         onBuilt();
@@ -458,6 +494,9 @@ public final class PublisherPublishMessage {
 
       public Builder mergeFrom(proto.PublisherPublishMessage.PublisherPublishMessageDetails other) {
         if (other == proto.PublisherPublishMessage.PublisherPublishMessageDetails.getDefaultInstance()) return this;
+        if (other.getMessageId() != 0) {
+          setMessageId(other.getMessageId());
+        }
         if (!other.getTopic().isEmpty()) {
           topic_ = other.topic_;
           onChanged();
@@ -494,9 +533,40 @@ public final class PublisherPublishMessage {
         return this;
       }
 
+      private int messageId_ ;
+      /**
+       * <code>int32 messageId = 1;</code>
+       * @return The messageId.
+       */
+      @java.lang.Override
+      public int getMessageId() {
+        return messageId_;
+      }
+      /**
+       * <code>int32 messageId = 1;</code>
+       * @param value The messageId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMessageId(int value) {
+        
+        messageId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int32 messageId = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMessageId() {
+        
+        messageId_ = 0;
+        onChanged();
+        return this;
+      }
+
       private java.lang.Object topic_ = "";
       /**
-       * <code>string topic = 1;</code>
+       * <code>string topic = 2;</code>
        * @return The topic.
        */
       public java.lang.String getTopic() {
@@ -512,7 +582,7 @@ public final class PublisherPublishMessage {
         }
       }
       /**
-       * <code>string topic = 1;</code>
+       * <code>string topic = 2;</code>
        * @return The bytes for topic.
        */
       public com.google.protobuf.ByteString
@@ -529,7 +599,7 @@ public final class PublisherPublishMessage {
         }
       }
       /**
-       * <code>string topic = 1;</code>
+       * <code>string topic = 2;</code>
        * @param value The topic to set.
        * @return This builder for chaining.
        */
@@ -544,7 +614,7 @@ public final class PublisherPublishMessage {
         return this;
       }
       /**
-       * <code>string topic = 1;</code>
+       * <code>string topic = 2;</code>
        * @return This builder for chaining.
        */
       public Builder clearTopic() {
@@ -554,7 +624,7 @@ public final class PublisherPublishMessage {
         return this;
       }
       /**
-       * <code>string topic = 1;</code>
+       * <code>string topic = 2;</code>
        * @param value The bytes for topic to set.
        * @return This builder for chaining.
        */
@@ -572,7 +642,7 @@ public final class PublisherPublishMessage {
 
       private com.google.protobuf.ByteString message_ = com.google.protobuf.ByteString.EMPTY;
       /**
-       * <code>bytes message = 2;</code>
+       * <code>bytes message = 3;</code>
        * @return The message.
        */
       @java.lang.Override
@@ -580,7 +650,7 @@ public final class PublisherPublishMessage {
         return message_;
       }
       /**
-       * <code>bytes message = 2;</code>
+       * <code>bytes message = 3;</code>
        * @param value The message to set.
        * @return This builder for chaining.
        */
@@ -594,7 +664,7 @@ public final class PublisherPublishMessage {
         return this;
       }
       /**
-       * <code>bytes message = 2;</code>
+       * <code>bytes message = 3;</code>
        * @return This builder for chaining.
        */
       public Builder clearMessage() {
@@ -671,9 +741,10 @@ public final class PublisherPublishMessage {
   static {
     java.lang.String[] descriptorData = {
       "\n\035PublisherPublishMessage.proto\022\010tutoria" +
-      "l\"@\n\036PublisherPublishMessageDetails\022\r\n\005t" +
-      "opic\030\001 \001(\t\022\017\n\007message\030\002 \001(\014B \n\005protoB\027Pu" +
-      "blisherPublishMessageb\006proto3"
+      "l\"S\n\036PublisherPublishMessageDetails\022\021\n\tm" +
+      "essageId\030\001 \001(\005\022\r\n\005topic\030\002 \001(\t\022\017\n\007message" +
+      "\030\003 \001(\014B \n\005protoB\027PublisherPublishMessage" +
+      "b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -684,7 +755,7 @@ public final class PublisherPublishMessage {
     internal_static_tutorial_PublisherPublishMessageDetails_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tutorial_PublisherPublishMessageDetails_descriptor,
-        new java.lang.String[] { "Topic", "Message", });
+        new java.lang.String[] { "MessageId", "Topic", "Message", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

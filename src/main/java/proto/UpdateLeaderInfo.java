@@ -25,16 +25,16 @@ public final class UpdateLeaderInfo {
     int getMessageId();
 
     /**
-     * <code>string senderType = 2;</code>
-     * @return The senderType.
+     * <code>string requestSenderType = 2;</code>
+     * @return The requestSenderType.
      */
-    java.lang.String getSenderType();
+    java.lang.String getRequestSenderType();
     /**
-     * <code>string senderType = 2;</code>
-     * @return The bytes for senderType.
+     * <code>string requestSenderType = 2;</code>
+     * @return The bytes for requestSenderType.
      */
     com.google.protobuf.ByteString
-        getSenderTypeBytes();
+        getRequestSenderTypeBytes();
 
     /**
      * <code>string brokerName = 3;</code>
@@ -67,7 +67,7 @@ public final class UpdateLeaderInfo {
       super(builder);
     }
     private UpdateLeaderInfoDetails() {
-      senderType_ = "";
+      requestSenderType_ = "";
       brokerName_ = "";
     }
 
@@ -109,7 +109,7 @@ public final class UpdateLeaderInfo {
             case 18: {
               java.lang.String s = input.readStringRequireUtf8();
 
-              senderType_ = s;
+              requestSenderType_ = s;
               break;
             }
             case 26: {
@@ -166,38 +166,38 @@ public final class UpdateLeaderInfo {
       return messageId_;
     }
 
-    public static final int SENDERTYPE_FIELD_NUMBER = 2;
-    private volatile java.lang.Object senderType_;
+    public static final int REQUESTSENDERTYPE_FIELD_NUMBER = 2;
+    private volatile java.lang.Object requestSenderType_;
     /**
-     * <code>string senderType = 2;</code>
-     * @return The senderType.
+     * <code>string requestSenderType = 2;</code>
+     * @return The requestSenderType.
      */
     @java.lang.Override
-    public java.lang.String getSenderType() {
-      java.lang.Object ref = senderType_;
+    public java.lang.String getRequestSenderType() {
+      java.lang.Object ref = requestSenderType_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        senderType_ = s;
+        requestSenderType_ = s;
         return s;
       }
     }
     /**
-     * <code>string senderType = 2;</code>
-     * @return The bytes for senderType.
+     * <code>string requestSenderType = 2;</code>
+     * @return The bytes for requestSenderType.
      */
     @java.lang.Override
     public com.google.protobuf.ByteString
-        getSenderTypeBytes() {
-      java.lang.Object ref = senderType_;
+        getRequestSenderTypeBytes() {
+      java.lang.Object ref = requestSenderType_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        senderType_ = b;
+        requestSenderType_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -270,8 +270,8 @@ public final class UpdateLeaderInfo {
       if (messageId_ != 0) {
         output.writeInt32(1, messageId_);
       }
-      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(senderType_)) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, senderType_);
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(requestSenderType_)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, requestSenderType_);
       }
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(brokerName_)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 3, brokerName_);
@@ -292,8 +292,8 @@ public final class UpdateLeaderInfo {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(1, messageId_);
       }
-      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(senderType_)) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, senderType_);
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(requestSenderType_)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, requestSenderType_);
       }
       if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(brokerName_)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, brokerName_);
@@ -319,8 +319,8 @@ public final class UpdateLeaderInfo {
 
       if (getMessageId()
           != other.getMessageId()) return false;
-      if (!getSenderType()
-          .equals(other.getSenderType())) return false;
+      if (!getRequestSenderType()
+          .equals(other.getRequestSenderType())) return false;
       if (!getBrokerName()
           .equals(other.getBrokerName())) return false;
       if (getBrokerId()
@@ -338,8 +338,8 @@ public final class UpdateLeaderInfo {
       hash = (19 * hash) + getDescriptor().hashCode();
       hash = (37 * hash) + MESSAGEID_FIELD_NUMBER;
       hash = (53 * hash) + getMessageId();
-      hash = (37 * hash) + SENDERTYPE_FIELD_NUMBER;
-      hash = (53 * hash) + getSenderType().hashCode();
+      hash = (37 * hash) + REQUESTSENDERTYPE_FIELD_NUMBER;
+      hash = (53 * hash) + getRequestSenderType().hashCode();
       hash = (37 * hash) + BROKERNAME_FIELD_NUMBER;
       hash = (53 * hash) + getBrokerName().hashCode();
       hash = (37 * hash) + BROKERID_FIELD_NUMBER;
@@ -479,7 +479,7 @@ public final class UpdateLeaderInfo {
         super.clear();
         messageId_ = 0;
 
-        senderType_ = "";
+        requestSenderType_ = "";
 
         brokerName_ = "";
 
@@ -512,7 +512,7 @@ public final class UpdateLeaderInfo {
       public proto.UpdateLeaderInfo.UpdateLeaderInfoDetails buildPartial() {
         proto.UpdateLeaderInfo.UpdateLeaderInfoDetails result = new proto.UpdateLeaderInfo.UpdateLeaderInfoDetails(this);
         result.messageId_ = messageId_;
-        result.senderType_ = senderType_;
+        result.requestSenderType_ = requestSenderType_;
         result.brokerName_ = brokerName_;
         result.brokerId_ = brokerId_;
         onBuilt();
@@ -566,8 +566,8 @@ public final class UpdateLeaderInfo {
         if (other.getMessageId() != 0) {
           setMessageId(other.getMessageId());
         }
-        if (!other.getSenderType().isEmpty()) {
-          senderType_ = other.senderType_;
+        if (!other.getRequestSenderType().isEmpty()) {
+          requestSenderType_ = other.requestSenderType_;
           onChanged();
         }
         if (!other.getBrokerName().isEmpty()) {
@@ -637,78 +637,78 @@ public final class UpdateLeaderInfo {
         return this;
       }
 
-      private java.lang.Object senderType_ = "";
+      private java.lang.Object requestSenderType_ = "";
       /**
-       * <code>string senderType = 2;</code>
-       * @return The senderType.
+       * <code>string requestSenderType = 2;</code>
+       * @return The requestSenderType.
        */
-      public java.lang.String getSenderType() {
-        java.lang.Object ref = senderType_;
+      public java.lang.String getRequestSenderType() {
+        java.lang.Object ref = requestSenderType_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          senderType_ = s;
+          requestSenderType_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
         }
       }
       /**
-       * <code>string senderType = 2;</code>
-       * @return The bytes for senderType.
+       * <code>string requestSenderType = 2;</code>
+       * @return The bytes for requestSenderType.
        */
       public com.google.protobuf.ByteString
-          getSenderTypeBytes() {
-        java.lang.Object ref = senderType_;
+          getRequestSenderTypeBytes() {
+        java.lang.Object ref = requestSenderType_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b = 
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          senderType_ = b;
+          requestSenderType_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>string senderType = 2;</code>
-       * @param value The senderType to set.
+       * <code>string requestSenderType = 2;</code>
+       * @param value The requestSenderType to set.
        * @return This builder for chaining.
        */
-      public Builder setSenderType(
+      public Builder setRequestSenderType(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
   
-        senderType_ = value;
+        requestSenderType_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>string senderType = 2;</code>
+       * <code>string requestSenderType = 2;</code>
        * @return This builder for chaining.
        */
-      public Builder clearSenderType() {
+      public Builder clearRequestSenderType() {
         
-        senderType_ = getDefaultInstance().getSenderType();
+        requestSenderType_ = getDefaultInstance().getRequestSenderType();
         onChanged();
         return this;
       }
       /**
-       * <code>string senderType = 2;</code>
-       * @param value The bytes for senderType to set.
+       * <code>string requestSenderType = 2;</code>
+       * @param value The bytes for requestSenderType to set.
        * @return This builder for chaining.
        */
-      public Builder setSenderTypeBytes(
+      public Builder setRequestSenderTypeBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
   checkByteStringIsUtf8(value);
         
-        senderType_ = value;
+        requestSenderType_ = value;
         onChanged();
         return this;
       }
@@ -886,11 +886,11 @@ public final class UpdateLeaderInfo {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\026UpdateLeaderInfo.proto\022\010tutorial\"f\n\027Up" +
+      "\n\026UpdateLeaderInfo.proto\022\010tutorial\"m\n\027Up" +
       "dateLeaderInfoDetails\022\021\n\tmessageId\030\001 \001(\005" +
-      "\022\022\n\nsenderType\030\002 \001(\t\022\022\n\nbrokerName\030\003 \001(\t" +
-      "\022\020\n\010brokerId\030\004 \001(\005B\031\n\005protoB\020UpdateLeade" +
-      "rInfob\006proto3"
+      "\022\031\n\021requestSenderType\030\002 \001(\t\022\022\n\nbrokerNam" +
+      "e\030\003 \001(\t\022\020\n\010brokerId\030\004 \001(\005B\031\n\005protoB\020Upda" +
+      "teLeaderInfob\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -901,7 +901,7 @@ public final class UpdateLeaderInfo {
     internal_static_tutorial_UpdateLeaderInfoDetails_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tutorial_UpdateLeaderInfoDetails_descriptor,
-        new java.lang.String[] { "MessageId", "SenderType", "BrokerName", "BrokerId", });
+        new java.lang.String[] { "MessageId", "RequestSenderType", "BrokerName", "BrokerId", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
