@@ -1,14 +1,40 @@
+import model.Constants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Class that holds all the info.
  * @author nilimajha
  */
-public class Info {
-    private LeaderInfo leaderInfo = new LeaderInfo();
+public class LoadBalancerDataStore {
+    private static final Logger logger = LogManager.getLogger(LoadBalancerDataStore.class);
     private volatile int id = 0;
+    private MembershipTable membershipTable;
+    private static LoadBalancerDataStore loadBalancerDataStore = null;
     private final ReentrantReadWriteLock leaderInfoLock = new ReentrantReadWriteLock();
 
+    /**
+     *
+     */
+    private LoadBalancerDataStore() {
+        membershipTable = MembershipTable.getMembershipTable(Constants.LOAD_BALANCER);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public static LoadBalancerDataStore getLoadBalancerDataStore() {
+        if (loadBalancerDataStore == null) {
+            loadBalancerDataStore = new LoadBalancerDataStore();
+        }
+        return loadBalancerDataStore;
+    }
     /**
      * increment id and return incremented value.
      * @return id
@@ -19,19 +45,29 @@ public class Info {
     }
 
     /**
+     * add new member into the membership table.
+     * @param memberId
+     * @param memberName
+     * @param memberIP
+     * @param memberPort
+     */
+    public void addNewMemberIntoMembershipTable(int memberId, String memberName, String memberIP, int memberPort) {
+        BrokerInfo brokerInfo = new BrokerInfo(memberName, memberId, memberIP, memberPort);
+        logger.info("\nAdding new broker into the memberShipList. LoadBalancerDataStore.");
+        logger.info("\nAdded Id : " + brokerInfo.getBrokerId() + " name : " + brokerInfo.getBrokerName() +
+                " IP : " + brokerInfo.getBrokerIP() + " port : " + brokerInfo.getBrokerPort());
+        membershipTable.addMember(memberId, brokerInfo);
+
+    }
+
+    /**
      * method updates the leader Info.
-     * @param leaderName
      * @param leaderId
-     * @param leaderIP
-     * @param leaderPort
      * @return true
      */
-    public boolean updateLeaderInfo(String leaderName, int leaderId, String leaderIP, int leaderPort) {
+    public boolean updateLeaderInfo(int leaderId) {
         leaderInfoLock.writeLock().lock();
-        leaderInfo.setLeaderName(leaderName);
-        leaderInfo.setLeaderId(leaderId);
-        leaderInfo.setLeaderIP(leaderIP);
-        leaderInfo.setLeaderPort(leaderPort);
+        membershipTable.updateLeader(leaderId);
         leaderInfoLock.writeLock().unlock();
         return true;
     }
@@ -40,26 +76,41 @@ public class Info {
      * returns the leaderInfo
      * @return currentLeaderInfo
      */
-    public LeaderInfo getLeaderInfo() {
+    public BrokerInfo getLeaderInfo() {
         leaderInfoLock.readLock().lock();
-        System.out.println("#######Creating leaderInfo Instance.#######");
-        LeaderInfo currentLeaderInfo = new LeaderInfo();
-        System.out.println("#######Getting leaderInfo.#######");
-        currentLeaderInfo.setLeaderName(leaderInfo.getLeaderName());
-        currentLeaderInfo.setLeaderId(leaderInfo.getLeaderId());
-        currentLeaderInfo.setLeaderIP(leaderInfo.getLeaderIP());
-        currentLeaderInfo.setLeaderPort(leaderInfo.getLeaderPort());
-        System.out.println(" LeaderName : " + leaderInfo.getLeaderName() +
-                " LeaderID : " + leaderInfo.getLeaderId() +
-                " LeaderIP : " + leaderInfo.getLeaderIP() +
-                " LeaderPort : " + leaderInfo.getLeaderPort());
-
-        System.out.println(" CurrentLeaderName : " + currentLeaderInfo.getLeaderName() +
-                " CurrentLeaderID : " + currentLeaderInfo.getLeaderId() +
-                " CurrentLeaderIP : " + currentLeaderInfo.getLeaderIP() +
-                " CurrentLeaderPort : " + currentLeaderInfo.getLeaderPort());
+        BrokerInfo currentLeaderBrokerInfo = membershipTable.getLeaderInfo();
         leaderInfoLock.readLock().unlock();
-        return currentLeaderInfo;
+        return currentLeaderBrokerInfo;
+    }
+
+    /**
+     * returns all the active broker information in a list.
+     * @return activeBrokersInfo
+     */
+    public ArrayList<BrokerInfo> getMembershipInfo() {
+        leaderInfoLock.readLock().lock();
+        ArrayList<BrokerInfo> activeBrokersInfo= new ArrayList<>();
+        ConcurrentHashMap<Integer, BrokerInfo> allMembersInfo = membershipTable.getMembershipInfo();
+        for (Map.Entry<Integer, BrokerInfo> eachEntry : allMembersInfo.entrySet()) {
+//            if (eachEntry.getValue().isActive()) {
+                activeBrokersInfo.add(eachEntry.getValue());
+            logger.info("\nGetting Id : " + eachEntry.getValue().getBrokerId() + " name : " + eachEntry.getValue().getBrokerName() +
+                    " IP : " + eachEntry.getValue().getBrokerIP() + " port : " + eachEntry.getValue().getBrokerPort());
+//            }
+        }
+        leaderInfoLock.readLock().unlock();
+        return activeBrokersInfo;
+    }
+
+    /**
+     * mark the broker in the membership table with given id as inActive/failed.
+     * @return true
+     */
+    public boolean markMemberDown(int failedMemberId) {
+        leaderInfoLock.writeLock().lock();
+        membershipTable.markMemberFailed(failedMemberId);
+        leaderInfoLock.writeLock().unlock();
+        return true;
     }
 
 }

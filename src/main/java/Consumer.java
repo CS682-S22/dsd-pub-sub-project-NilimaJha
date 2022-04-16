@@ -1,5 +1,6 @@
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
+import customeException.ConnectionClosedException;
 import model.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,20 +34,26 @@ public class Consumer extends Node {
      * also starts consumer to receive the data from broker.
      * @param consumerName consumer name
      * @param consumerType consumer type
-     * @param brokerIP broker Ip
-     * @param brokerPort Broker port
+     * @param loadBalancerName name of loadBalancer
+     * @param loadBalancerIP broker Ip
+     * @param loadBalancerPort Broker port
      * @param topic topic from which this consumer will get data
      * @param startingPosition offset from which the consumer will start pulling data.
      */
-    public Consumer(String consumerName, String consumerType, String brokerIP,
-                    int brokerPort, String topic, long startingPosition) {
+    public Consumer(String consumerName, String consumerType, String loadBalancerName, String loadBalancerIP,
+                    int loadBalancerPort, String topic, long startingPosition) {
 
-        super(consumerName, brokerIP, brokerPort);
+//        super(consumerName, brokerIP, brokerPort);
+        super(consumerName, Constants.CONSUMER, loadBalancerName, loadBalancerIP, loadBalancerPort);
         this.consumerType = consumerType;
         this.topic = topic;
         this.offset = new AtomicLong(startingPosition);
         this.messageFromBroker = new LinkedBlockingQueue<>();
-        connectToBroker();
+        try {
+            connectToBroker();
+        } catch (ConnectionClosedException e) {
+            logger.info(e.getMessage());
+        }
         startTimer();
     }
 
@@ -74,7 +81,11 @@ public class Consumer extends Node {
     public void startConsumer() {
         timer.cancel();
         if (!connected) {
-            connectToBroker();
+            try {
+                connectToBroker();
+            } catch (ConnectionClosedException e) {
+                logger.info(e.getMessage());
+            }
         }
 
         if (connected) {
@@ -108,7 +119,12 @@ public class Consumer extends Node {
         byte[] initialMessagePacket = createInitialMessagePacket();
         logger.info("\n[Sending Initial packet].");
         //sending initial packet
-        return connection.send(initialMessagePacket);
+        try {
+            return connection.send(initialMessagePacket);
+        } catch (ConnectionClosedException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     /**
@@ -156,7 +172,11 @@ public class Consumer extends Node {
     public boolean pullMessageFromBroker() {
         byte[] requestMessagePacket = createPullRequestMessagePacket();
         logger.info("\n[SEND] Sending pull request to Broker for Offset " + offset.get());
-        connection.send(requestMessagePacket); // sending pull request to the broker
+        try {
+            connection.send(requestMessagePacket); // sending pull request to the broker
+        } catch (ConnectionClosedException e) {
+            e.printStackTrace();
+        }
         return receiveMessageFromBroker();
     }
 
@@ -165,11 +185,24 @@ public class Consumer extends Node {
      */
     private boolean receiveMessageFromBroker() {
         boolean successful = true;
-        byte[] brokerMessage = connection.receive();
-        if (brokerMessage != null) {
-            logger.info("\n[RECEIVE] Received Response from Broker.");
-            successful = extractDataFromBrokerResponse(brokerMessage);
+        try {
+            byte[] brokerMessage = connection.receive();
+            if (brokerMessage != null) {
+                logger.info("\n[RECEIVE] Received Response from Broker.");
+                successful = extractDataFromBrokerResponse(brokerMessage);
+            }
+        } catch (ConnectionClosedException e) {
+            //broker crash happened
+            //connect to loadBalancer
+            //get leaders info
+            //try connecting for max retry times
+            //not connected with broker then connect loadBalancer again
+            // connected do normal pulling and all
+            logger.info(e.getMessage());
+            connection.closeConnection(); //closing this connection with leader broker.
+            //call start consumer method where you ae connecting to load balancer and getting leader broker info and connecting to leader broker.
         }
+
         return successful;
     }
 
