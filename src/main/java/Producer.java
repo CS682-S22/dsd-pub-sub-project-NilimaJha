@@ -175,7 +175,7 @@ public class Producer extends Node {
     private boolean sendEachMessage(String topic, byte[] data) {
         boolean sentSuccess = false;
         while (!sentSuccess) {
-            if (connected) {
+            if (connection !=  null && connected && connection.connectionIsOpen()) {
                 try {
                     logger.info("\n[SEND] Publishing Message on Topic " + topic);
                     connection.send(createPublishMessagePacket(topic, data));
@@ -199,6 +199,7 @@ public class Producer extends Node {
                 } catch (ConnectionClosedException e) {
                     logger.info(e.getMessage());
                     connection.closeConnection();
+                    connected = false;
                     logger.info("\nClosing the connection.");
                     logger.info("\ncalling startProducer.");
                     startProducer();
