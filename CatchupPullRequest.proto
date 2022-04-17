@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package tutorial;
+
+option java_package = "proto";
+option java_outer_classname = "CatchupPullRequest";
+
+message CatchupPullRequestDetails {
+  string topic = 1;
+  uint64 offset = 2;
+}
+  
