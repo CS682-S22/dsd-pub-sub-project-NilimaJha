@@ -10,4 +10,6 @@ message ReplicateMessageDetails {
   uint64 messageId = 2;
   string topic = 3;
   bytes message = 4;
+  uint64 totalMessage = 5;
+  repeated bytes messageBatch = 6;
 }

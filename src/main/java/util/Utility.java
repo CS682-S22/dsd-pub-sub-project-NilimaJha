@@ -240,11 +240,11 @@ public class Utility {
             logger.info("\n[Connected to Member.]");
             connection = new Connection(clientSocket); //connection established with this member.
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         } catch (ExecutionException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
         return connection;
     }

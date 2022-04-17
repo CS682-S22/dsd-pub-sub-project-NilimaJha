@@ -8,4 +8,6 @@ option java_outer_classname = "InitialSetupDone";
 message InitialSetupDoneDetails {
   uint32 messageId = 1;
   bool done = 2;
+  uint64 currentOffSet = 3;
+  repeated string topics = 4;
 }

@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import util.Constants;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -55,10 +56,10 @@ public class Data {
      * @param messageByteArray
      * @return true
      */
-    public boolean addMessage(String topic, byte[] messageByteArray) {
+    public boolean addMessageToTopic(String typeOfMessage, String topic, byte[] messageByteArray, long offset) {
         MessageInfo messageInfo = getMessageInfoForTheTopic(topic);
         logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " Adding new message.");
-        return messageInfo.addNewMessage(messageByteArray);
+        return messageInfo.addMessage(typeOfMessage, offset, messageByteArray);
     }
 
     /**
@@ -75,6 +76,20 @@ public class Data {
         return messageBatch;
     }
 
+//    /**
+//     * gets the offset of given messageId and the given topic from the topicToMessageMap
+//     * @param topic
+//     * @param offsetNumber
+//     * @return message
+//     */
+//    public ArrayList<byte[]> getOffset(String topic, long offsetNumber) {
+//        ArrayList<byte[]> messageBatch = null;
+//        if (isTopicAvailable(topic)) {
+//            messageBatch = topicToMessageMap.get(topic).getMessage(offsetNumber);
+//        }
+//        return messageBatch;
+//    }
+
     /**
      * getter for topicToMessageMap
      * @return
@@ -84,16 +99,28 @@ public class Data {
     }
 
     /**
-     *
+     * method returns the MessageInfo obj associated with the current topic.
+     * if the topic is not available then it creates the topic and returns the new messageInfo obj.
      * @param topic
-     * @return
+     * @return messageInfo obj mapped with the current topic.
      */
     public MessageInfo getMessageInfoForTheTopic(String topic) {
         if (!topicToMessageMap.containsKey(topic)) {
             logger.info("\nAdding New Topic '" + topic + "'");
             topicToMessageMap.putIfAbsent(topic, new MessageInfo(topic, thisBrokerInfo));
+            logger.info("\n Topic : " + topic + " isUpToDate : " + topicToMessageMap.get(topic).getIsUpToDate());
         }
         return topicToMessageMap.get(topic);
+    }
+
+    /**
+     * returns the list of all the topics available at the broker.
+     * @return list of topics
+     */
+    public List<String> getTopicLists() {
+        List<String> topics = new ArrayList<>();
+        topics.addAll(topicToMessageMap.keySet());
+        return topics;
     }
 
 }

@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,7 +36,7 @@ import java.util.concurrent.Future;
 public class Broker extends Node implements Runnable {
     private static final Logger logger = LogManager.getLogger(Broker.class);
     private boolean shutdown = false;
-
+    private List<String> catchupTopics;
     private MembershipTable membershipTable;
     private HeartBeatModule heartBeatModule;
     private ExecutorService threadPool = Executors.newFixedThreadPool(Constants.BROKER_THREAD_POOL_SIZE);
@@ -134,6 +135,38 @@ public class Broker extends Node implements Runnable {
                             membershipTable.addDataConnectionToMember(eachMember.getBrokerId(), dataConnection);
                         }
                     }
+                    logger.info("\n eachMember.getBrokerId : " + eachMember.getBrokerId() + " LeaderId : " + membershipTable.getLeaderId());
+                    if (eachMember.getBrokerId() == membershipTable.getLeaderId()) {
+                        //set up CatchUp Connection.
+                        retries = 0;
+                        logger.info("\n [ThreadId : " + Thread.currentThread().getId() + "] Connecting to member with id : " + eachMember.getBrokerId() + " Connection Type : " + Constants.CATCHUP_CONNECTION);
+                        Connection catchupConnection = Utility.establishConnection(eachMember.getBrokerIP(), eachMember.getBrokerPort());
+                        while (catchupConnection == null && retries < Constants.MAX_RETRIES) {
+                            catchupConnection = Utility.establishConnection(eachMember.getBrokerIP(), eachMember.getBrokerPort());
+                            retries++;
+                        }
+                        if (catchupConnection != null) {
+                            logger.info("\n [ThreadId : " + Thread.currentThread().getId() +
+                                    "] Connecting to member with id : " + eachMember.getBrokerId() +
+                                    " Connection Type : " + Constants.CATCHUP_CONNECTION);
+                            sendInitialMessageToMember(catchupConnection, Constants.CATCHUP_CONNECTION);
+                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() +
+                                    "] Initial Setup done for connection type : " + Constants.CATCHUP_CONNECTION);
+                            logger.info("\n catchupTopic details, : " + catchupTopics + ": catchupTopic.size : " + catchupTopics.size());
+                            if (catchupTopics != null && catchupTopics.size() > 0) {
+                                CatchupModule catchup = new CatchupModule(thisBrokerInfo.getBrokerName(),
+                                        catchupConnection, thisBrokerInfo, eachMember.getBrokerName(), eachMember,
+                                        Constants.CATCHUP_CONNECTION, catchupTopics);
+                                threadPool.execute(catchup);
+                            } else {
+                                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Broker Is UpToDate.");
+                                thisBrokerInfo.setCatchupMode(false); // this broker is up-to-date.
+                                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Closing the CatchupConnection.");
+                                catchupConnection.closeConnection();
+
+                            }
+                        }
+                    }
                 }
             } catch (InvalidProtocolBufferException e) {
                 logger.error("InvalidProtocolBufferException occurred while decoding member's " +
@@ -171,6 +204,9 @@ public class Broker extends Node implements Runnable {
                             InitialSetupDone.InitialSetupDoneDetails initialSetupDoneDetails =
                                     any1.unpack(InitialSetupDone.InitialSetupDoneDetails.class);
                             logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] Received InitialSetup Message ACK from the member. connection type : " + typeOfConnection);
+                            if (typeOfConnection.equals(Constants.CATCHUP_CONNECTION)) {
+                                catchupTopics = initialSetupDoneDetails.getTopicsList();
+                            }
                             initialSetupDone = true;
                         }
                     } catch (InvalidProtocolBufferException e) {
@@ -193,11 +229,15 @@ public class Broker extends Node implements Runnable {
         try {
             connectToLoadBalancer();
             getLeaderAndMembersInfo();
+            membershipTable.updateLeader(leaderBrokerId);
             if (memberList.isEmpty() && leaderBrokerId == 0) {
                 // this broker is the first broker in the membershipTable.
                 //registering itself as Leader at loadBalancer.LoadBalancer
+                logger.info("\nSetting this Broker Is Up-to-date.");
+                thisBrokerInfo.setCatchupMode(false);
                 sendUpdateLeaderMessageToLB();
                 membershipTable.updateLeader(thisBrokerInfo.getBrokerId());
+                thisBrokerInfo.setLeader(true);
             }
             closeLoadBalancerConnection();
             //update membership table

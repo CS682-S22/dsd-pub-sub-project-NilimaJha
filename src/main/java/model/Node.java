@@ -141,13 +141,15 @@ public class Node {
                             if (any.is(ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails.class)) {
                                 ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails responseLeaderInfoDetails =
                                         any.unpack(ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails.class);
-                                logger.info("\nResponse Received of Type ResponseLeaderInfo.");
+                                logger.info("\nResponse Received of Type ResponseLeaderInfo. is Leader Info Available : "
+                                        + responseLeaderInfoDetails.getInfoAvailable());
                                 if (responseLeaderInfoDetails.getInfoAvailable()) {
                                     // getting all the info about current leader.
                                     leaderBrokerName = responseLeaderInfoDetails.getLeaderName();
                                     leaderBrokerIP = responseLeaderInfoDetails.getLeaderIP();
                                     leaderBrokerPort = responseLeaderInfoDetails.getLeaderPort();
                                     leaderBrokerId = responseLeaderInfoDetails.getLeaderID();
+                                    logger.info("\n leaderBrokerId received from load balancer : " + leaderBrokerId);
                                 } else if (!nodeType.equals(Constants.BROKER)) {
                                     synchronized (waitObj) {
                                         startTimer();

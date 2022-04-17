@@ -22,6 +22,7 @@ public class BrokerInfo {
     private String brokerIP;
     private int brokerPort;
     private boolean isLeader;
+    private boolean catchupMode = true;
     private Connection connection;
     private Connection dataConnection;
     private final ReentrantReadWriteLock sendOverConnectionLock = new ReentrantReadWriteLock();
@@ -40,6 +41,7 @@ public class BrokerInfo {
         this.brokerIP = brokerIP;
         this.brokerPort = brokerPort;
         this.isLeader = false;
+        this.catchupMode = true;
     }
 
     /**
@@ -87,6 +89,14 @@ public class BrokerInfo {
     }
 
     /**
+     * getter for attribute sync.
+     * @return true/false
+     */
+    public boolean isInCatchupMode() {
+        return catchupMode;
+    }
+
+    /**
      * getter for attribute isLeader.
      * @return isLeader
      */
@@ -124,6 +134,14 @@ public class BrokerInfo {
      */
     public void setDataConnection(Connection dataConnection) {
         this.dataConnection = dataConnection;
+    }
+
+    /**
+     * setter for attribute sync
+     * @param catchupMode
+     */
+    public void setCatchupMode(boolean catchupMode) {
+        this.catchupMode = catchupMode;
     }
 
     /**

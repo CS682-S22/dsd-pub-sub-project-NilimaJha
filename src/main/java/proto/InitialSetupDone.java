@@ -29,6 +29,37 @@ public final class InitialSetupDone {
      * @return The done.
      */
     boolean getDone();
+
+    /**
+     * <code>uint64 currentOffSet = 3;</code>
+     * @return The currentOffSet.
+     */
+    long getCurrentOffSet();
+
+    /**
+     * <code>repeated string topics = 4;</code>
+     * @return A list containing the topics.
+     */
+    java.util.List<java.lang.String>
+        getTopicsList();
+    /**
+     * <code>repeated string topics = 4;</code>
+     * @return The count of topics.
+     */
+    int getTopicsCount();
+    /**
+     * <code>repeated string topics = 4;</code>
+     * @param index The index of the element to return.
+     * @return The topics at the given index.
+     */
+    java.lang.String getTopics(int index);
+    /**
+     * <code>repeated string topics = 4;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the topics at the given index.
+     */
+    com.google.protobuf.ByteString
+        getTopicsBytes(int index);
   }
   /**
    * Protobuf type {@code tutorial.InitialSetupDoneDetails}
@@ -43,6 +74,7 @@ public final class InitialSetupDone {
       super(builder);
     }
     private InitialSetupDoneDetails() {
+      topics_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     }
 
     @java.lang.Override
@@ -65,6 +97,7 @@ public final class InitialSetupDone {
       if (extensionRegistry == null) {
         throw new java.lang.NullPointerException();
       }
+      int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -85,6 +118,20 @@ public final class InitialSetupDone {
               done_ = input.readBool();
               break;
             }
+            case 24: {
+
+              currentOffSet_ = input.readUInt64();
+              break;
+            }
+            case 34: {
+              java.lang.String s = input.readStringRequireUtf8();
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
+                topics_ = new com.google.protobuf.LazyStringArrayList();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              topics_.add(s);
+              break;
+            }
             default: {
               if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
@@ -100,6 +147,9 @@ public final class InitialSetupDone {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
+          topics_ = topics_.getUnmodifiableView();
+        }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
       }
@@ -139,6 +189,52 @@ public final class InitialSetupDone {
       return done_;
     }
 
+    public static final int CURRENTOFFSET_FIELD_NUMBER = 3;
+    private long currentOffSet_;
+    /**
+     * <code>uint64 currentOffSet = 3;</code>
+     * @return The currentOffSet.
+     */
+    @java.lang.Override
+    public long getCurrentOffSet() {
+      return currentOffSet_;
+    }
+
+    public static final int TOPICS_FIELD_NUMBER = 4;
+    private com.google.protobuf.LazyStringList topics_;
+    /**
+     * <code>repeated string topics = 4;</code>
+     * @return A list containing the topics.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getTopicsList() {
+      return topics_;
+    }
+    /**
+     * <code>repeated string topics = 4;</code>
+     * @return The count of topics.
+     */
+    public int getTopicsCount() {
+      return topics_.size();
+    }
+    /**
+     * <code>repeated string topics = 4;</code>
+     * @param index The index of the element to return.
+     * @return The topics at the given index.
+     */
+    public java.lang.String getTopics(int index) {
+      return topics_.get(index);
+    }
+    /**
+     * <code>repeated string topics = 4;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the topics at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getTopicsBytes(int index) {
+      return topics_.getByteString(index);
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -159,6 +255,12 @@ public final class InitialSetupDone {
       if (done_ != false) {
         output.writeBool(2, done_);
       }
+      if (currentOffSet_ != 0L) {
+        output.writeUInt64(3, currentOffSet_);
+      }
+      for (int i = 0; i < topics_.size(); i++) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, topics_.getRaw(i));
+      }
       unknownFields.writeTo(output);
     }
 
@@ -175,6 +277,18 @@ public final class InitialSetupDone {
       if (done_ != false) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(2, done_);
+      }
+      if (currentOffSet_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(3, currentOffSet_);
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < topics_.size(); i++) {
+          dataSize += computeStringSizeNoTag(topics_.getRaw(i));
+        }
+        size += dataSize;
+        size += 1 * getTopicsList().size();
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -195,6 +309,10 @@ public final class InitialSetupDone {
           != other.getMessageId()) return false;
       if (getDone()
           != other.getDone()) return false;
+      if (getCurrentOffSet()
+          != other.getCurrentOffSet()) return false;
+      if (!getTopicsList()
+          .equals(other.getTopicsList())) return false;
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -211,6 +329,13 @@ public final class InitialSetupDone {
       hash = (37 * hash) + DONE_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
           getDone());
+      hash = (37 * hash) + CURRENTOFFSET_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getCurrentOffSet());
+      if (getTopicsCount() > 0) {
+        hash = (37 * hash) + TOPICS_FIELD_NUMBER;
+        hash = (53 * hash) + getTopicsList().hashCode();
+      }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -348,6 +473,10 @@ public final class InitialSetupDone {
 
         done_ = false;
 
+        currentOffSet_ = 0L;
+
+        topics_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000001);
         return this;
       }
 
@@ -374,8 +503,15 @@ public final class InitialSetupDone {
       @java.lang.Override
       public proto.InitialSetupDone.InitialSetupDoneDetails buildPartial() {
         proto.InitialSetupDone.InitialSetupDoneDetails result = new proto.InitialSetupDone.InitialSetupDoneDetails(this);
+        int from_bitField0_ = bitField0_;
         result.messageId_ = messageId_;
         result.done_ = done_;
+        result.currentOffSet_ = currentOffSet_;
+        if (((bitField0_ & 0x00000001) != 0)) {
+          topics_ = topics_.getUnmodifiableView();
+          bitField0_ = (bitField0_ & ~0x00000001);
+        }
+        result.topics_ = topics_;
         onBuilt();
         return result;
       }
@@ -430,6 +566,19 @@ public final class InitialSetupDone {
         if (other.getDone() != false) {
           setDone(other.getDone());
         }
+        if (other.getCurrentOffSet() != 0L) {
+          setCurrentOffSet(other.getCurrentOffSet());
+        }
+        if (!other.topics_.isEmpty()) {
+          if (topics_.isEmpty()) {
+            topics_ = other.topics_;
+            bitField0_ = (bitField0_ & ~0x00000001);
+          } else {
+            ensureTopicsIsMutable();
+            topics_.addAll(other.topics_);
+          }
+          onChanged();
+        }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
         return this;
@@ -458,6 +607,7 @@ public final class InitialSetupDone {
         }
         return this;
       }
+      private int bitField0_;
 
       private int messageId_ ;
       /**
@@ -517,6 +667,147 @@ public final class InitialSetupDone {
       public Builder clearDone() {
         
         done_ = false;
+        onChanged();
+        return this;
+      }
+
+      private long currentOffSet_ ;
+      /**
+       * <code>uint64 currentOffSet = 3;</code>
+       * @return The currentOffSet.
+       */
+      @java.lang.Override
+      public long getCurrentOffSet() {
+        return currentOffSet_;
+      }
+      /**
+       * <code>uint64 currentOffSet = 3;</code>
+       * @param value The currentOffSet to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCurrentOffSet(long value) {
+        
+        currentOffSet_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 currentOffSet = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCurrentOffSet() {
+        
+        currentOffSet_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.LazyStringList topics_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      private void ensureTopicsIsMutable() {
+        if (!((bitField0_ & 0x00000001) != 0)) {
+          topics_ = new com.google.protobuf.LazyStringArrayList(topics_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+      /**
+       * <code>repeated string topics = 4;</code>
+       * @return A list containing the topics.
+       */
+      public com.google.protobuf.ProtocolStringList
+          getTopicsList() {
+        return topics_.getUnmodifiableView();
+      }
+      /**
+       * <code>repeated string topics = 4;</code>
+       * @return The count of topics.
+       */
+      public int getTopicsCount() {
+        return topics_.size();
+      }
+      /**
+       * <code>repeated string topics = 4;</code>
+       * @param index The index of the element to return.
+       * @return The topics at the given index.
+       */
+      public java.lang.String getTopics(int index) {
+        return topics_.get(index);
+      }
+      /**
+       * <code>repeated string topics = 4;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the topics at the given index.
+       */
+      public com.google.protobuf.ByteString
+          getTopicsBytes(int index) {
+        return topics_.getByteString(index);
+      }
+      /**
+       * <code>repeated string topics = 4;</code>
+       * @param index The index to set the value at.
+       * @param value The topics to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTopics(
+          int index, java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureTopicsIsMutable();
+        topics_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string topics = 4;</code>
+       * @param value The topics to add.
+       * @return This builder for chaining.
+       */
+      public Builder addTopics(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureTopicsIsMutable();
+        topics_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string topics = 4;</code>
+       * @param values The topics to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllTopics(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureTopicsIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, topics_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string topics = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTopics() {
+        topics_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string topics = 4;</code>
+       * @param value The bytes of the topics to add.
+       * @return This builder for chaining.
+       */
+      public Builder addTopicsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        ensureTopicsIsMutable();
+        topics_.add(value);
         onChanged();
         return this;
       }
@@ -587,10 +878,11 @@ public final class InitialSetupDone {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\026InitialSetupDone.proto\022\010tutorial\":\n\027In" +
+      "\n\026InitialSetupDone.proto\022\010tutorial\"a\n\027In" +
       "itialSetupDoneDetails\022\021\n\tmessageId\030\001 \001(\r" +
-      "\022\014\n\004done\030\002 \001(\010B\031\n\005protoB\020InitialSetupDon" +
-      "eb\006proto3"
+      "\022\014\n\004done\030\002 \001(\010\022\025\n\rcurrentOffSet\030\003 \001(\004\022\016\n" +
+      "\006topics\030\004 \003(\tB\031\n\005protoB\020InitialSetupDone" +
+      "b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -601,7 +893,7 @@ public final class InitialSetupDone {
     internal_static_tutorial_InitialSetupDoneDetails_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tutorial_InitialSetupDoneDetails_descriptor,
-        new java.lang.String[] { "MessageId", "Done", });
+        new java.lang.String[] { "MessageId", "Done", "CurrentOffSet", "Topics", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

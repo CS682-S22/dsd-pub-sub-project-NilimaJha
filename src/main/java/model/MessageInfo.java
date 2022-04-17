@@ -21,13 +21,16 @@ public class MessageInfo {
     private ArrayList<Long> inMemoryMessageOffset;
     private ArrayList<byte[]> inMemoryMessage;
     private AtomicLong lastOffSet = new AtomicLong(0); // updated after adding each message
+    private AtomicLong catchupOffset = new AtomicLong(0);
     private FileOutputStream fileWriter = null;
     private FileInputStream fileReader = null;
     private String topicSegmentFileName;
     private boolean topicIsAvailable = true;
     private String topic;
     private BrokerInfo thisBrokerInfo = null;
+    private volatile boolean upToDate = false;
     private MembershipTable membershipTable = MembershipTable.getMembershipTable(Constants.BROKER);
+    private Data data = Data.getData(thisBrokerInfo);
     // lock for inMemory data store
     private final ReentrantReadWriteLock inMemoryDSLock = new ReentrantReadWriteLock();
     // lock for persistent storage and flushedMessageOffset ArrayList.
@@ -45,6 +48,15 @@ public class MessageInfo {
         this.topicSegmentFileName = topic + ".log";
         this.topic = topic;
         this.thisBrokerInfo = thisBroker;
+        logger.info("\nCatchupMode : " + thisBrokerInfo.isInCatchupMode());
+        if (thisBrokerInfo.isLeader() || !thisBrokerInfo.isInCatchupMode()) {
+            this.upToDate = true;
+            if (thisBrokerInfo.isLeader()) {
+                logger.info("\nThis topic is created on the leader hence upToDate is " + upToDate);
+            } else {
+                logger.info("\nThis topic is created on the broker which is up-to-date hence upToDate is " + upToDate);
+            }
+        }
         startTimer();
         fileWriterInitializer(this.topicSegmentFileName);
         fileReaderInitializer(this.topicSegmentFileName);
@@ -119,6 +131,59 @@ public class MessageInfo {
     }
 
     /**
+     * writing inMemory data on the file using FileOutputStream named fileWriter.
+     */
+    public void writeOnFile(byte[] message) {
+        // acquire write lock on the file and flushedMessageOffset ArrayList
+        persistentStorageAccessLock.writeLock().lock();
+        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Inside writeOnFile method. UpToDate Status : " + upToDate);
+        //flushing data on the file on file
+        if (!upToDate) {
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] UpToDate is " + upToDate + " Hence inside writeOnFile.");
+            try {
+                fileWriter.write(message);
+                flushedMessageOffset.add(catchupOffset.get());
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] write on file successful.");
+                catchupOffset.addAndGet(message.length);
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Next CatchupOffset num : " + catchupOffset.get());
+                if (lastOffSet.get() < catchupOffset.get()) {
+                    inMemoryDSLock.writeLock().lock();
+                    lastOffSet.getAndSet(catchupOffset.get());
+                    inMemoryDSLock.writeLock().unlock();
+                }
+            } catch (IOException e) {
+                persistentStorageAccessLock.writeLock().unlock();
+                logger.error("\nIOException while Writing on file. Error Message : " + e.getMessage());
+            }
+            logger.info("\n[FLUSH] Catchup message successfully written on the File. Topic : "
+                    + topic + " fileName : " + topicSegmentFileName);
+        }
+        // realising write lock on the file and flushedMessageOffset ArrayList
+        persistentStorageAccessLock.writeLock().unlock();
+    }
+
+    /**
+     *
+     * @param thisMessageOffset
+     * @param message
+     * @return
+     */
+    public boolean addMessage(String typeOfMessage, long thisMessageOffset, byte[] message) {
+        if (!typeOfMessage.equals(Constants.CATCHUP)) {
+            // write on in memory which will be flushed
+            addNewMessage(thisMessageOffset, message);
+        } else {
+            if (inMemoryMessageOffset.size() > 0 && inMemoryMessageOffset.get(0) <= thisMessageOffset) {
+                upToDate = true;
+            } else {
+                // write on file directly
+                writeOnFile(message);
+            }
+        }
+        return true;
+    }
+
+    /**
      * appending new message published by publisher to the inMemory buffer ArrayList.
      * and if after adding new message buffer ArrayList is full then
      * flushing those inMemory message to the file on the disk and
@@ -126,9 +191,12 @@ public class MessageInfo {
      * @param message message to be added
      * @return true
      */
-    public boolean addNewMessage(byte[] message) {
+    public boolean addNewMessage(long offset, byte[] message) {
         // acquire write lock on inMemoryOffset Arraylist and inMemoryMessage ArrayList.
         inMemoryDSLock.writeLock().lock();
+        if (offset != lastOffSet.get() && membershipTable.getLeaderId() != thisBrokerInfo.getBrokerId())  {
+            lastOffSet.getAndSet(offset);
+        }
         inMemoryMessageOffset.add(lastOffSet.get());
         inMemoryMessage.add(message);
         if (membershipTable.getLeaderId() == thisBrokerInfo.getBrokerId()) {
@@ -137,8 +205,9 @@ public class MessageInfo {
         } else {
             lastOffSet.addAndGet(message.length);
         }
-        logger.info("\n[ADD] Added new message on Topic " + topic + ". [In-memory buffer size : " + inMemoryMessageOffset.size() + "]");
-        if (inMemoryMessageOffset.size() == Constants.TOTAL_IN_MEMORY_MESSAGE_SIZE) {
+        logger.info("\n[ADD] Added new message on Topic " + topic + ". [In-memory buffer size : "
+                + inMemoryMessageOffset.size() + "]");
+        if (upToDate && inMemoryMessageOffset.size() == Constants.TOTAL_IN_MEMORY_MESSAGE_SIZE) {
             timer.cancel();
             flushOnFile();
             startTimer();
@@ -219,7 +288,7 @@ public class MessageInfo {
         // acquire write lock on inMemoryOffset Arraylist and inMemoryMessage ArrayList
         inMemoryDSLock.writeLock().lock();
         logger.info("\nChecking if flushing is needed for topic '" + topic + "' [Total element in buffer : " + inMemoryMessageOffset.size() + "]");
-        if (inMemoryMessageOffset.size() != 0) {
+        if (inMemoryMessageOffset.size() != 0 && upToDate) {
             flushOnFile();
         }
         // release write lock on inMemoryOffset Arraylist and inMemoryMessage ArrayList.
@@ -234,5 +303,20 @@ public class MessageInfo {
      */
     public void cancelTopic () {
         topicIsAvailable = false;
+    }
+
+    /**
+     *
+     * @return true/false
+     */
+    public boolean getIsUpToDate() {
+        return upToDate;
+    }
+
+    /**
+     *
+     */
+    public void setUpToDate(boolean upToDate) {
+        this.upToDate = upToDate;
     }
 }

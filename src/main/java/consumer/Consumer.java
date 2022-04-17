@@ -178,7 +178,7 @@ public class Consumer extends Node {
         try {
             connection.send(requestMessagePacket); // sending pull request to the broker
         } catch (ConnectionClosedException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
         return receiveMessageFromBroker();
     }

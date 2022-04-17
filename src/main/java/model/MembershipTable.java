@@ -29,7 +29,7 @@ public class MembershipTable {
     private MembershipTable(String storedAt) {
         this.storedAt = storedAt;
         this.membershipInfo = new ConcurrentHashMap<>();
-        this.leaderId = -1;
+        this.leaderId = 0;
     }
 
     /**

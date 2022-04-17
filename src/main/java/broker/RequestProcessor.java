@@ -15,6 +15,7 @@ import proto.*;
 import util.Utility;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicLong;
@@ -169,7 +170,7 @@ public class RequestProcessor implements Runnable {
                         // send initial setup ack
                         logger.info("\n Sending Initial Setup ACK 1st.");
                         try {
-                            connection.send(getInitialSetupACK());
+                            connection.send(getInitialSetupACK(Constants.PRODUCER));
                         } catch (ConnectionClosedException e) {
                             logger.info("\n" + e.getMessage());
                             connection.closeConnection();
@@ -183,7 +184,7 @@ public class RequestProcessor implements Runnable {
                                 " consumer.Consumer Type : " + consumerType);
                         // send initial setup ack
                         try {
-                            connection.send(getInitialSetupACK());
+                            connection.send(getInitialSetupACK(Constants.CONSUMER));
                         } catch (ConnectionClosedException e) {
                             logger.info(e.getMessage());
                             connection.closeConnection();
@@ -201,7 +202,7 @@ public class RequestProcessor implements Runnable {
                                 ", Topic : " + pushBasedConsumerTopic);
                         // send initial setup ack
                         try {
-                            connection.send(getInitialSetupACK());
+                            connection.send(getInitialSetupACK(Constants.CONSUMER));
                         } catch (ConnectionClosedException e) {
                             logger.info(e.getMessage());
                             connection.closeConnection();
@@ -221,7 +222,8 @@ public class RequestProcessor implements Runnable {
                         logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] Received InitialPacket from broker with id : " + connectionBrokerInfo.getBrokerId());
                         if (initialMessageDetails.getConnectionType().equals(Constants.HEARTBEAT_CONNECTION)
                                 && !membershipTable.isMember(connectionBrokerInfo.getBrokerId())) {
-                            logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] ConnectionType : " + initialMessageDetails.getConnectionType() +
+                            logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] ConnectionType : "
+                                    + initialMessageDetails.getConnectionType() +
                                     " BrokerId :" + connectionBrokerInfo.getBrokerId());
                             connectionBrokerInfo.setConnection(connection);
                             membershipTable.addMember(connectionBrokerInfo.getBrokerId(), connectionBrokerInfo);
@@ -230,7 +232,7 @@ public class RequestProcessor implements Runnable {
                                     " HeartBeat connection.Connection added to the list.");
                             try {
                                 // send initial setup ack
-                                connection.send(getInitialSetupACK());
+                                connection.send(getInitialSetupACK(Constants.HEARTBEAT_CONNECTION));
                                 //setting up dataConnection with this broker.Broker to send data.
                                 Connection dataConnection = Utility.establishConnection(
                                         connectionBrokerInfo.getBrokerIP(),
@@ -255,7 +257,15 @@ public class RequestProcessor implements Runnable {
                         } else if (initialMessageDetails.getConnectionType().equals(Constants.DATA_CONNECTION)) {
                             try {
                                 // send initial setup ack
-                                connection.send(getInitialSetupACK());
+                                connection.send(getInitialSetupACK(Constants.DATA_CONNECTION));
+                            } catch (ConnectionClosedException e) {
+                                logger.info(e.getMessage());
+                                connection.closeConnection();
+                            }
+                        } else if (initialMessageDetails.getConnectionType().equals(Constants.CATCHUP_CONNECTION)) {
+                            try {
+                                // send initial setup ack
+                                connection.send(getInitialSetupACK(Constants.CATCHUP_CONNECTION));
                             } catch (ConnectionClosedException e) {
                                 logger.info(e.getMessage());
                                 connection.closeConnection();
@@ -267,7 +277,7 @@ public class RequestProcessor implements Runnable {
                     try {
                         // send initial setup ack
                         logger.info("\n Sending Initial Setup ACK 2nd.");
-                        connection.send(getInitialSetupACK());
+                        connection.send(getInitialSetupACK(connectionWith));
                     } catch (ConnectionClosedException e) {
                         logger.info("\n" + e.getMessage());
                         connection.closeConnection();
@@ -326,10 +336,18 @@ public class RequestProcessor implements Runnable {
      * creates ack message for the initial setup message.
      * @return initialSetupACK byte array
      */
-    public byte[] getInitialSetupACK() {
-        Any any = Any.pack(InitialSetupDone.InitialSetupDoneDetails.newBuilder()
-                .setDone(true)
-                .build());
+    public byte[] getInitialSetupACK(String connectionType) {
+        Any any = null;
+        if (connectionType.equals(Constants.CATCHUP_CONNECTION)) {
+            any = Any.pack(InitialSetupDone.InitialSetupDoneDetails.newBuilder()
+                    .setDone(true)
+                    .addAllTopics(data.getTopicLists())
+                    .build());
+        } else {
+            any = Any.pack(InitialSetupDone.InitialSetupDoneDetails.newBuilder()
+                    .setDone(true)
+                    .build());
+        }
         return any.toByteArray();
     }
 
@@ -356,8 +374,8 @@ public class RequestProcessor implements Runnable {
                                     " Expected : " + messageId1);
                             if (publisherPublishMessageDetails.getMessageId() == messageId1 && publisherPublishMessageDetails.getTopic() != null && publisherPublishMessageDetails.getMessage() != null) {
                                 logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] Receive Publish Request from " + name);
-                                data.addMessage(publisherPublishMessageDetails.getTopic(),
-                                        publisherPublishMessageDetails.getMessage().toByteArray());
+                                data.addMessageToTopic(Constants.SYNCHRONOUS, publisherPublishMessageDetails.getTopic(),
+                                        publisherPublishMessageDetails.getMessage().toByteArray(), 0);
                                 messageId1++;
                             }
                             //send ack for the message is successfully published.
@@ -500,20 +518,27 @@ public class RequestProcessor implements Runnable {
                         logger.info("\nReceived Message is of type Heartbeat: "
                                 + any.is(HeartBeatMessage.HeartBeatMessageDetails.class) +
                                 " BrokerConnectionType : " + brokerConnectionType);
+
                         if (any.is(HeartBeatMessage.HeartBeatMessageDetails.class)
                                 && brokerConnectionType.equals(Constants.HEARTBEAT_CONNECTION)) {
+
                             HeartBeatMessage.HeartBeatMessageDetails HeartBeatMessageDetails =
                                     any.unpack(HeartBeatMessage.HeartBeatMessageDetails.class);
                             logger.info("\nReceived Heart Beat Message from " + connectionBrokerInfo.getBrokerName());
                             // updating heartbeat message received time.
                             heartBeatModule.updateHeartBeat(connectionBrokerInfo.getBrokerId());
+
                         } else if (any.is(ReplicateMessage.ReplicateMessageDetails.class)
                                 && brokerConnectionType.equals(Constants.DATA_CONNECTION)) {
+
                             logger.info("\nReceived Data over DataConnection type of connection.");
                             //wait to receive the message /data
                             ReplicateMessage.ReplicateMessageDetails replicateMessageDetails =
                                     any.unpack(ReplicateMessage.ReplicateMessageDetails.class);
-                            data.addMessage(replicateMessageDetails.getTopic(), replicateMessageDetails.getMessage().toByteArray());
+                            data.addMessageToTopic(Constants.SYNCHRONOUS,
+                                    replicateMessageDetails.getTopic(),
+                                    replicateMessageDetails.getMessage().toByteArray(),
+                                    replicateMessageDetails.getMessageId());
                             //send ack
                             long ackNum = replicateMessageDetails.getMessageId() + replicateMessageDetails.getMessage().size();
                             Any any1 = Any.pack(ReplicateSuccessACK.ReplicateSuccessACKDetails.newBuilder()
@@ -522,6 +547,33 @@ public class RequestProcessor implements Runnable {
                                     .build());
                             logger.info("sending Ack for replication data.");
                             connection.send(any1.toByteArray());
+
+                        } else if (any.is(CatchupPullRequest.CatchupPullRequestDetails.class)
+                                && brokerConnectionType.equals(Constants.CATCHUP_CONNECTION)) {
+
+                            logger.info("\nReceived Data over CatchupConnection type of connection.");
+                            //wait to receive the pull request.
+                            CatchupPullRequest.CatchupPullRequestDetails catchupPullRequest =
+                                    any.unpack(CatchupPullRequest.CatchupPullRequestDetails.class);
+                            ArrayList<byte[]> messageBatch = null;
+                            byte[] replicateMessage;
+                            messageBatch = data.getMessage(catchupPullRequest.getTopic(),
+                                    catchupPullRequest.getOffset());
+                            if (messageBatch != null) {
+                                replicateMessage = createReplicateData(
+                                        catchupPullRequest.getTopic(),
+                                        catchupPullRequest.getOffset(),
+                                        messageBatch);
+                                logger.info("\n[SENDING] Sending prepared message batch of topic " + catchupPullRequest.getTopic() + " to " + name);
+                            } else {
+                                // message with given offset is not available
+                                replicateMessage = createReplicateData(catchupPullRequest.getTopic(),
+                                        catchupPullRequest.getOffset(),
+                                        null);
+                                logger.info("\n[SENDING] Sending prepared message of type MESSAGE_NOT_AVAILABLE to "
+                                        + name + " for request of topic " + catchupPullRequest.getTopic());
+                            }
+                            connection.send(replicateMessage);
                         }
                     } catch (InvalidProtocolBufferException e) {
                         logger.error("\nInvalidProtocolBufferException occurred while decoding publish message. Error Message : " + e.getMessage());
@@ -555,6 +607,41 @@ public class RequestProcessor implements Runnable {
                 .setTotalMessage(messageBatch.size())
                 .addAllActualMessage(messageBatchStringArray)
                 .build());
+        return any.toByteArray();
+    }
+
+    /**
+     * method takes ArrayList of message byteArray and topic
+     * creates MessageFromBroker obj with it and returns its byteArray.
+     * @param topic
+     * @param messageBatch
+     * @return
+     */
+    private byte[] createReplicateData(String topic, long messageId, ArrayList<byte[]> messageBatch) {
+        Any any = null;
+        if (messageBatch != null) {
+            ArrayList<ByteString> messageBatchStringArray = new ArrayList<>();
+            for (byte[] eachMessage : messageBatch) {
+                ByteString messageByteString = ByteString.copyFrom(eachMessage);
+                messageBatchStringArray.add(messageByteString);
+            }
+            any = Any.pack(ReplicateMessage
+                    .ReplicateMessageDetails.newBuilder()
+                    .setSynchronous(false)
+                    .setMessageId(messageId)
+                    .setTopic(topic)
+                    .setTotalMessage(messageBatch.size())
+                    .addAllMessageBatch(messageBatchStringArray)
+                    .build());
+        } else {
+            any = Any.pack(ReplicateMessage
+                    .ReplicateMessageDetails.newBuilder()
+                    .setSynchronous(false)
+                    .setMessageId(messageId)
+                    .setTopic(topic)
+                    .setTotalMessage(0)
+                    .build());
+        }
         return any.toByteArray();
     }
 

@@ -95,11 +95,13 @@ public class Handler implements Runnable {
                         .setMessageId(requestMessage.getMessageId())
                         .setInfoAvailable(isAvailable)
                         .setLeaderName(currentLeaderInfo.getBrokerName())
+                        .setLeaderID(currentLeaderInfo.getBrokerId())
                         .setLeaderIP(currentLeaderInfo.getBrokerIP())
                         .setLeaderPort(currentLeaderInfo.getBrokerPort())
                         .setBrokerId(memberId)
                         .addAllMembers(membersInfoBytesList)
                         .build());
+                logger.info("\n Leader Info : " + loadBalancerDataStore.getLeaderInfo().getBrokerId());
                 logger.info("\nAdding new broker into the memberShipList.");
                 // adding this new member in the membership table.
                 loadBalancerDataStore.addNewMemberIntoMembershipTable(memberId, requestMessage.getRequestSenderName(),

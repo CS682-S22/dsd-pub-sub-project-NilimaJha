@@ -33,4 +33,7 @@ public class Constants {
     public final static int HEARTBEAT_SEND_TIMER_TIMEOUT = 60000;
     public final static String HEARTBEAT_CONNECTION = "HEARTBEAT_CONNECTION";
     public final static String DATA_CONNECTION = "DATA_CONNECTION";
+    public final static String SYNCHRONOUS = "SYNCHRONOUS";
+    public final static String CATCHUP = "CATCHUP";
+    public final static String CATCHUP_CONNECTION = "CATCHUP_CONNECTION";
 }

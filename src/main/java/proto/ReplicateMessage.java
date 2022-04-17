@@ -47,6 +47,29 @@ public final class ReplicateMessage {
      * @return The message.
      */
     com.google.protobuf.ByteString getMessage();
+
+    /**
+     * <code>uint64 totalMessage = 5;</code>
+     * @return The totalMessage.
+     */
+    long getTotalMessage();
+
+    /**
+     * <code>repeated bytes messageBatch = 6;</code>
+     * @return A list containing the messageBatch.
+     */
+    java.util.List<com.google.protobuf.ByteString> getMessageBatchList();
+    /**
+     * <code>repeated bytes messageBatch = 6;</code>
+     * @return The count of messageBatch.
+     */
+    int getMessageBatchCount();
+    /**
+     * <code>repeated bytes messageBatch = 6;</code>
+     * @param index The index of the element to return.
+     * @return The messageBatch at the given index.
+     */
+    com.google.protobuf.ByteString getMessageBatch(int index);
   }
   /**
    * Protobuf type {@code tutorial.ReplicateMessageDetails}
@@ -63,6 +86,7 @@ public final class ReplicateMessage {
     private ReplicateMessageDetails() {
       topic_ = "";
       message_ = com.google.protobuf.ByteString.EMPTY;
+      messageBatch_ = java.util.Collections.emptyList();
     }
 
     @java.lang.Override
@@ -85,6 +109,7 @@ public final class ReplicateMessage {
       if (extensionRegistry == null) {
         throw new java.lang.NullPointerException();
       }
+      int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -116,6 +141,19 @@ public final class ReplicateMessage {
               message_ = input.readBytes();
               break;
             }
+            case 40: {
+
+              totalMessage_ = input.readUInt64();
+              break;
+            }
+            case 50: {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
+                messageBatch_ = new java.util.ArrayList<com.google.protobuf.ByteString>();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              messageBatch_.add(input.readBytes());
+              break;
+            }
             default: {
               if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
@@ -131,6 +169,9 @@ public final class ReplicateMessage {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
+          messageBatch_ = java.util.Collections.unmodifiableList(messageBatch_); // C
+        }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
       }
@@ -219,6 +260,44 @@ public final class ReplicateMessage {
       return message_;
     }
 
+    public static final int TOTALMESSAGE_FIELD_NUMBER = 5;
+    private long totalMessage_;
+    /**
+     * <code>uint64 totalMessage = 5;</code>
+     * @return The totalMessage.
+     */
+    @java.lang.Override
+    public long getTotalMessage() {
+      return totalMessage_;
+    }
+
+    public static final int MESSAGEBATCH_FIELD_NUMBER = 6;
+    private java.util.List<com.google.protobuf.ByteString> messageBatch_;
+    /**
+     * <code>repeated bytes messageBatch = 6;</code>
+     * @return A list containing the messageBatch.
+     */
+    @java.lang.Override
+    public java.util.List<com.google.protobuf.ByteString>
+        getMessageBatchList() {
+      return messageBatch_;
+    }
+    /**
+     * <code>repeated bytes messageBatch = 6;</code>
+     * @return The count of messageBatch.
+     */
+    public int getMessageBatchCount() {
+      return messageBatch_.size();
+    }
+    /**
+     * <code>repeated bytes messageBatch = 6;</code>
+     * @param index The index of the element to return.
+     * @return The messageBatch at the given index.
+     */
+    public com.google.protobuf.ByteString getMessageBatch(int index) {
+      return messageBatch_.get(index);
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -245,6 +324,12 @@ public final class ReplicateMessage {
       if (!message_.isEmpty()) {
         output.writeBytes(4, message_);
       }
+      if (totalMessage_ != 0L) {
+        output.writeUInt64(5, totalMessage_);
+      }
+      for (int i = 0; i < messageBatch_.size(); i++) {
+        output.writeBytes(6, messageBatch_.get(i));
+      }
       unknownFields.writeTo(output);
     }
 
@@ -269,6 +354,19 @@ public final class ReplicateMessage {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(4, message_);
       }
+      if (totalMessage_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(5, totalMessage_);
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < messageBatch_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeBytesSizeNoTag(messageBatch_.get(i));
+        }
+        size += dataSize;
+        size += 1 * getMessageBatchList().size();
+      }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
       return size;
@@ -292,6 +390,10 @@ public final class ReplicateMessage {
           .equals(other.getTopic())) return false;
       if (!getMessage()
           .equals(other.getMessage())) return false;
+      if (getTotalMessage()
+          != other.getTotalMessage()) return false;
+      if (!getMessageBatchList()
+          .equals(other.getMessageBatchList())) return false;
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -313,6 +415,13 @@ public final class ReplicateMessage {
       hash = (53 * hash) + getTopic().hashCode();
       hash = (37 * hash) + MESSAGE_FIELD_NUMBER;
       hash = (53 * hash) + getMessage().hashCode();
+      hash = (37 * hash) + TOTALMESSAGE_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getTotalMessage());
+      if (getMessageBatchCount() > 0) {
+        hash = (37 * hash) + MESSAGEBATCH_FIELD_NUMBER;
+        hash = (53 * hash) + getMessageBatchList().hashCode();
+      }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -454,6 +563,10 @@ public final class ReplicateMessage {
 
         message_ = com.google.protobuf.ByteString.EMPTY;
 
+        totalMessage_ = 0L;
+
+        messageBatch_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000001);
         return this;
       }
 
@@ -480,10 +593,17 @@ public final class ReplicateMessage {
       @java.lang.Override
       public proto.ReplicateMessage.ReplicateMessageDetails buildPartial() {
         proto.ReplicateMessage.ReplicateMessageDetails result = new proto.ReplicateMessage.ReplicateMessageDetails(this);
+        int from_bitField0_ = bitField0_;
         result.synchronous_ = synchronous_;
         result.messageId_ = messageId_;
         result.topic_ = topic_;
         result.message_ = message_;
+        result.totalMessage_ = totalMessage_;
+        if (((bitField0_ & 0x00000001) != 0)) {
+          messageBatch_ = java.util.Collections.unmodifiableList(messageBatch_);
+          bitField0_ = (bitField0_ & ~0x00000001);
+        }
+        result.messageBatch_ = messageBatch_;
         onBuilt();
         return result;
       }
@@ -545,6 +665,19 @@ public final class ReplicateMessage {
         if (other.getMessage() != com.google.protobuf.ByteString.EMPTY) {
           setMessage(other.getMessage());
         }
+        if (other.getTotalMessage() != 0L) {
+          setTotalMessage(other.getTotalMessage());
+        }
+        if (!other.messageBatch_.isEmpty()) {
+          if (messageBatch_.isEmpty()) {
+            messageBatch_ = other.messageBatch_;
+            bitField0_ = (bitField0_ & ~0x00000001);
+          } else {
+            ensureMessageBatchIsMutable();
+            messageBatch_.addAll(other.messageBatch_);
+          }
+          onChanged();
+        }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
         return this;
@@ -573,6 +706,7 @@ public final class ReplicateMessage {
         }
         return this;
       }
+      private int bitField0_;
 
       private boolean synchronous_ ;
       /**
@@ -745,6 +879,122 @@ public final class ReplicateMessage {
         onChanged();
         return this;
       }
+
+      private long totalMessage_ ;
+      /**
+       * <code>uint64 totalMessage = 5;</code>
+       * @return The totalMessage.
+       */
+      @java.lang.Override
+      public long getTotalMessage() {
+        return totalMessage_;
+      }
+      /**
+       * <code>uint64 totalMessage = 5;</code>
+       * @param value The totalMessage to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTotalMessage(long value) {
+        
+        totalMessage_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 totalMessage = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTotalMessage() {
+        
+        totalMessage_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private java.util.List<com.google.protobuf.ByteString> messageBatch_ = java.util.Collections.emptyList();
+      private void ensureMessageBatchIsMutable() {
+        if (!((bitField0_ & 0x00000001) != 0)) {
+          messageBatch_ = new java.util.ArrayList<com.google.protobuf.ByteString>(messageBatch_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+      /**
+       * <code>repeated bytes messageBatch = 6;</code>
+       * @return A list containing the messageBatch.
+       */
+      public java.util.List<com.google.protobuf.ByteString>
+          getMessageBatchList() {
+        return ((bitField0_ & 0x00000001) != 0) ?
+                 java.util.Collections.unmodifiableList(messageBatch_) : messageBatch_;
+      }
+      /**
+       * <code>repeated bytes messageBatch = 6;</code>
+       * @return The count of messageBatch.
+       */
+      public int getMessageBatchCount() {
+        return messageBatch_.size();
+      }
+      /**
+       * <code>repeated bytes messageBatch = 6;</code>
+       * @param index The index of the element to return.
+       * @return The messageBatch at the given index.
+       */
+      public com.google.protobuf.ByteString getMessageBatch(int index) {
+        return messageBatch_.get(index);
+      }
+      /**
+       * <code>repeated bytes messageBatch = 6;</code>
+       * @param index The index to set the value at.
+       * @param value The messageBatch to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMessageBatch(
+          int index, com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureMessageBatchIsMutable();
+        messageBatch_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated bytes messageBatch = 6;</code>
+       * @param value The messageBatch to add.
+       * @return This builder for chaining.
+       */
+      public Builder addMessageBatch(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureMessageBatchIsMutable();
+        messageBatch_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated bytes messageBatch = 6;</code>
+       * @param values The messageBatch to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllMessageBatch(
+          java.lang.Iterable<? extends com.google.protobuf.ByteString> values) {
+        ensureMessageBatchIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, messageBatch_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated bytes messageBatch = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMessageBatch() {
+        messageBatch_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
       @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
@@ -812,11 +1062,12 @@ public final class ReplicateMessage {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\026ReplicateMessage.proto\022\010tutorial\"a\n\027Re" +
-      "plicateMessageDetails\022\023\n\013synchronous\030\001 \001" +
-      "(\010\022\021\n\tmessageId\030\002 \001(\004\022\r\n\005topic\030\003 \001(\t\022\017\n\007" +
-      "message\030\004 \001(\014B\031\n\005protoB\020ReplicateMessage" +
-      "b\006proto3"
+      "\n\026ReplicateMessage.proto\022\010tutorial\"\215\001\n\027R" +
+      "eplicateMessageDetails\022\023\n\013synchronous\030\001 " +
+      "\001(\010\022\021\n\tmessageId\030\002 \001(\004\022\r\n\005topic\030\003 \001(\t\022\017\n" +
+      "\007message\030\004 \001(\014\022\024\n\014totalMessage\030\005 \001(\004\022\024\n\014" +
+      "messageBatch\030\006 \003(\014B\031\n\005protoB\020ReplicateMe" +
+      "ssageb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -827,7 +1078,7 @@ public final class ReplicateMessage {
     internal_static_tutorial_ReplicateMessageDetails_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tutorial_ReplicateMessageDetails_descriptor,
-        new java.lang.String[] { "Synchronous", "MessageId", "Topic", "Message", });
+        new java.lang.String[] { "Synchronous", "MessageId", "Topic", "Message", "TotalMessage", "MessageBatch", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
