@@ -1,13 +1,18 @@
 package broker;
 
 import com.google.protobuf.Any;
+import connection.Connection;
+import customeException.ConnectionClosedException;
 import model.BrokerInfo;
+import proto.FailedMemberInfo;
 import util.Constants;
 import model.MembershipTable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import proto.HeartBeatMessage;
+import util.Utility;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -20,15 +25,21 @@ import java.util.concurrent.ConcurrentHashMap;
 public class HeartBeatModule {
     private static final Logger logger = LogManager.getLogger(RequestProcessor.class);
     private ConcurrentHashMap<Integer, Long> heartbeatReceiveTimes = new ConcurrentHashMap();
+    private BrokerInfo thisBrokerInfo;
     private MembershipTable membershipTable = MembershipTable.getMembershipTable(Constants.BROKER);
     private Timer heartbeatCheckTimer;
     private Timer heartbeatSendTimer;
     private static HeartBeatModule heartBeatModule = null;
+    private String loadBalancerIp;
+    private int loadBalancerPort;
 
     /**
      * Constructor
      */
-    private HeartBeatModule() {
+    private HeartBeatModule(BrokerInfo thisBrokerInfo, String loadBalancerIp, int loadBalancerPort) {
+        this.thisBrokerInfo = thisBrokerInfo;
+        this.loadBalancerIp = loadBalancerIp;
+        this.loadBalancerPort = loadBalancerPort;
         startHeartbeatCheckTimer(); // starting heartbeatChecker timerTask.
         startHeartbeatSendTimer();  // start heartbeatSender timerTask.
     }
@@ -37,9 +48,9 @@ public class HeartBeatModule {
      *
      * @return
      */
-    synchronized static HeartBeatModule getHeartBeatModule() {
+    synchronized static HeartBeatModule getHeartBeatModule(BrokerInfo thisBrokerInfo, String loadBalancerIp, int loadBalancerPort) {
         if (heartBeatModule == null) {
-            heartBeatModule = new HeartBeatModule();
+            heartBeatModule = new HeartBeatModule(thisBrokerInfo, loadBalancerIp, loadBalancerPort);
         }
         return heartBeatModule;
     }
@@ -52,7 +63,7 @@ public class HeartBeatModule {
             public void run() {
                 heartbeatCheckTimer.cancel();
                 heartbeatCheck();
-                logger.info("\nstarting the HB Check timer.");
+                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] starting the HB Check timer.");
                 startHeartbeatCheckTimer();
             }
         };
@@ -68,7 +79,7 @@ public class HeartBeatModule {
             public void run() {
                 heartbeatSendTimer.cancel();
                 heartbeatSend();
-                logger.info("\nstarting the HB Send timer.");
+                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] starting the HB Send timer.");
                 startHeartbeatSendTimer();
             }
         };
@@ -85,9 +96,62 @@ public class HeartBeatModule {
             long lastHeartbeatReceivedTime = heartbeatReceiveTimes.get(set.getKey());
             long timeSinceLastHeartbeat = now - lastHeartbeatReceivedTime;
             if (timeSinceLastHeartbeat >= Constants.TIMEOUT_NANOS) {
-                logger.info("\n timeSinceLastHeartbeat = " + timeSinceLastHeartbeat + " Constants.TIMEOUT_NANOS = " + Constants.TIMEOUT_NANOS);
+                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "]  timeSinceLastHeartbeat = " + timeSinceLastHeartbeat + " Constants.TIMEOUT_NANOS = " + Constants.TIMEOUT_NANOS);
                 markMemberFailed(set.getKey());
                 heartbeatReceiveTimes.remove(set.getKey());
+                if (membershipTable.getLeaderId() == -1) {
+                    logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Leader Failed. Election will happen.");
+                    ElectionModule electionModule = ElectionModule.getElectionModule(thisBrokerInfo, loadBalancerIp, loadBalancerPort);
+                    if (!electionModule.getElectionStatus()) {
+                        electionModule.setElectionStatus(true);
+                        electionModule.startElection();
+                    }
+                }
+            }
+        }
+
+        if (membershipTable.getFailedMembersIdList().size() > 0) {
+            sendFailedMembersListToLB();
+        }
+    }
+
+    /**
+     *
+     */
+    public void sendFailedMembersListToLB() {
+        List<Integer> failedMembersIdList = membershipTable.getFailedMembersIdList();
+        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] failedMemberList: " + failedMembersIdList);
+        if (thisBrokerInfo.getBrokerId() == membershipTable.getLeaderId() && !failedMembersIdList.isEmpty()) {
+            Connection loadBalancerConnection = null;
+            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Establishing new connection with loadBalancer.");
+            try {
+                loadBalancerConnection = Utility.establishConnection(loadBalancerIp, loadBalancerPort);
+            } catch (ConnectionClosedException e) {
+                logger.info(e.getMessage());
+            }
+            if (loadBalancerConnection != null && loadBalancerConnection.connectionIsOpen()) {
+                //send the list of failed broker Info.
+                Any failedMemberInfo = Any.pack(FailedMemberInfo.FailedMemberInfoDetails.newBuilder()
+                        .setRequestSenderType(Constants.BROKER)
+                        .addAllFailedBrokerId(failedMembersIdList)
+                        .build());
+                boolean memberStatusUpdated = false;
+                while(!memberStatusUpdated) {
+                    try {
+                        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Sending failedMemberList. " + failedMembersIdList);
+                        loadBalancerConnection.send(failedMemberInfo.toByteArray());
+                        byte[] receivedUpdateResponse = loadBalancerConnection.receive();
+                        if (receivedUpdateResponse != null) {
+                            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] received Response. of failedMemberUpdate from loadBalancer.");
+                            memberStatusUpdated = true;
+                        }
+                    } catch (ConnectionClosedException e) {
+                        logger.info(e.getMessage());
+                        loadBalancerConnection.closeConnection();
+                    }
+                }
+                membershipTable.resetFailedMembersList();
+                loadBalancerConnection.closeConnection();
             }
         }
     }
@@ -100,8 +164,8 @@ public class HeartBeatModule {
             Any any = Any.pack(HeartBeatMessage.HeartBeatMessageDetails.newBuilder()
                     .setHeartBeat(true)
                     .build());
-            logger.info("\nSending HB Message to broker with Id : " + set.getKey());
-            set.getValue().sendHeartbeat(any.toByteArray());
+            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Sending HB Message to broker with Id : " + set.getKey());
+            set.getValue().sendOverHeartbeatConnection(any.toByteArray());
         }
     }
 

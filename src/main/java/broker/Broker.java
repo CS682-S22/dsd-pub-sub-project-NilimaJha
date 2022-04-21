@@ -50,7 +50,8 @@ public class Broker extends Node implements Runnable {
     public Broker(String brokerName, String brokerIP, int brokerPort, String loadBalancerName, String loadBalancerIP, int loadBalancerPort) {
         super(brokerName, Constants.BROKER, brokerIP, brokerPort, loadBalancerName, loadBalancerIP, loadBalancerPort);
         this.membershipTable = MembershipTable.getMembershipTable(Constants.BROKER);
-        this.heartBeatModule = HeartBeatModule.getHeartBeatModule();
+        this.heartBeatModule = HeartBeatModule.getHeartBeatModule(thisBrokerInfo, loadBalancerIP, loadBalancerPort);
+
     }
 
     /**
@@ -93,11 +94,8 @@ public class Broker extends Node implements Runnable {
                 MembersInfo.MembersInfoDetails membersInfoDetails = MembersInfo.MembersInfoDetails
                         .parseFrom(eachMemberByteString.toByteArray());
 
-                BrokerInfo eachMember = new BrokerInfo(
-                        membersInfoDetails.getMemberName(),
-                        membersInfoDetails.getMemberId(),
-                        membersInfoDetails.getMemberIP(),
-                        membersInfoDetails.getMemberPort());
+                BrokerInfo eachMember = new BrokerInfo(membersInfoDetails.getMemberName(),
+                        membersInfoDetails.getMemberId(), membersInfoDetails.getMemberIP(), membersInfoDetails.getMemberPort());
                 logger.info("\nEach memberId : " + eachMember.getBrokerName() +
                         " Each memberName : " + eachMember.getBrokerName() +
                         " Each memberIP : " + eachMember.getBrokerIP() +
@@ -106,9 +104,19 @@ public class Broker extends Node implements Runnable {
                 if (eachMember.getBrokerId() != thisBrokerInfo.getBrokerId()) {
                     // connecting with each member
                     int retries = 0;
-                    Connection connection = Utility.establishConnection(eachMember.getBrokerIP(), eachMember.getBrokerPort());
-                    while (connection == null && retries < Constants.MAX_RETRIES) {
+                    Connection connection = null;
+                    try {
                         connection = Utility.establishConnection(eachMember.getBrokerIP(), eachMember.getBrokerPort());
+                    } catch (ConnectionClosedException e) {
+                        logger.info(e.getMessage());
+                        connection.closeConnection();
+                    }
+                    while (connection == null && retries < Constants.MAX_RETRIES) {
+                        try {
+                            connection = Utility.establishConnection(eachMember.getBrokerIP(), eachMember.getBrokerPort());
+                        } catch (ConnectionClosedException e) {
+                            logger.info(e.getMessage());
+                        }
                         retries++;
                     }
 
@@ -122,12 +130,23 @@ public class Broker extends Node implements Runnable {
                                 connection, thisBrokerInfo,
                                 Constants.BROKER,
                                 eachMember,
-                                Constants.HEARTBEAT_CONNECTION);
+                                Constants.HEARTBEAT_CONNECTION, loadBalancerIP, loadBalancerPort);
                         threadPool.execute(requestProcessor);
                         retries = 0;
-                        Connection dataConnection = Utility.establishConnection(eachMember.getBrokerIP(), eachMember.getBrokerPort());
-                        while (dataConnection == null && retries < Constants.MAX_RETRIES) {
+                        Connection dataConnection =  null;
+                        try {
                             dataConnection = Utility.establishConnection(eachMember.getBrokerIP(), eachMember.getBrokerPort());
+                        } catch (ConnectionClosedException e) {
+                            logger.info(e.getMessage());
+                            connection.closeConnection();
+                        }
+                        while (dataConnection == null && retries < Constants.MAX_RETRIES) {
+                            try {
+                                dataConnection = Utility.establishConnection(eachMember.getBrokerIP(), eachMember.getBrokerPort());
+                            } catch (ConnectionClosedException e) {
+                                logger.info(e.getMessage());
+                                connection.closeConnection();
+                            }
                             retries++;
                         }
                         if (dataConnection != null) {
@@ -140,9 +159,18 @@ public class Broker extends Node implements Runnable {
                         //set up CatchUp Connection.
                         retries = 0;
                         logger.info("\n [ThreadId : " + Thread.currentThread().getId() + "] Connecting to member with id : " + eachMember.getBrokerId() + " Connection Type : " + Constants.CATCHUP_CONNECTION);
-                        Connection catchupConnection = Utility.establishConnection(eachMember.getBrokerIP(), eachMember.getBrokerPort());
-                        while (catchupConnection == null && retries < Constants.MAX_RETRIES) {
+                        Connection catchupConnection = null;
+                        try {
                             catchupConnection = Utility.establishConnection(eachMember.getBrokerIP(), eachMember.getBrokerPort());
+                        } catch (ConnectionClosedException e) {
+                            logger.info(e.getMessage());
+                        }
+                        while (catchupConnection == null && retries < Constants.MAX_RETRIES) {
+                            try {
+                                catchupConnection = Utility.establishConnection(eachMember.getBrokerIP(), eachMember.getBrokerPort());
+                            } catch (ConnectionClosedException e) {
+                                logger.info(e.getMessage());
+                            }
                             retries++;
                         }
                         if (catchupConnection != null) {
@@ -155,7 +183,7 @@ public class Broker extends Node implements Runnable {
                             logger.info("\n catchupTopic details, : " + catchupTopics + ": catchupTopic.size : " + catchupTopics.size());
                             if (catchupTopics != null && catchupTopics.size() > 0) {
                                 CatchupModule catchup = new CatchupModule(thisBrokerInfo.getBrokerName(),
-                                        catchupConnection, thisBrokerInfo, eachMember.getBrokerName(), eachMember,
+                                        catchupConnection, thisBrokerInfo,  loadBalancerIP, loadBalancerPort, eachMember.getBrokerName(), eachMember,
                                         Constants.CATCHUP_CONNECTION, catchupTopics);
                                 threadPool.execute(catchup);
                             } else {
@@ -290,7 +318,7 @@ public class Broker extends Node implements Runnable {
                     // give this connection to requestProcessor
                     logger.info("\nReceived new connection.Connection.");
                     RequestProcessor requestProcessor = new RequestProcessor(thisBrokerInfo.getBrokerName(),
-                            newConnection, thisBrokerInfo);
+                            newConnection, thisBrokerInfo, loadBalancerIP, loadBalancerPort);
                     threadPool.execute(requestProcessor);
                 }
             }

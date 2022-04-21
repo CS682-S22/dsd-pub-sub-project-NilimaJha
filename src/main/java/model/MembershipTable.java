@@ -8,9 +8,8 @@ import org.apache.logging.log4j.Logger;
 import proto.ReplicateMessage;
 import util.Constants;
 
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Membership table keeps the information of all the broker members.
@@ -22,6 +21,7 @@ public class MembershipTable {
     private ConcurrentHashMap<Integer, BrokerInfo> membershipInfo;
     private volatile int leaderId;
     private static MembershipTable membershipTable = null;
+    private List<Integer> failedMembersIdList = Collections.synchronizedList(new ArrayList<>());
 
     /**
      * Constructor
@@ -81,14 +81,24 @@ public class MembershipTable {
             //remove current leader info
             leaderId = -1;
             membershipInfo.remove(id);
-            //election true;
         } else if (storedAt.equals(Constants.LOAD_BALANCER) && leaderId == id) {
             leaderId = -1;
             membershipInfo.remove(id);
         } else {
             membershipInfo.remove(id);
+            if (storedAt.equals(Constants.BROKER)) {
+                logger.info("\nAdding failed member into failedMemberIdList.");
+                failedMembersIdList.add(id);
+            }
         }
+    }
 
+    /**
+     * removes all the entries from the failedMemberList.
+     */
+    public void resetFailedMembersList() {
+        logger.info("\nReSetting failedMemberList.");
+        failedMembersIdList.clear();
     }
 
     /**
@@ -147,7 +157,33 @@ public class MembershipTable {
                 .build());
         for (Map.Entry<Integer, BrokerInfo> eachMember : membershipInfo.entrySet()) {
             logger.info("[ThreadId : " + Thread.currentThread().getId() + " Calling member.sendData.");
-            eachMember.getValue().sendData(any.toByteArray(), expectedAckNumber);
+            eachMember.getValue().sendOverDataConnection(any.toByteArray(), expectedAckNumber);
         }
+    }
+
+    /**
+     * returns list of all the failed member in this round.
+     * @return failedMembersIdList
+     */
+    public List<Integer> getFailedMembersIdList() {
+        return failedMembersIdList;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public BrokerInfo getRandomFollowerBrokerInfo() {
+        Random rand = new Random();
+        BrokerInfo brokerInfo = null;
+        while (brokerInfo == null && membershipInfo.size() != 0) {
+            brokerInfo = membershipInfo.get(rand.nextInt(membershipInfo.keySet().size()));
+            if (membershipInfo.size() > 1 && leaderId == brokerInfo.getBrokerId()) {
+                brokerInfo = null;
+            } else {
+                break;
+            }
+        }
+        return brokerInfo;
     }
 }

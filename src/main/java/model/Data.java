@@ -6,10 +6,12 @@ import util.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * class that contains HashMap to store topic and message relate
+ * the brokerInfo at which this Data is available.
  * @author nilimajha
  */
 public class Data {
@@ -17,14 +19,18 @@ public class Data {
     private ConcurrentHashMap<String, MessageInfo> topicToMessageMap;
     private MembershipTable membershipTable = MembershipTable.getMembershipTable(Constants.BROKER);
     private BrokerInfo thisBrokerInfo;
+    private String loadBalancerIP;
+    private int loadBalancerPort;
     private static Data data = null;
 
     /**
-     * Constructor to initialise topicToMessageMap.
+     * Constructor to initialise the class attribute.
      */
-    private Data(BrokerInfo thisBrokerInfo) {
+    private Data(BrokerInfo thisBrokerInfo, String loadBalancerIP, int loadBalancerPort) {
         this.topicToMessageMap = new ConcurrentHashMap<>();
         this.thisBrokerInfo = thisBrokerInfo;
+        this.loadBalancerIP = loadBalancerIP;
+        this.loadBalancerPort = loadBalancerPort;
     }
 
     /**
@@ -32,9 +38,9 @@ public class Data {
      * if the object is not yet created then it will create an instance of it are return.
      * @return Data
      */
-    public synchronized static Data getData(BrokerInfo thisBrokerInfo) {
+    public synchronized static Data getData(BrokerInfo thisBrokerInfo, String loadBalancerIP, int loadBalancerPort) {
         if (data == null) {
-            data = new Data(thisBrokerInfo);
+            data = new Data(thisBrokerInfo, loadBalancerIP, loadBalancerPort);
         }
         return data;
     }
@@ -68,27 +74,20 @@ public class Data {
      * @param offsetNumber
      * @return message
      */
-    public ArrayList<byte[]> getMessage(String topic, long offsetNumber) {
+    public ArrayList<byte[]> getMessage(String topic, long offsetNumber, String requester) {
         ArrayList<byte[]> messageBatch = null;
         if (isTopicAvailable(topic)) {
-            messageBatch = topicToMessageMap.get(topic).getMessage(offsetNumber);
+            if (!requester.equals(Constants.BROKER)) {
+                messageBatch = topicToMessageMap.get(topic).getMessage(offsetNumber);
+            } else {
+                messageBatch = topicToMessageMap.get(topic).getMessage(offsetNumber);
+                if (messageBatch == null || messageBatch.size() == 0) {
+                    messageBatch = topicToMessageMap.get(topic).getMessageForBroker(offsetNumber);
+                }
+            }
         }
         return messageBatch;
     }
-
-//    /**
-//     * gets the offset of given messageId and the given topic from the topicToMessageMap
-//     * @param topic
-//     * @param offsetNumber
-//     * @return message
-//     */
-//    public ArrayList<byte[]> getOffset(String topic, long offsetNumber) {
-//        ArrayList<byte[]> messageBatch = null;
-//        if (isTopicAvailable(topic)) {
-//            messageBatch = topicToMessageMap.get(topic).getMessage(offsetNumber);
-//        }
-//        return messageBatch;
-//    }
 
     /**
      * getter for topicToMessageMap
@@ -107,7 +106,7 @@ public class Data {
     public MessageInfo getMessageInfoForTheTopic(String topic) {
         if (!topicToMessageMap.containsKey(topic)) {
             logger.info("\nAdding New Topic '" + topic + "'");
-            topicToMessageMap.putIfAbsent(topic, new MessageInfo(topic, thisBrokerInfo));
+            topicToMessageMap.putIfAbsent(topic, new MessageInfo(topic, thisBrokerInfo, loadBalancerIP, loadBalancerPort));
             logger.info("\n Topic : " + topic + " isUpToDate : " + topicToMessageMap.get(topic).getIsUpToDate());
         }
         return topicToMessageMap.get(topic);
@@ -123,4 +122,39 @@ public class Data {
         return topics;
     }
 
+    /**
+     *
+     * @return
+     */
+    public String getLoadBalancerIP() {
+        return loadBalancerIP;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public int getLoadBalancerPort() {
+        return loadBalancerPort;
+    }
+
+    /**
+     * current snapshot of the DB.
+     * @return
+     */
+    public DBSnapshot getSnapshot() {
+        DBSnapshot dbSnapshot = new DBSnapshot(thisBrokerInfo.getBrokerId());
+        for (Map.Entry<String, MessageInfo> eachTopicInfo : topicToMessageMap.entrySet()) {
+            TopicSnapshot topicSnapshot = new TopicSnapshot(eachTopicInfo.getKey(), eachTopicInfo.getValue().getLastOffSet());
+            dbSnapshot.addTopicSnapshot(eachTopicInfo.getKey(), topicSnapshot);
+        }
+        return dbSnapshot;
+    }
+
+    public boolean setUpToDate(boolean status) {
+        for (Map.Entry<String, MessageInfo> eachTopicMessageSet : topicToMessageMap.entrySet()) {
+            eachTopicMessageSet.getValue().setUpToDate(status);
+        }
+        return true;
+    }
 }

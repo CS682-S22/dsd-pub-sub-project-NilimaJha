@@ -28,9 +28,11 @@ public class MessageInfo {
     private boolean topicIsAvailable = true;
     private String topic;
     private BrokerInfo thisBrokerInfo = null;
+    private String loadBalancerIp;
+    private int loadBalancerPort;
     private volatile boolean upToDate = false;
     private MembershipTable membershipTable = MembershipTable.getMembershipTable(Constants.BROKER);
-    private Data data = Data.getData(thisBrokerInfo);
+    private Data data = null;
     // lock for inMemory data store
     private final ReentrantReadWriteLock inMemoryDSLock = new ReentrantReadWriteLock();
     // lock for persistent storage and flushedMessageOffset ArrayList.
@@ -41,13 +43,16 @@ public class MessageInfo {
      * Constructor to initialise class attributes.
      * @param topic topic to which this MessageInfo object belongs.
      */
-    public MessageInfo(String topic, BrokerInfo thisBroker) {
+    public MessageInfo(String topic, BrokerInfo thisBroker, String loadBalancerIp, int loadBalancerPort) {
         this.flushedMessageOffset = new ArrayList<>();
         this.inMemoryMessageOffset = new ArrayList<>();
         this.inMemoryMessage = new ArrayList<>();
         this.topicSegmentFileName = topic + ".log";
         this.topic = topic;
         this.thisBrokerInfo = thisBroker;
+        this.loadBalancerIp = loadBalancerIp;
+        this.loadBalancerPort = loadBalancerPort;
+        this.data = Data.getData(thisBrokerInfo, loadBalancerIp, loadBalancerPort);
         logger.info("\nCatchupMode : " + thisBrokerInfo.isInCatchupMode());
         if (thisBrokerInfo.isLeader() || !thisBrokerInfo.isInCatchupMode()) {
             this.upToDate = true;
@@ -199,7 +204,7 @@ public class MessageInfo {
         }
         inMemoryMessageOffset.add(lastOffSet.get());
         inMemoryMessage.add(message);
-        if (membershipTable.getLeaderId() == thisBrokerInfo.getBrokerId()) {
+        if (membershipTable.getLeaderId() == thisBrokerInfo.getBrokerId() && !thisBrokerInfo.isInCatchupMode()) {
             logger.info("[ThreadId : " + Thread.currentThread().getId() + " Sending message to Follower.");
             membershipTable.sendSynchronousData(lastOffSet.get(), topic, message, lastOffSet.addAndGet(message.length)); // replicating data on the followers.
         } else {
@@ -230,8 +235,9 @@ public class MessageInfo {
         // get the current offset index in the flushedMessageOffset ArrayList
         int index = flushedMessageOffset.indexOf(offSet);
         // offset is not available
-        if (index == -1 && currentOffset.get() > flushedMessageOffset.get(flushedMessageOffset.size() - 1)) {
-            logger.info("\nOffset " + offSet + " is not yet available. Last Offset available is " + flushedMessageOffset.get(flushedMessageOffset.size() - 1));
+        if (index == -1) {
+//        if (index == -1 && (flushedMessageOffset.size() == 0 || currentOffset.get() > flushedMessageOffset.get(flushedMessageOffset.size() - 1))) {
+            logger.info("\nOffset " + offSet + " is not yet available.");
             persistentStorageAccessLock.readLock().unlock();
             return messageBatch;
         } else {
@@ -279,6 +285,44 @@ public class MessageInfo {
     }
 
     /**
+     * reads 10 message from the offset given and returns it.
+     * @param offSet offset from where data is to be extracted.
+     * @return messageBatch
+     */
+    public ArrayList<byte[]> getMessageForBroker(long offSet) {
+        inMemoryDSLock.readLock().lock();
+        ArrayList<byte[]> messageBatch = null;
+        int count = 0;
+        int currentSizeOfTheInMemoryMessageLst = inMemoryMessage.size();
+        // get the current offset index in the flushedMessageOffset ArrayList
+        int index = inMemoryMessageOffset.indexOf(offSet);
+        // offset is not available
+        if (index == -1) {
+            logger.info("\nOffset " + offSet + " is not yet available. Last Offset available is ");
+            inMemoryDSLock.readLock().unlock();
+            return messageBatch;
+        } else {
+            logger.info("\n Offset " + offSet + "is available.");
+            messageBatch = new ArrayList<>();
+        }
+        while (count < Constants.MESSAGE_BATCH_SIZE && index < currentSizeOfTheInMemoryMessageLst) {
+            // read one message at a time and append it on the messageBatch arrayList
+            // making this block of code synchronised so that at a time only one thread can use FileInputStream named fileReader
+            synchronized (this) {
+                byte[] eachMessage = new byte[0];
+                if (index < inMemoryMessageOffset.size()) {
+                    eachMessage = inMemoryMessage.get(index);
+                }
+                messageBatch.add(eachMessage);
+                count++;
+                index++;
+            }
+        }
+        inMemoryDSLock.readLock().unlock();
+        return messageBatch;
+    }
+
+    /**
      * this method will keep running in a loop.
      * inside the loop it will first sleep for timeout amount of time,
      * then will wake up and flushes the in-memory data on to the file if needed.
@@ -318,5 +362,13 @@ public class MessageInfo {
      */
     public void setUpToDate(boolean upToDate) {
         this.upToDate = upToDate;
+    }
+
+    /**
+     * return current snapshot of the message.
+     * @return lastOffset
+     */
+    public long getLastOffSet() {
+        return lastOffSet.get();
     }
 }

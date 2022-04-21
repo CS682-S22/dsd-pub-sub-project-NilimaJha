@@ -7,8 +7,10 @@ import connection.Connection;
 import customeException.ConnectionClosedException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import proto.RequestBrokerInfo;
 import proto.RequestLeaderAndMembersInfo;
 import proto.ResponseLeaderInfo;
+import proto.ResponseRandomBrokerInfo;
 import util.Constants;
 
 import java.io.IOException;
@@ -127,9 +129,16 @@ public class Node {
             int messageId = 1;
             boolean responseReceived = false;
             while (!responseReceived) {
-                logger.info("\nRequesting leader's info from the loadBalancer.LoadBalancer.");
-                loadBalancerConnection.send(getRequestLeaderInfoMessage(messageId));
-                logger.info("\nRequest sent for Leader info and Membership table.");
+                if (nodeType.equals(Constants.CONSUMER)) {
+                    logger.info("\nRequesting random broker info from the LoadBalancer.");
+                    loadBalancerConnection.send(getRequestRandomBrokerInfoMessage(messageId));
+                    logger.info("\nRequest sent for Leader info and Membership table.");
+                } else {
+                    logger.info("\nRequesting leader's info from the loadBalancer.LoadBalancer.");
+                    loadBalancerConnection.send(getRequestLeaderInfoMessage(messageId));
+                    logger.info("\nRequest sent for Leader info and Membership table.");
+                }
+
                 byte[] receivedResponse = null;
                 try {
                     receivedResponse = loadBalancerConnection.receive();
@@ -149,7 +158,7 @@ public class Node {
                                     leaderBrokerIP = responseLeaderInfoDetails.getLeaderIP();
                                     leaderBrokerPort = responseLeaderInfoDetails.getLeaderPort();
                                     leaderBrokerId = responseLeaderInfoDetails.getLeaderID();
-                                    logger.info("\n leaderBrokerId received from load balancer : " + leaderBrokerId);
+                                    logger.info("\n leaderBrokerId received from load balancer : " + leaderBrokerId + " leaderIp : " + leaderBrokerIP + " leaderPort : " + leaderBrokerPort + " leaderName : " + leaderBrokerName);
                                 } else if (!nodeType.equals(Constants.BROKER)) {
                                     synchronized (waitObj) {
                                         startTimer();
@@ -169,6 +178,19 @@ public class Node {
                                         logger.info("\nThis broker Id : " + thisBrokerInfo.getBrokerId());
                                     }
                                 }
+                            } else if (any.is(ResponseRandomBrokerInfo.ResponseRandomBrokerInfoDetails.class)) {
+                                ResponseRandomBrokerInfo.ResponseRandomBrokerInfoDetails randomBrokerInfoDetails =
+                                        any.unpack(ResponseRandomBrokerInfo.ResponseRandomBrokerInfoDetails.class);
+                                logger.info("\nResponse Received of Type ResponseLeaderInfo. is Leader Info Available : "
+                                        + randomBrokerInfoDetails.getInfoAvailable());
+                                if (randomBrokerInfoDetails.getInfoAvailable()) {
+                                    // getting all the info about the broker.
+                                    leaderBrokerName = randomBrokerInfoDetails.getBrokerName();
+                                    leaderBrokerIP = randomBrokerInfoDetails.getBrokerIP();
+                                    leaderBrokerPort = randomBrokerInfoDetails.getBrokerPort();
+                                    logger.info("\n BrokerId received from load balancer : " + leaderBrokerId + " brokerIp : " + leaderBrokerIP + " brokerPort : " + leaderBrokerPort + " brokerName : " + leaderBrokerName);
+                                }
+
                             }
                         } catch (InvalidProtocolBufferException e) {
                             logger.error("\nInvalidProtocolBufferException occurred while decoding message send by loadBalancer.");
@@ -216,6 +238,21 @@ public class Node {
     }
 
     /**
+     * creates appropriate Leader request message to the loadBalancer.LoadBalancer.
+     * @return requestLeaderInfoMessage
+     */
+    public byte[] getRequestRandomBrokerInfoMessage(int messageId) {
+        Any any;
+        logger.info("\n NodeType : " + nodeType);
+        any = Any.pack(RequestBrokerInfo.RequestBrokerInfoDetails.newBuilder()
+                .setMessageId(messageId)
+                .setRequestSenderType(nodeType)
+                .setRequestSenderName(name)
+                .build());
+        return any.toByteArray();
+    }
+
+    /**
      * method that connects to the broker and saves the connection object.
      * @return  true/false
      */
@@ -224,7 +261,7 @@ public class Node {
         try {
             clientSocket = AsynchronousSocketChannel.open();
             InetSocketAddress brokerAddress = new InetSocketAddress(leaderBrokerIP, leaderBrokerPort);
-            logger.info("\n[Connecting To broker.Broker]");
+            logger.info("\n[Connecting To broker.Broker] " + leaderBrokerIP + " " + leaderBrokerPort);
             Future<Void> futureSocket = clientSocket.connect(brokerAddress);
             try {
                 futureSocket.get();
@@ -265,5 +302,18 @@ public class Node {
             loadBalancerConnection.closeConnection();
             loadBalancerConnection = null;
         }
+    }
+
+    /**
+     *
+     * @return
+     */
+    public boolean resetLeaderBrokerInfo() {
+        logger.info("\nResetting the LeaderInfo.");
+        this.leaderBrokerId = 0;
+        this.leaderBrokerIP = null;
+        this.leaderBrokerPort = 0;
+        this.leaderBrokerName = null;
+        return true;
     }
 }
