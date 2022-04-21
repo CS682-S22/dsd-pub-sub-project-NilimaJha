@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package tutorial;
+
+option java_package = "proto";
+option java_outer_classname = "TopicOffsetMessage";
+
+message TopicOffsetMessageDetails {
+  string topic = 1;
+  uint64 offset = 2;
+}

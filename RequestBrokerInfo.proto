@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package tutorial;
+
+option java_package = "proto";
+option java_outer_classname = "RequestBrokerInfo";
+
+message RequestBrokerInfoDetails {
+  int32 messageId = 1;
+  string requestSenderType = 2;
+  string requestSenderName = 3;
+}

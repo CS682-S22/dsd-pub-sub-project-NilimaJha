@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package tutorial;
+
+option java_package = "proto";
+option java_outer_classname = "VictoryMessage";
+
+message VictoryMessageDetails {
+  uint32 newLeaderId = 1;
+  string newLeaderName = 2;
+  string newLeaderIp = 3;
+  uint32 newLeaderPort = 4;
+}

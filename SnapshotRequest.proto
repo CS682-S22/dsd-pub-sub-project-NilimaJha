@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package tutorial;
+
+option java_package = "proto";
+option java_outer_classname = "SnapshotRequest";
+
+message SnapshotRequestDetails {
+  uint32 memberId = 1;
+}

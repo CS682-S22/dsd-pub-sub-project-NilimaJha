@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package tutorial;
+
+option java_package = "proto";
+option java_outer_classname = "ResponseRandomBrokerInfo";
+
+message ResponseRandomBrokerInfoDetails {
+  int32 messageId = 1;
+  bool infoAvailable = 2;
+  string brokerName = 3;
+  string brokerIP = 4;
+  int32 brokerPort = 5;
+}

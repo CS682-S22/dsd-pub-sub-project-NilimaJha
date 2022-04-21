@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package tutorial;
+
+option java_package = "proto";
+option java_outer_classname = "FailedMemberInfo";
+
+message FailedMemberInfoDetails {
+  string requestSenderType = 1;
+  repeated uint32 failedBrokerId = 2;
+}

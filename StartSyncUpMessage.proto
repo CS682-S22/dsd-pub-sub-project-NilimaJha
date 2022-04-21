@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package tutorial;
+
+option java_package = "proto";
+option java_outer_classname = "StartSyncUpMessage";
+
+message StartSyncUpMessageDetails {
+  uint32 memberId = 1;
+  repeated bytes topicSnapshot = 2;
+}
