@@ -109,7 +109,9 @@ public class Broker extends Node implements Runnable {
                         connection = Utility.establishConnection(eachMember.getBrokerIP(), eachMember.getBrokerPort());
                     } catch (ConnectionClosedException e) {
                         logger.info(e.getMessage());
-                        connection.closeConnection();
+                        if (connection != null) {
+                            connection.closeConnection();
+                        }
                     }
                     while (connection == null && retries < Constants.MAX_RETRIES) {
                         try {
@@ -155,7 +157,7 @@ public class Broker extends Node implements Runnable {
                         }
                     }
                     logger.info("\n eachMember.getBrokerId : " + eachMember.getBrokerId() + " LeaderId : " + membershipTable.getLeaderId());
-                    if (eachMember.getBrokerId() == membershipTable.getLeaderId()) {
+                    if (eachMember.getBrokerId() == membershipTable.getLeaderId() && connection != null) {
                         //set up CatchUp Connection.
                         retries = 0;
                         logger.info("\n [ThreadId : " + Thread.currentThread().getId() + "] Connecting to member with id : " + eachMember.getBrokerId() + " Connection Type : " + Constants.CATCHUP_CONNECTION);
@@ -270,6 +272,10 @@ public class Broker extends Node implements Runnable {
             closeLoadBalancerConnection();
             //update membership table
             updateMembershipTable();
+            if (membershipTable.getMembershipInfo().size() == 0) {
+                logger.info("\nNo member is active so registering itself as leader on loadBalancer.");
+
+            }
         } catch (ConnectionClosedException e) {
             logger.info("\nException Occurred while connecting to load balancer. Error Message : " + e.getMessage());
             System.exit(0);

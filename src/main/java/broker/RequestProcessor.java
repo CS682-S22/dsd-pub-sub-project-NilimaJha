@@ -424,24 +424,28 @@ public class RequestProcessor implements Runnable {
                         if (any.is(ConsumerPullRequest.ConsumerPullRequestDetails.class)) {
                             ConsumerPullRequest.ConsumerPullRequestDetails consumerPullRequestDetails =
                                     any.unpack(ConsumerPullRequest.ConsumerPullRequestDetails.class);
+                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Pull Request received. Topic : "
+                                    + consumerPullRequestDetails.getTopic() +
+                                    " offset : " + consumerPullRequestDetails.getOffset() + " messageId : " + consumerPullRequestDetails.getMessageId());
                             ArrayList<byte[]> messageBatch = null;
                             byte[] messageFromBroker;
                             // validating publish message
                             if (consumerPullRequestDetails.getTopic() != null) {
+                                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Topic is available.");
                                 messageBatch = data.getMessage(consumerPullRequestDetails.getTopic(),
                                         consumerPullRequestDetails.getOffset(), Constants.CONSUMER);
                                 if (messageBatch != null) {
                                     messageFromBroker = createMessageFromBroker(consumerPullRequestDetails.getTopic(),
-                                            messageBatch, Constants.MESSAGE);
+                                            messageBatch, Constants.MESSAGE, consumerPullRequestDetails.getMessageId());
                                     logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] [SENDING] Sending prepared message batch of topic " + consumerPullRequestDetails.getTopic() + " to " + name);
                                 } else {
                                     // message with given offset is not available
-                                    messageFromBroker = createMessageFromBrokerInvalid(Constants.MESSAGE_NOT_AVAILABLE);
+                                    messageFromBroker = createMessageFromBrokerInvalid(Constants.MESSAGE_NOT_AVAILABLE, consumerPullRequestDetails.getMessageId());
                                     logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] [SENDING] Sending prepared message of type MESSAGE_NOT_AVAILABLE to "
                                             + name + " for request of topic " + consumerPullRequestDetails.getTopic());
                                 }
                             } else {
-                                messageFromBroker = createMessageFromBrokerInvalid(Constants.TOPIC_NOT_AVAILABLE);
+                                messageFromBroker = createMessageFromBrokerInvalid(Constants.TOPIC_NOT_AVAILABLE, consumerPullRequestDetails.getMessageId());
                                 logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] [SENDING] Sending message of type TOPIC_NOT_AVAILABLE to " + name +
                                         " for request of topic " + consumerPullRequestDetails.getTopic());
                             }
@@ -471,7 +475,7 @@ public class RequestProcessor implements Runnable {
             messageBatch = data.getMessage(pushBasedConsumerTopic, offset.get(), Constants.CONSUMER);
             if (messageBatch != null) {
                 byte[] messageFromBroker = createMessageFromBroker(pushBasedConsumerTopic,
-                        messageBatch, Constants.MESSAGE);
+                        messageBatch, Constants.MESSAGE, 0);
                 logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] [SENDING] Sending prepared message batch of topic " + pushBasedConsumerTopic + " to " + name);
                 boolean sendSuccessful = false;
                 try {
@@ -659,7 +663,7 @@ public class RequestProcessor implements Runnable {
      * @param messageBatch
      * @return
      */
-    private byte[] createMessageFromBroker(String topic, ArrayList<byte[]> messageBatch, String type) {
+    private byte[] createMessageFromBroker(String topic, ArrayList<byte[]> messageBatch, String type, int messageId) {
         ArrayList<ByteString> messageBatchStringArray = new ArrayList<>();
         for (byte[] eachMessage : messageBatch) {
             ByteString messageByteString = ByteString.copyFrom(eachMessage);
@@ -671,6 +675,7 @@ public class RequestProcessor implements Runnable {
                 .setTopic(topic)
                 .setTotalMessage(messageBatch.size())
                 .addAllActualMessage(messageBatchStringArray)
+                .setMessageId(messageId)
                 .build());
         return any.toByteArray();
     }
@@ -715,10 +720,11 @@ public class RequestProcessor implements Runnable {
      * and returns its byteArray.
      * @return byte[]
      */
-    public byte[] createMessageFromBrokerInvalid(String type) {
+    public byte[] createMessageFromBrokerInvalid(String type, int messageId) {
         Any any = Any.pack(MessageFromBroker.
                 MessageFromBrokerDetails.newBuilder()
                 .setType(type)
+                .setMessageId(messageId)
                 .build());
         return any.toByteArray();
     }

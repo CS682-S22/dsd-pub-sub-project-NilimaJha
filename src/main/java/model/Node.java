@@ -189,6 +189,17 @@ public class Node {
                                     leaderBrokerIP = randomBrokerInfoDetails.getBrokerIP();
                                     leaderBrokerPort = randomBrokerInfoDetails.getBrokerPort();
                                     logger.info("\n BrokerId received from load balancer : " + leaderBrokerId + " brokerIp : " + leaderBrokerIP + " brokerPort : " + leaderBrokerPort + " brokerName : " + leaderBrokerName);
+                                } else {
+                                    responseReceived = false;
+                                    synchronized (waitObj) {
+                                        startTimer();
+                                        try {
+                                            logger.info("\nBroker info is not available at loadBalancer. Waiting for 6000 millis...");
+                                            waitObj.wait();
+                                        } catch (InterruptedException e) {
+                                            logger.error("\nInterruptedException occurred. Error Message : " + e.getMessage());
+                                        }
+                                    }
                                 }
 
                             }
@@ -203,7 +214,7 @@ public class Node {
             }
         } else {
             logger.info("\nNot connected with loadBalancer.");
-            connectToLoadBalancer();
+//            connectToLoadBalancer();
         }
 
     }
@@ -270,9 +281,11 @@ public class Node {
                 connected = true;
             } catch (InterruptedException | ExecutionException e) {
                 logger.error("\nException occurred while connecting to broker. Error Message : " + e.getMessage());
+                connected = false;
                 throw new ConnectionClosedException("No host is running on the given IP and Port.");
             }
         } catch (IOException e) {
+            connected = false;
             logger.error("\nIOException occurred while connecting to broker.Broker. Error Message : " + e.getMessage());
         }
         return connected;

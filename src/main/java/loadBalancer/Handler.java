@@ -90,7 +90,8 @@ public class Handler implements Runnable {
                                     any.unpack(RequestBrokerInfo.RequestBrokerInfoDetails.class);
                             connectionWith = requestBrokerInfoDetails.getRequestSenderType();
                             logger.info("\nConnectionWith :" + connectionWith);
-                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " Received request from " + connectionWith + " of type RequestBrokerInfo.");
+                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " Received request from "
+                                    + connectionWith + " of type RequestBrokerInfo.");
                             logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " Sending RandomBrokerInfo Response...");
                             connection.send(getResponseRandomBrokerInfoMessage(requestBrokerInfoDetails));
                         }
@@ -182,13 +183,11 @@ public class Handler implements Runnable {
      */
     public byte[] getResponseRandomBrokerInfoMessage (RequestBrokerInfo.RequestBrokerInfoDetails requestMessage) {
         BrokerInfo randomBrokerInfo = loadBalancerDataStore.getRandomFollowerBrokerInfo();
-        boolean isAvailable = false;
         Any any;
         if (randomBrokerInfo != null) {
             logger.info("\nBroker Available for read.");
-            isAvailable = true;
             any = Any.pack(ResponseRandomBrokerInfo.ResponseRandomBrokerInfoDetails.newBuilder()
-                    .setInfoAvailable(isAvailable)
+                    .setInfoAvailable(true)
                     .setMessageId(requestMessage.getMessageId())
                     .setBrokerIP(randomBrokerInfo.getBrokerIP())
                     .setBrokerPort(randomBrokerInfo.getBrokerPort())
@@ -196,7 +195,7 @@ public class Handler implements Runnable {
                     .build());
         } else {
             any = Any.pack(ResponseRandomBrokerInfo.ResponseRandomBrokerInfoDetails.newBuilder()
-                    .setInfoAvailable(isAvailable)
+                    .setInfoAvailable(false)
                     .setMessageId(requestMessage.getMessageId())
                     .build());
         }

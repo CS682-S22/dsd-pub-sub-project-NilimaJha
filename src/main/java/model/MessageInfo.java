@@ -53,13 +53,13 @@ public class MessageInfo {
         this.loadBalancerIp = loadBalancerIp;
         this.loadBalancerPort = loadBalancerPort;
         this.data = Data.getData(thisBrokerInfo, loadBalancerIp, loadBalancerPort);
-        logger.info("\nCatchupMode : " + thisBrokerInfo.isInCatchupMode());
+        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] CatchupMode : " + thisBrokerInfo.isInCatchupMode());
         if (thisBrokerInfo.isLeader() || !thisBrokerInfo.isInCatchupMode()) {
             this.upToDate = true;
             if (thisBrokerInfo.isLeader()) {
-                logger.info("\nThis topic is created on the leader hence upToDate is " + upToDate);
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] This topic is created on the leader hence upToDate is " + upToDate);
             } else {
-                logger.info("\nThis topic is created on the broker which is up-to-date hence upToDate is " + upToDate);
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] This topic is created on the broker which is up-to-date hence upToDate is " + upToDate);
             }
         }
         startTimer();
@@ -94,7 +94,7 @@ public class MessageInfo {
         try {
             fileWriter = new FileOutputStream(fileName, true);
         } catch (FileNotFoundException e) {
-            logger.error("\nFileNotFoundException while Initialising fileWriter for segmentFile. Error Message : " +e.getMessage());
+            logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] FileNotFoundException while Initialising fileWriter for segmentFile. Error Message : " +e.getMessage());
         }
     }
 
@@ -106,7 +106,7 @@ public class MessageInfo {
         try {
             fileReader = new FileInputStream(fileName);
         } catch (IOException e) {
-            logger.error("\nIOException while Initialising fileReader for segmentFile. Error Message : " + e.getMessage());
+            logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] IOException while Initialising fileReader for segmentFile. Error Message : " + e.getMessage());
         }
     }
 
@@ -122,7 +122,7 @@ public class MessageInfo {
                 fileWriter.write(eachMessageByteArray);
             } catch (IOException e) {
                 persistentStorageAccessLock.writeLock().unlock();
-                logger.error("\nIOException while Writing on file. Error Message : " + e.getMessage());
+                logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] IOException while Writing on file. Error Message : " + e.getMessage());
             }
         }
         flushedMessageOffset.addAll(this.inMemoryMessageOffset);
@@ -130,7 +130,7 @@ public class MessageInfo {
         inMemoryMessageOffset.clear();
         inMemoryMessage.clear();
 
-        logger.info("\n[FLUSH] Flushed In-Memory message of topic " + topic + " on the file " + topicSegmentFileName);
+        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] [FLUSH] Flushed In-Memory message of topic " + topic + " on the file " + topicSegmentFileName);
         // realising write lock on the file and flushedMessageOffset ArrayList
         persistentStorageAccessLock.writeLock().unlock();
     }
@@ -158,9 +158,9 @@ public class MessageInfo {
                 }
             } catch (IOException e) {
                 persistentStorageAccessLock.writeLock().unlock();
-                logger.error("\nIOException while Writing on file. Error Message : " + e.getMessage());
+                logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] IOException while Writing on file. Error Message : " + e.getMessage());
             }
-            logger.info("\n[FLUSH] Catchup message successfully written on the File. Topic : "
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] [FLUSH] Catchup message successfully written on the File. Topic : "
                     + topic + " fileName : " + topicSegmentFileName);
         }
         // realising write lock on the file and flushedMessageOffset ArrayList
@@ -210,7 +210,7 @@ public class MessageInfo {
         } else {
             lastOffSet.addAndGet(message.length);
         }
-        logger.info("\n[ADD] Added new message on Topic " + topic + ". [In-memory buffer size : "
+        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] [ADD] Added new message on Topic " + topic + ". [In-memory buffer size : "
                 + inMemoryMessageOffset.size() + "]");
         if (upToDate && inMemoryMessageOffset.size() == Constants.TOTAL_IN_MEMORY_MESSAGE_SIZE) {
             timer.cancel();
@@ -229,23 +229,26 @@ public class MessageInfo {
      */
     public ArrayList<byte[]> getMessage(long offSet) {
         persistentStorageAccessLock.readLock().lock();
+        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] requestedOffset: " + offSet + "   => total message offsets : " + flushedMessageOffset);
         ArrayList<byte[]> messageBatch = null;
         int count = 0;
         AtomicLong currentOffset = new AtomicLong(offSet);
         // get the current offset index in the flushedMessageOffset ArrayList
         int index = flushedMessageOffset.indexOf(offSet);
+        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Index : " + index);
         // offset is not available
         if (index == -1) {
 //        if (index == -1 && (flushedMessageOffset.size() == 0 || currentOffset.get() > flushedMessageOffset.get(flushedMessageOffset.size() - 1))) {
-            logger.info("\nOffset " + offSet + " is not yet available.");
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Offset " + offSet + " is not yet available.");
             persistentStorageAccessLock.readLock().unlock();
+            logger.info("\nReturning messageBatch -" + messageBatch);
             return messageBatch;
         } else {
-            logger.info("\n Offset " + offSet + "is available.");
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Offset " + offSet + "is available.");
             messageBatch = new ArrayList<>();
         }
         while (count < Constants.MESSAGE_BATCH_SIZE && currentOffset.get() <= flushedMessageOffset.get(flushedMessageOffset.size() - 1)) {
-
+            logger.info("\ncount :" + count + " currentOffset : " + currentOffset + " lastOnFileOffset : " + flushedMessageOffset.get(flushedMessageOffset.size() - 1) + " messageBatch " + messageBatch);
             // read one message at a time and append it on the messageBatch arrayList
             // making this block of code synchronised so that at a time only one thread can use FileInputStream named fileReader
             synchronized (this) {
@@ -255,7 +258,7 @@ public class MessageInfo {
                         fileReader.getChannel().position(currentOffset.get());
                         eachMessage = new byte[fileReader.available()];
                     } catch (IOException e) {
-                        logger.error("\nIOException while setting the position of fileReader. Error Message : " +e.getMessage());
+                        logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] IOException while setting the position of fileReader. Error Message : " +e.getMessage());
                     }
                 } else {
                     int temp = (int) (flushedMessageOffset.get(index + 1) - currentOffset.get());
@@ -266,9 +269,10 @@ public class MessageInfo {
 
                 try {
                     fileReader.getChannel().position(currentOffset.get());
+                    logger.info("\nReading from offset : " + currentOffset.get());
                     fileReader.read(eachMessage);
                 } catch (IOException e) {
-                    logger.error("\nIOException while reading from segmentFile. Error Message : " + e.getMessage());
+                    logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] IOException while reading from segmentFile. Error Message : " + e.getMessage());
                 }
                 messageBatch.add(eachMessage);
                 count++;
@@ -298,11 +302,11 @@ public class MessageInfo {
         int index = inMemoryMessageOffset.indexOf(offSet);
         // offset is not available
         if (index == -1) {
-            logger.info("\nOffset " + offSet + " is not yet available. Last Offset available is ");
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Offset " + offSet + " is not yet available. Last Offset available is ");
             inMemoryDSLock.readLock().unlock();
             return messageBatch;
         } else {
-            logger.info("\n Offset " + offSet + "is available.");
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Offset " + offSet + "is available.");
             messageBatch = new ArrayList<>();
         }
         while (count < Constants.MESSAGE_BATCH_SIZE && index < currentSizeOfTheInMemoryMessageLst) {
@@ -331,7 +335,7 @@ public class MessageInfo {
         timer.cancel();
         // acquire write lock on inMemoryOffset Arraylist and inMemoryMessage ArrayList
         inMemoryDSLock.writeLock().lock();
-        logger.info("\nChecking if flushing is needed for topic '" + topic + "' [Total element in buffer : " + inMemoryMessageOffset.size() + "]");
+        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Checking if flushing is needed for topic '" + topic + "' [Total element in buffer : " + inMemoryMessageOffset.size() + "]");
         if (inMemoryMessageOffset.size() != 0 && upToDate) {
             flushOnFile();
         }

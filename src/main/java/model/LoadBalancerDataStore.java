@@ -103,6 +103,10 @@ public class LoadBalancerDataStore {
         return activeBrokersInfo;
     }
 
+    /**
+     *
+     * @return
+     */
     public BrokerInfo getRandomFollowerBrokerInfo() {
         return membershipTable.getRandomFollowerBrokerInfo();
     }

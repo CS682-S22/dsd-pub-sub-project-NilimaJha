@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * class that contains HashMap to store topic and message relate
  * the brokerInfo at which this Data is available.
+ * This is a Singleton class.
  * @author nilimajha
  */
 public class Data {
@@ -78,10 +79,13 @@ public class Data {
         ArrayList<byte[]> messageBatch = null;
         if (isTopicAvailable(topic)) {
             if (!requester.equals(Constants.BROKER)) {
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] pull request from Consumer from offset : " + offsetNumber);
                 messageBatch = topicToMessageMap.get(topic).getMessage(offsetNumber);
             } else {
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] pull request from Broker from offset : " + offsetNumber);
                 messageBatch = topicToMessageMap.get(topic).getMessage(offsetNumber);
                 if (messageBatch == null || messageBatch.size() == 0) {
+                    logger.info("\npersistant storage message is sent now checking inmemory for broker MessageIsSent ");
                     messageBatch = topicToMessageMap.get(topic).getMessageForBroker(offsetNumber);
                 }
             }
@@ -90,8 +94,8 @@ public class Data {
     }
 
     /**
-     * getter for topicToMessageMap
-     * @return
+     * getter for the attribute topicToMessageMap.
+     * @return topicToMessageMap.
      */
     public ConcurrentHashMap<String, MessageInfo> getTopicToMessageMap() {
         return topicToMessageMap;
@@ -105,9 +109,9 @@ public class Data {
      */
     public MessageInfo getMessageInfoForTheTopic(String topic) {
         if (!topicToMessageMap.containsKey(topic)) {
-            logger.info("\nAdding New Topic '" + topic + "'");
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Adding New Topic '" + topic + "'");
             topicToMessageMap.putIfAbsent(topic, new MessageInfo(topic, thisBrokerInfo, loadBalancerIP, loadBalancerPort));
-            logger.info("\n Topic : " + topic + " isUpToDate : " + topicToMessageMap.get(topic).getIsUpToDate());
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Topic : " + topic + " isUpToDate : " + topicToMessageMap.get(topic).getIsUpToDate());
         }
         return topicToMessageMap.get(topic);
     }
@@ -123,15 +127,15 @@ public class Data {
     }
 
     /**
-     *
-     * @return
+     * getter for the attribute loadBalancerIp.
+     * @return loadBalancerIP
      */
     public String getLoadBalancerIP() {
         return loadBalancerIP;
     }
 
     /**
-     *
+     * getter for attribute loadBalancerPort
      * @return
      */
     public int getLoadBalancerPort() {
@@ -151,6 +155,11 @@ public class Data {
         return dbSnapshot;
     }
 
+    /**
+     * method sets the value of attribute upToDate.
+     * @param status
+     * @return true
+     */
     public boolean setUpToDate(boolean status) {
         for (Map.Entry<String, MessageInfo> eachTopicMessageSet : topicToMessageMap.entrySet()) {
             eachTopicMessageSet.getValue().setUpToDate(status);

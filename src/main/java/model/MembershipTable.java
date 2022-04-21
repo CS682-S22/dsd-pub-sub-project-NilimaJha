@@ -176,13 +176,26 @@ public class MembershipTable {
     public BrokerInfo getRandomFollowerBrokerInfo() {
         Random rand = new Random();
         BrokerInfo brokerInfo = null;
-        while (brokerInfo == null && membershipInfo.size() != 0) {
-            brokerInfo = membershipInfo.get(rand.nextInt(membershipInfo.keySet().size()));
-            if (membershipInfo.size() > 1 && leaderId == brokerInfo.getBrokerId()) {
+        while (brokerInfo == null && membershipInfo.size() > 0) {
+            logger.info("\n Inside the loop.");
+            int bound = membershipInfo.keySet().size() + 1;
+            int val = rand.nextInt(bound);
+            logger.info("\n bound is : " + bound + " val : " + val);
+            brokerInfo = membershipInfo.get(val);
+            if (brokerInfo != null && membershipInfo.size() > 1 && leaderId == brokerInfo.getBrokerId()) {
+
+                logger.info("\n brokerInfo : " + brokerInfo + " membershipInfoSize : " + membershipInfo.size() + " leaderId =" + leaderId + " brokerSelected brokerId : " + brokerInfo.getBrokerId());
+
                 brokerInfo = null;
-            } else {
+                logger.info("\nSetting broker null as leader was selected. ");
+            } else if (brokerInfo != null){
                 break;
             }
+        }
+        if (brokerInfo != null) {
+            logger.info("\nBroker selected for read is " + brokerInfo.getBrokerId() + " Total member : " + membershipInfo.size());
+        } else {
+            logger.info("\nBroker selected is null. Total member : " + membershipInfo.size());
         }
         return brokerInfo;
     }

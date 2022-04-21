@@ -64,6 +64,12 @@ public final class MessageFromBroker {
      * @return The actualMessage at the given index.
      */
     com.google.protobuf.ByteString getActualMessage(int index);
+
+    /**
+     * <code>uint32 messageId = 5;</code>
+     * @return The messageId.
+     */
+    int getMessageId();
   }
   /**
    * Protobuf type {@code tutorial.MessageFromBrokerDetails}
@@ -137,6 +143,11 @@ public final class MessageFromBroker {
                 mutable_bitField0_ |= 0x00000001;
               }
               actualMessage_.add(input.readBytes());
+              break;
+            }
+            case 40: {
+
+              messageId_ = input.readUInt32();
               break;
             }
             default: {
@@ -288,6 +299,17 @@ public final class MessageFromBroker {
       return actualMessage_.get(index);
     }
 
+    public static final int MESSAGEID_FIELD_NUMBER = 5;
+    private int messageId_;
+    /**
+     * <code>uint32 messageId = 5;</code>
+     * @return The messageId.
+     */
+    @java.lang.Override
+    public int getMessageId() {
+      return messageId_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -313,6 +335,9 @@ public final class MessageFromBroker {
       }
       for (int i = 0; i < actualMessage_.size(); i++) {
         output.writeBytes(4, actualMessage_.get(i));
+      }
+      if (messageId_ != 0) {
+        output.writeUInt32(5, messageId_);
       }
       unknownFields.writeTo(output);
     }
@@ -342,6 +367,10 @@ public final class MessageFromBroker {
         size += dataSize;
         size += 1 * getActualMessageList().size();
       }
+      if (messageId_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(5, messageId_);
+      }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
       return size;
@@ -365,6 +394,8 @@ public final class MessageFromBroker {
           != other.getTotalMessage()) return false;
       if (!getActualMessageList()
           .equals(other.getActualMessageList())) return false;
+      if (getMessageId()
+          != other.getMessageId()) return false;
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -387,6 +418,8 @@ public final class MessageFromBroker {
         hash = (37 * hash) + ACTUALMESSAGE_FIELD_NUMBER;
         hash = (53 * hash) + getActualMessageList().hashCode();
       }
+      hash = (37 * hash) + MESSAGEID_FIELD_NUMBER;
+      hash = (53 * hash) + getMessageId();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -528,6 +561,8 @@ public final class MessageFromBroker {
 
         actualMessage_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000001);
+        messageId_ = 0;
+
         return this;
       }
 
@@ -563,6 +598,7 @@ public final class MessageFromBroker {
           bitField0_ = (bitField0_ & ~0x00000001);
         }
         result.actualMessage_ = actualMessage_;
+        result.messageId_ = messageId_;
         onBuilt();
         return result;
       }
@@ -631,6 +667,9 @@ public final class MessageFromBroker {
             actualMessage_.addAll(other.actualMessage_);
           }
           onChanged();
+        }
+        if (other.getMessageId() != 0) {
+          setMessageId(other.getMessageId());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -929,6 +968,37 @@ public final class MessageFromBroker {
         onChanged();
         return this;
       }
+
+      private int messageId_ ;
+      /**
+       * <code>uint32 messageId = 5;</code>
+       * @return The messageId.
+       */
+      @java.lang.Override
+      public int getMessageId() {
+        return messageId_;
+      }
+      /**
+       * <code>uint32 messageId = 5;</code>
+       * @param value The messageId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMessageId(int value) {
+        
+        messageId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 messageId = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMessageId() {
+        
+        messageId_ = 0;
+        onChanged();
+        return this;
+      }
       @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
@@ -996,11 +1066,11 @@ public final class MessageFromBroker {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\027MessageFromBroker.proto\022\010tutorial\"d\n\030M" +
+      "\n\027MessageFromBroker.proto\022\010tutorial\"w\n\030M" +
       "essageFromBrokerDetails\022\014\n\004type\030\001 \001(\t\022\r\n" +
       "\005topic\030\002 \001(\t\022\024\n\014totalMessage\030\003 \001(\004\022\025\n\rac" +
-      "tualMessage\030\004 \003(\014B\032\n\005protoB\021MessageFromB" +
-      "rokerb\006proto3"
+      "tualMessage\030\004 \003(\014\022\021\n\tmessageId\030\005 \001(\rB\032\n\005" +
+      "protoB\021MessageFromBrokerb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -1011,7 +1081,7 @@ public final class MessageFromBroker {
     internal_static_tutorial_MessageFromBrokerDetails_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tutorial_MessageFromBrokerDetails_descriptor,
-        new java.lang.String[] { "Type", "Topic", "TotalMessage", "ActualMessage", });
+        new java.lang.String[] { "Type", "Topic", "TotalMessage", "ActualMessage", "MessageId", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
