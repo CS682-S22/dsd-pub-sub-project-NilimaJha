@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
- * Class extends model.Node class and is a consumer.Consumer
+ * Class extends Node class and is a Consumer
  * @author nilimajha
  */
 public class Consumer extends Node {
@@ -49,21 +49,17 @@ public class Consumer extends Node {
      */
     public Consumer(String consumerName, String consumerType, String loadBalancerName, String loadBalancerIP,
                     int loadBalancerPort, String topic, long startingPosition) {
-
-//        super(consumerName, brokerIP, brokerPort);
         super(consumerName, Constants.CONSUMER, loadBalancerName, loadBalancerIP, loadBalancerPort);
         this.consumerType = consumerType;
         this.topic = topic;
         this.offset = new AtomicLong(startingPosition);
         this.messageFromBroker = new LinkedBlockingQueue<>();
-//        startTimer();
         setUpBrokerConnection();
-//        startConsumer();
         startTimer();
     }
 
     /**
-     *
+     * method starts timerTask which calls method that performs pulling the data from broker.
      */
     private void startTimer() {
         TimerTask timerTask = new TimerTask() {
@@ -75,6 +71,9 @@ public class Consumer extends Node {
         timer.schedule(timerTask, Constants.TIMEOUT_IF_DATA_NOT_YET_AVAILABLE);
     }
 
+    /**
+     * method makes sure that the connection with broker is established.
+     */
     public void setUpBrokerConnection() {
         while (!connected) {
             try {
@@ -93,6 +92,9 @@ public class Consumer extends Node {
         }
     }
 
+    /**
+     * this method pulls data from broker if connected else sets up the connection.
+     */
     public void method() {
         timer.cancel();
         while (!shutdown) {
@@ -113,6 +115,11 @@ public class Consumer extends Node {
         }
     }
 
+    /**
+     * method sends the pull request to the broker and then waits to receive the message.
+     * @return true/false
+     * @throws ConnectionClosedException
+     */
     public boolean pullMessageFromBroker1() throws ConnectionClosedException {
         byte[] requestMessagePacket = createPullRequestMessagePacket();
         logger.info("\n[SEND] Sending pull request to Broker " + leaderBrokerName + " for Offset " + offset.get() + " messageId : " + (messageId - 1));
@@ -137,6 +144,12 @@ public class Consumer extends Node {
         return success;
     }
 
+    /**
+     * method decodes the message received from the broker and pulls actual message.
+     * if the actual message is received then adds it into the queue.
+     * @param messageReceived
+     * @return true/false
+     */
     public boolean extractDataFromBrokerResponse1(byte[] messageReceived) {
         boolean success = false;
         logger.info("\nmessageReceived.");
@@ -180,95 +193,8 @@ public class Consumer extends Node {
         return success;
     }
 
-
-
-//    /**
-//     * first connects to the broker and
-//     * sets itself up with broker.Broker by sending InitialPacket.
-//     * then after receive data from broker by
-//     * calling appropriate function as per the time of consumer
-//     */
-//    public void startConsumer() {
-//        timer.cancel();
-//        while(!connected) {
-//            resetLeaderBrokerInfo();
-//            initialSetupDone = false;
-//            logger.info("\nNot Connected with broker.");
-//            connectBroker();
-//        }
-//        if (consumerType.equals(Constants.CONSUMER_PULL)) {
-//            while (connection.connectionIsOpen()) {
-//                logger.info("\n[Pulling message from broker]");
-//                boolean topicIsAvailable = false; // fetching data from broker
-//                try {
-//                    topicIsAvailable = pullMessageFromBroker();
-//                } catch (ConnectionClosedException e) {
-//                    logger.info("\n" + e.getMessage());
-//                    connection.closeConnection();
-//                }
-//                if (!topicIsAvailable) {
-//                    startTimer();
-//                    break;
-//                }
-//            }
-//        }
-//    }
-
-//    /**
-//     * connects to the broker and then sets itself up by sending InitialPacket.
-//     */
-//    public boolean connectBroker() {
-//        getBrokerInfo();
-//        int retries = 0;
-//        while (!connected && retries < Constants.MAX_RETRIES) {
-//            try {
-//                logger.info("\nTrying to connect to broker. Name :" + leaderBrokerName + " IP :" + leaderBrokerIP + " Port :" + leaderBrokerPort);
-//                connectToBroker();
-//            } catch (ConnectionClosedException e) {
-//                retries++;
-//                logger.info(e.getMessage());
-//                synchronized (connectBrokerWaitObj) {
-//                    logger.info("\nWaiting for sometime before retrying.");
-//                    try {
-//                        connectBrokerWaitObj.wait(Constants.RETRIES_TIMEOUT);
-//                    } catch (InterruptedException ex) {
-//                        logger.info("\nInterruptedException occurred while waiting before reconnecting to broker. Error Message : " + e.getMessage());
-//                    }
-//                }
-//            }
-//        }
-//        logger.info("\n Connected : " + connected + " Retries : " + retries);
-//        if (connected) {
-//            logger.info("\nSending InitialSetupMessage.");
-//            sendInitialSetupMessage();
-//            return true;
-//        }
-//        return false;
-//    }
-
-//    /**
-//     * connects to loadBalancer and gets leader's information
-//     */
-//    public void getBrokerInfo() {
-//        try {
-//            resetLeaderBrokerInfo();
-//            connectToLoadBalancer();
-//            while (leaderBrokerIP == null) {
-//                logger.info("\nbrokerIp = " + leaderBrokerIP + " brokerPort: " + leaderBrokerPort);
-//                getLeaderAndMembersInfo();
-//            }
-//            logger.info("->BrokerIp : " + leaderBrokerIP + "brokerPort: " + leaderBrokerPort);
-//            closeLoadBalancerConnection();
-//        } catch (ConnectionClosedException e) {
-//            logger.info("\nException occurred while connecting to loadBalancer.LoadBalancer. Error Message : " + e.getMessage());
-//            System.exit(0);
-//        }
-//
-//    }
-
-
     /**
-     * method sends consumer.Consumer Initial setup packet to the broker.
+     * method sends Consumer Initial setup packet to the broker.
      */
     public boolean getInitialSetupDone() {
         boolean initialSetupDone = false;
@@ -338,86 +264,6 @@ public class Consumer extends Node {
         return any.toByteArray();
     }
 
-//    /**
-//     * method pulls message from broker
-//     * at first it sends pull message to the broker
-//     * and then receives message sent by broker.
-//     */
-//    public boolean pullMessageFromBroker () throws ConnectionClosedException {
-//        byte[] requestMessagePacket = createPullRequestMessagePacket();
-//        logger.info("\n[SEND] Sending pull request to broker.Broker for Offset " + offset.get());
-//        try {
-//            connection.send(requestMessagePacket); // sending pull request to the broker
-//        } catch (ConnectionClosedException e) {
-//            logger.error(e.getMessage());
-//            throw new ConnectionClosedException("\nConnection is closed by the broker.");
-//        }
-//        return receiveMessageFromBroker();
-//    }
-
-//    /**
-//     * method receive message from broker.
-//     */
-//    private boolean receiveMessageFromBroker() throws ConnectionClosedException {
-//        boolean successful = true;
-//        try {
-//            byte[] brokerMessage = connection.receive();
-//            if (brokerMessage != null) {
-//                logger.info("\n[RECEIVE] Received Response from broker.Broker.");
-//                successful = extractDataFromBrokerResponse(brokerMessage);
-//            }
-//        } catch (ConnectionClosedException e) {
-//            //broker crash happened
-//            //connect to loadBalancer
-//            //get leaders info
-//            //try connecting for max retry times
-//            //not connected with broker then connect loadBalancer again
-//            // connected do normal pulling and all
-//            logger.info(e.getMessage());
-//            connection.closeConnection(); //closing this connection with leader broker.
-//            throw new ConnectionClosedException("\nBroker is Not responding.");
-//            //call start consumer method where you ae connecting to load balancer and getting leader broker info and connecting to leader broker.
-//        }
-//
-//        return successful;
-//    }
-
-//    /**
-//     * method extracts data from message received from broker.
-//     * @param brokerMessage message received from broker
-//     * @return true/false
-//     */
-//    private boolean extractDataFromBrokerResponse(byte[] brokerMessage) {
-//        boolean success = false;
-//        if (brokerMessage != null) {
-//            try {
-//                Any any = Any.parseFrom(brokerMessage);
-//                if (any.is(MessageFromBroker.MessageFromBrokerDetails.class)) {
-//                    MessageFromBroker.MessageFromBrokerDetails messageFromBrokerDetails =
-//                            any.unpack(MessageFromBroker.MessageFromBrokerDetails.class);
-//                    if (messageFromBrokerDetails.getType().equals(Constants.MESSAGE)) {
-//                        logger.info("\n[RECEIVE] Total message received from broker in one response = " + messageFromBrokerDetails.getActualMessageCount());
-//                        for (int index = 0; index < messageFromBrokerDetails.getActualMessageCount(); index++) {
-//                            byte[] actualMessageBytes = messageFromBrokerDetails.getActualMessage(index).toByteArray();
-//                            try {
-//                                messageFromBroker.put(actualMessageBytes);
-//                            } catch (InterruptedException e) {
-//                                logger.error("\nInterruptedException occurred while trying to put new message into list. Error Message : " + e.getMessage());
-//                            }
-//                            if (consumerType.equals(Constants.CONSUMER_PULL)) {
-//                                offset.addAndGet(actualMessageBytes.length); // incrementing offset value to the next message offset
-//                            }
-//                        }
-//                        success = true;
-//                    }
-//                }
-//            } catch (InvalidProtocolBufferException e) {
-//                logger.info("\nInvalidProtocolBufferException occurred while decoding message from broker.Broker. Error Message : " + e.getMessage());
-//            }
-//        }
-//        return success;
-//    }
-
     /**
      * return application program the byte array of message fetched from broker.
      * @return message
@@ -432,14 +278,6 @@ public class Consumer extends Node {
         }
         return message;
     }
-
-//    /**
-//     * getter for consumerType
-//     * @return consumerType
-//     */
-//    public String getConsumerType() {
-//        return consumerType;
-//    }
 
     /**
      * getter for offset
@@ -458,7 +296,7 @@ public class Consumer extends Node {
     }
 
     /**
-     *
+     * return the status of flag shutdown.
      */
     public boolean isShutdown() {
         return shutdown;

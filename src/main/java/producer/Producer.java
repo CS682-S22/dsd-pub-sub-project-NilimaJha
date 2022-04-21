@@ -10,11 +10,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import proto.*;
 
-import java.util.Timer;
-
-
 /**
- * Class extends model.Node class and is a producer
+ * Class extends Node class and is a producer
  * @author nilimajha
  */
 public class Producer extends Node {
@@ -31,13 +28,14 @@ public class Producer extends Node {
      */
     public Producer (String producerName, String loadBalancerName, String loadBalancerIP, int loadBalancerPort) {
         super(producerName, Constants.PRODUCER, loadBalancerName, loadBalancerIP, loadBalancerPort);
-        startProducer();
+        setupConnectionWithLeaderBroker();
     }
 
     /**
-     *
+     * method connects with the loadBalance and gets the leader broker information
+     * and sets up connection with leader broker.
      */
-    public void startProducer() {
+    public void setupConnectionWithLeaderBroker() {
         logger.info("\nInside startProducer : connected : " + connected);
         while (!connected) {
             resetLeaderBrokerInfo();
@@ -100,7 +98,7 @@ public class Producer extends Node {
     }
 
     /**
-     * creates and sends Initial Packet to the broker.Broker.
+     * creates and sends Initial Packet to the Broker.
      */
     public boolean sendInitialSetupMessage() {
         boolean initialSetupDone = false;
@@ -136,7 +134,7 @@ public class Producer extends Node {
     }
 
     /**
-     * creates the producer.Producer Initial packet.
+     * creates the Producer Initial packet.
      * @return byte[] array
      */
     public byte[] createInitialMessagePacket1(int messageId) {
@@ -179,13 +177,10 @@ public class Producer extends Node {
             logger.info("\nHere1");
             if (connected) {
                 logger.info("\n[SEND] Publishing Message on Topic " + topic);
-                sent = sendEachMessage(topic, data);
             } else {
-                logger.info("\nHere2");
-                startProducer();
-                logger.info("\nHere3");
-                sent = sendEachMessage(topic, data);
+                setupConnectionWithLeaderBroker();
             }
+            sent = sendEachMessage(topic, data);
             messageId++;
         }
         return true;
@@ -230,11 +225,11 @@ public class Producer extends Node {
                     connected = false;
                     logger.info("\nClosing the connection.");
                     logger.info("\ncalling startProducer.");
-                    startProducer();
+                    setupConnectionWithLeaderBroker();
                 }
             } else {
                 logger.info("\nInside Send each message. And starting setting up connection with LB then Leader.");
-                startProducer();
+                setupConnectionWithLeaderBroker();
             }
         }
         return sentSuccess;

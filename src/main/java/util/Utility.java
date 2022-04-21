@@ -49,7 +49,8 @@ public class Utility {
      * @return true/false
      */
     public static boolean typeIsValid (String type) {
-        return type.equals(Constants.PRODUCER) || type.equals(Constants.CONSUMER) || type.equals(Constants.BROKER) || type.equals(Constants.LOAD_BALANCER);
+        return type.equals(Constants.PRODUCER) || type.equals(Constants.CONSUMER)
+                || type.equals(Constants.BROKER) || type.equals(Constants.LOAD_BALANCER);
     }
 
     /**
@@ -107,7 +108,7 @@ public class Utility {
     }
 
     /**
-     * reads configFile and returns model.ConfigInformation class obj
+     * reads configFile and returns ConfigInformation class obj
      * which contains all the information of the producer or consumer
      * whose name is provided.
      * @param fileName config file name
@@ -225,10 +226,10 @@ public class Utility {
     }
 
     /**
-     *
+     * tries to establish connection with the host running on the given IP and Port.
      * @param memberIP
      * @param memberPort
-     * @return
+     * @return Connection or null
      */
     public static Connection establishConnection(String memberIP, int memberPort) throws ConnectionClosedException {
         AsynchronousSocketChannel clientSocket = null;
@@ -239,7 +240,6 @@ public class Utility {
             logger.info("\n[Connecting To Member] BrokerIP : "
                     + memberIP + " BrokerPort : " + memberPort);
             Future<Void> futureSocket = clientSocket.connect(brokerAddress);
-
             futureSocket.get();
             logger.info("\n[Connected to Member.]");
             connection = new Connection(clientSocket); //connection established with this member.
@@ -251,11 +251,12 @@ public class Utility {
     }
 
     /**
-     *
+     * creates the protobuff message of one of the following type on the basis of the typeOfMessage attribute provided.
+     * DBSnapshot.DBSnapshotDetails or StartSyncUpMessage.StartSyncUpMessageDetails
      * @param dbSnapshot
-     * @return
+     * @return byte[]
      */
-    public static byte[] getDBSnapshotMessage(DBSnapshot dbSnapshot, int brokerId, String typeOfMessage) {
+    public static byte[] getDBSnapshotMessageBytes(DBSnapshot dbSnapshot, int brokerId, String typeOfMessage) {
         List<ByteString> eachTopicSnapshotList = new ArrayList<>();
         for (Map.Entry<String, TopicSnapshot> eachTopicSnapshot : dbSnapshot.getTopicSnapshotMap().entrySet()) {
             Any topicSnapshot = Any.pack(proto.TopicSnapshot.TopicSnapshotDetails.newBuilder()

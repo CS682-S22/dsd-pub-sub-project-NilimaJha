@@ -102,7 +102,7 @@ public class ElectionModule {
         logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Inside sendStartSyncMessage.");
         Data data = Data.getData(thisBrokerInfo, loadBalancerIp, loadBalancerPort);
         DBSnapshot myDBSnapshot = data.getSnapshot(); // thisBrokerDataSnapshot.
-        byte[] startSyncUpMessage = Utility.getDBSnapshotMessage(myDBSnapshot, thisBrokerInfo.getBrokerId(), Constants.START_SYNC);
+        byte[] startSyncUpMessage = Utility.getDBSnapshotMessageBytes(myDBSnapshot, thisBrokerInfo.getBrokerId(), Constants.START_SYNC);
         logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] MemberList : " + membersSnapshotMap.entrySet().size());
         for (Map.Entry<Integer, DBSnapshot> eachMemberSnapshot : membersSnapshotMap.entrySet()) {
             logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Sending StartSyncMessage to Member : " + eachMemberSnapshot.getKey());
