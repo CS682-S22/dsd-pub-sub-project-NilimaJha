@@ -19,7 +19,7 @@ import java.time.Duration;
 import java.util.Scanner;
 
 /**
- * driver.Driver class that contains main method.
+ * Driver class that contains main method.
  * @author nilimajha
  */
 public class Driver {
@@ -40,19 +40,24 @@ public class Driver {
         String hostName = Utility.getNameFromArgs(args);
         String configFileName = Utility.getConfigFilename(args);
 
-        if (hostType.equals(Constants.LOAD_BALANCER)) {
-            createAndStartLoadBalancer(configFileName, hostName);
-        } else if (hostType.equals(Constants.BROKER)) {
-            createAndStartBroker(configFileName, hostName);
-        } else if (hostType.equals(Constants.PRODUCER)) {
-            createAndStartProducer(configFileName, hostName);
-        } else { // consumer
-            createAndStartConsumer(configFileName, hostName);
+        switch (hostType) {
+            case Constants.LOAD_BALANCER:
+                createAndStartLoadBalancer(configFileName, hostName);
+                break;
+            case Constants.BROKER:
+                createAndStartBroker(configFileName, hostName);
+                break;
+            case Constants.PRODUCER:
+                createAndStartProducer(configFileName, hostName);
+                break;
+            default:  // consumer
+                createAndStartConsumer(configFileName, hostName);
+                break;
         }
     }
 
     /**
-     * method Creates broker.Broker object and starts it
+     * method Creates Broker object and starts it
      * @param configFileName broker Config Filename
      * @param brokerName broker name
      */
@@ -95,9 +100,9 @@ public class Driver {
     }
 
     /**
-     * method Creates producer.Producer object and starts it
+     * method Creates Producer object and starts it
      * @param configFileName producerConfigFileName
-     * @param producerName Name of producer.Producer
+     * @param producerName Name of Producer
      */
     public static void createAndStartProducer (String configFileName, String producerName) {
         ConfigInformation configInformation = Utility.extractConsumerOrPublisherConfigInfo(configFileName, producerName);
@@ -167,13 +172,13 @@ public class Driver {
     }
 
     /**
-     * method Creates consumer.Consumer object and starts it
+     * method Creates Consumer object and starts it
      * @param configFileName consumerConfigFileName
      * @param consumerName Name of consumer
      */
     public static void createAndStartConsumer (String configFileName, String consumerName) {
         ConfigInformation configInformation = Utility.extractConsumerOrPublisherConfigInfo(configFileName, consumerName);
-        logger.info("\nconsumer.Consumer Started\n");
+        logger.info("\nConsumer Started\n");
         Consumer consumer = new Consumer(
                 configInformation.getName(),
                 configInformation.getType(),

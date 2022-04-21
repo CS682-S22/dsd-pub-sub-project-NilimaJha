@@ -93,11 +93,6 @@ public class Connection {
                 logger.info("\nException exception exception " + e.getCause());
                 closeConnection();
                 throw new ConnectionClosedException("connection.Connection is closed by other host!!!");
-//                if (e.getCause().toString().equals(Constants.BROKEN_PIPE)) {
-//                    logger.info("\nconnection.Connection is closed by other host!!!");
-//                    closeConnection();
-//                    throw new ConnectionClosedException("connection.Connection is closed by other host!!!");
-//                }
             }
         } else {
             logger.info("\nElse as connection is not connected.");

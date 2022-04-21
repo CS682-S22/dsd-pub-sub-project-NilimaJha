@@ -19,8 +19,8 @@ import java.util.List;
  * class that handles connection with any node of the system with loadBalancer at loadBalancer.
  * @author nilimajha
  */
-public class Handler implements Runnable {
-    private static final Logger logger = LogManager.getLogger(Handler.class);
+public class LBHandler implements Runnable {
+    private static final Logger logger = LogManager.getLogger(LBHandler.class);
     private Connection connection;
     private String connectionWith;
     private String loadBalancerName;
@@ -31,7 +31,7 @@ public class Handler implements Runnable {
      * @param connection
      * @param loadBalancerName
      */
-    public Handler(Connection connection, String loadBalancerName, LoadBalancerDataStore loadBalancerDataStore) {
+    public LBHandler(Connection connection, String loadBalancerName, LoadBalancerDataStore loadBalancerDataStore) {
         this.connection = connection;
         this.loadBalancerName = loadBalancerName;
         this.loadBalancerDataStore = loadBalancerDataStore;
@@ -228,7 +228,7 @@ public class Handler implements Runnable {
     }
 
     /**
-     *
+     * forms the LeaderUpdatedResponse to be sent to the Leader Member Broker.
      * @param updateRequestMessage
      * @return
      */
@@ -246,7 +246,7 @@ public class Handler implements Runnable {
     }
 
     /**
-     *
+     * forms the FailedMemberInfo to be sent to the Leader Member Broker.
      * @param failedMemberInfoDetails
      * @return
      */
@@ -258,7 +258,7 @@ public class Handler implements Runnable {
     }
 
     /**
-     *
+     * run method calls start method.
      */
     @Override
     public void run() {

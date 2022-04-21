@@ -16,18 +16,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
- *
+ * LoadBalancer class which has a ServerSocket running on a give IP and Port and
+ * accepts requests from Broker /Producer /Consumer.
  * @author nilimajha
  */
 public class LoadBalancer {
-    /**
-     * will have a serverSocket running and accepting incoming request.
-     * initial setup message.
-     * if broker.Broker -> assign id -> add it to the brokerLIST
-     * if producer.Producer -> add to the producerLIST
-     * IF CONSUMER -> add it to consumerLIST
-     */
-
     private static final Logger logger = LogManager.getLogger(LoadBalancer.class);
     private boolean shutdown = false;
     private String loadBalancerName;
@@ -51,8 +44,7 @@ public class LoadBalancer {
 
     /**
      * opens a serverSocket and keeps listening for
-     * new connection request from producer or consumer.
-     * once it receives a connection request it creates a
+     * new connection request from producer or consumer or Broker.
      */
     public void startLoadBalancer() {
         AsynchronousServerSocketChannel serverSocket = null;
@@ -83,7 +75,7 @@ public class LoadBalancer {
                     connection = new Connection(socketChannel);
                     // give this connection to handler
                     logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " New connection established.");
-                    Handler handler = new Handler(connection, loadBalancerName, loadBalancerDataStore);
+                    LBHandler handler = new LBHandler(connection, loadBalancerName, loadBalancerDataStore);
                     logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " New connection established.1");
                     threadPool.execute(handler);
                 }
