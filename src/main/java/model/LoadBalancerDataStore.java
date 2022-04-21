@@ -59,7 +59,6 @@ public class LoadBalancerDataStore {
         logger.info("\nAdded Id : " + brokerInfo.getBrokerId() + " name : " + brokerInfo.getBrokerName() +
                 " IP : " + brokerInfo.getBrokerIP() + " port : " + brokerInfo.getBrokerPort());
         membershipTable.addMember(memberId, brokerInfo);
-
     }
 
     /**
@@ -102,6 +101,10 @@ public class LoadBalancerDataStore {
         }
         leaderInfoLock.readLock().unlock();
         return activeBrokersInfo;
+    }
+
+    public BrokerInfo getRandomFollowerBrokerInfo() {
+        return membershipTable.getRandomFollowerBrokerInfo();
     }
 
     /**

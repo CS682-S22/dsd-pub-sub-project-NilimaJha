@@ -84,6 +84,7 @@ public class LoadBalancer {
                     // give this connection to handler
                     logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " New connection established.");
                     Handler handler = new Handler(connection, loadBalancerName, loadBalancerDataStore);
+                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " New connection established.1");
                     threadPool.execute(handler);
                 }
             }
