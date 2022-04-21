@@ -2,19 +2,23 @@ package util;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
 import connection.Connection;
-import model.BrokerConfig;
-import model.ConfigInformation;
-import model.LoadBalancerConfig;
+import customeException.ConnectionClosedException;
+import model.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import proto.StartSyncUpMessage;
 
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -226,7 +230,7 @@ public class Utility {
      * @param memberPort
      * @return
      */
-    public static Connection establishConnection(String memberIP, int memberPort) {
+    public static Connection establishConnection(String memberIP, int memberPort) throws ConnectionClosedException {
         AsynchronousSocketChannel clientSocket = null;
         Connection connection = null;
         try {
@@ -239,13 +243,40 @@ public class Utility {
             futureSocket.get();
             logger.info("\n[Connected to Member.]");
             connection = new Connection(clientSocket); //connection established with this member.
-        } catch (IOException e) {
+        } catch (IOException | ExecutionException | InterruptedException e) {
             logger.error(e.getMessage());
-        } catch (ExecutionException e) {
-            logger.error(e.getMessage());
-        } catch (InterruptedException e) {
-            logger.error(e.getMessage());
+            throw new ConnectionClosedException("No Host running on the given IP & port!!!");
         }
         return connection;
+    }
+
+    /**
+     *
+     * @param dbSnapshot
+     * @return
+     */
+    public static byte[] getDBSnapshotMessage(DBSnapshot dbSnapshot, int brokerId, String typeOfMessage) {
+        List<ByteString> eachTopicSnapshotList = new ArrayList<>();
+        for (Map.Entry<String, TopicSnapshot> eachTopicSnapshot : dbSnapshot.getTopicSnapshotMap().entrySet()) {
+            Any topicSnapshot = Any.pack(proto.TopicSnapshot.TopicSnapshotDetails.newBuilder()
+                    .setTopic(eachTopicSnapshot.getKey())
+                    .setOffset(eachTopicSnapshot.getValue().getOffset())
+                    .build());
+            eachTopicSnapshotList.add(ByteString.copyFrom(topicSnapshot.toByteArray()));
+        }
+        if (!typeOfMessage.equals(Constants.START_SYNC)) {
+            Any dbSnapshotAny = Any.pack(proto.DBSnapshot.DBSnapshotDetails.newBuilder()
+                    .setMemberId(brokerId)
+                    .addAllTopicSnapshot(eachTopicSnapshotList)
+                    .build());
+            return dbSnapshotAny.toByteArray();
+        } else {
+            Any startSyncMessage = Any.pack(StartSyncUpMessage.StartSyncUpMessageDetails.newBuilder()
+                    .setMemberId(brokerId)
+                    .addAllTopicSnapshot(eachTopicSnapshotList)
+                    .build());
+            return  startSyncMessage.toByteArray();
+        }
+
     }
 }
