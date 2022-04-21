@@ -10,6 +10,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import proto.*;
 
+import java.util.Timer;
+
 
 /**
  * Class extends model.Node class and is a producer
@@ -18,6 +20,7 @@ import proto.*;
 public class Producer extends Node {
     private static final Logger logger = LogManager.getLogger(Producer.class);
     private volatile int messageId = 0;
+    private final Object connectBrokerWaitObj = new Object();
 
     /**
      * constructor for producer class attributes
@@ -35,27 +38,13 @@ public class Producer extends Node {
      *
      */
     public void startProducer() {
+        logger.info("\nInside startProducer : connected : " + connected);
         while (!connected) {
+            resetLeaderBrokerInfo();
+            resetMessageId();
             logger.info("\nNot Connected with broker.");
             connectBroker();
         }
-    }
-    /**
-     * connects to loadBalancer and gets leader's information
-     */
-    public void getLeadersInfo() {
-        try {
-            connectToLoadBalancer();
-            while (leaderBrokerIP == null) {
-                getLeaderAndMembersInfo();
-            }
-            logger.info("LeaderBrokerIp : " + leaderBrokerIP);
-            closeLoadBalancerConnection();
-        } catch (ConnectionClosedException e) {
-            logger.info("\nException occurred while connecting to loadBalancer.LoadBalancer. Error Message : " + e.getMessage());
-            System.exit(0);
-        }
-
     }
 
     /**
@@ -66,17 +55,48 @@ public class Producer extends Node {
         int retries = 0;
         while (!connected && retries < Constants.MAX_RETRIES) {
             try {
+                logger.info("\nTrying to connect leader broker. Name :" + leaderBrokerName + " IP :" + leaderBrokerIP + " Port :" + leaderBrokerPort);
                 connectToBroker();
             } catch (ConnectionClosedException e) {
                 retries++;
                 logger.info(e.getMessage());
+                synchronized (connectBrokerWaitObj) {
+                    logger.info("\nWaiting for sometime before retrying.");
+                    try {
+                        connectBrokerWaitObj.wait(Constants.RETRIES_TIMEOUT);
+                    } catch (InterruptedException ex) {
+                        logger.info("\nInterruptedException occurred while waiting before reconnecting to broker. Error Message : " + e.getMessage());
+                    }
+                }
             }
         }
+        logger.info("\n Connected : " + connected + " Retries : " + retries);
         if (connected) {
+            logger.info("\nSending InitialSetupMessage.");
             sendInitialSetupMessage();
             return true;
         }
         return false;
+    }
+
+    /**
+     * connects to loadBalancer and gets leader's information
+     */
+    public void getLeadersInfo() {
+        try {
+            resetLeaderBrokerInfo();
+            connectToLoadBalancer();
+            while (leaderBrokerIP == null) {
+                logger.info("\nleaderIp = " + leaderBrokerIP + " leaderPort: " + leaderBrokerPort);
+                getLeaderAndMembersInfo();
+            }
+            logger.info("->LeaderBrokerIp : " + leaderBrokerIP + "leaderPort: " + leaderBrokerPort);
+            closeLoadBalancerConnection();
+        } catch (ConnectionClosedException e) {
+            logger.info("\nException occurred while connecting to loadBalancer.LoadBalancer. Error Message : " + e.getMessage());
+            System.exit(0);
+        }
+
     }
 
     /**
@@ -156,11 +176,14 @@ public class Producer extends Node {
     public boolean send (String topic, byte[] data) {
         boolean sent = false;
         while (!sent) {
+            logger.info("\nHere1");
             if (connected) {
                 logger.info("\n[SEND] Publishing Message on Topic " + topic);
                 sent = sendEachMessage(topic, data);
             } else {
+                logger.info("\nHere2");
                 startProducer();
+                logger.info("\nHere3");
                 sent = sendEachMessage(topic, data);
             }
             messageId++;
@@ -176,12 +199,14 @@ public class Producer extends Node {
      * @return
      */
     private boolean sendEachMessage(String topic, byte[] data) {
+        logger.info("\nHere4");
         boolean sentSuccess = false;
         while (!sentSuccess) {
-            if (connection !=  null && connected && connection.connectionIsOpen()) {
+            if (connection != null && connected && connection.connectionIsOpen()) {
                 try {
                     logger.info("\n[SEND] Publishing Message on Topic " + topic);
                     connection.send(createPublishMessagePacket(topic, data));
+                    logger.info("\nWaiting on connection.receive");
                     byte[] receivedAck = connection.receive();
                     if (receivedAck != null) {
                         try {
@@ -200,7 +225,7 @@ public class Producer extends Node {
                         }
                     }
                 } catch (ConnectionClosedException e) {
-                    logger.info(e.getMessage());
+                    logger.info("\n->" + e.getMessage());
                     connection.closeConnection();
                     connected = false;
                     logger.info("\nClosing the connection.");
@@ -208,6 +233,7 @@ public class Producer extends Node {
                     startProducer();
                 }
             } else {
+                logger.info("\nInside Send each message. And starting setting up connection with LB then Leader.");
                 startProducer();
             }
         }
@@ -222,5 +248,14 @@ public class Producer extends Node {
         while (!closeSuccessful) {
             closeSuccessful = connection.closeConnection();
         }
+    }
+
+    /**
+     * resets attribute messageId to 0.
+     * @return true
+     */
+    public boolean resetMessageId() {
+        messageId = 0;
+        return true;
     }
 }

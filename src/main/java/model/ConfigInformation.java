@@ -65,8 +65,9 @@ public class ConfigInformation {
         this.ConnectTo = ConnectTo;
         this.FileName = FileName;
         this.TopicName = TopicName;
-        this.BrokerIP = LoadBalancerIP;
-        this.BrokerPort = LoadBalancerPort;
+        this.LoadBalancerName = LoadBalancerName;
+        this.LoadBalancerIP = LoadBalancerIP;
+        this.LoadBalancerPort= LoadBalancerPort;
     }
 
     /**

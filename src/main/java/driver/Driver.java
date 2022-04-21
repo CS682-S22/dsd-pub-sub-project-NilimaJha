@@ -16,6 +16,7 @@ import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Scanner;
 
 /**
  * driver.Driver class that contains main method.
@@ -45,7 +46,7 @@ public class Driver {
             createAndStartBroker(configFileName, hostName);
         } else if (hostType.equals(Constants.PRODUCER)) {
             createAndStartProducer(configFileName, hostName);
-        } else { //consumer.Consumer
+        } else { // consumer
             createAndStartConsumer(configFileName, hostName);
         }
     }
@@ -75,7 +76,6 @@ public class Driver {
         } catch (InterruptedException e) {
             logger.error("\nInterruptedException occurred while waiting for broker thread to join. Error Message : " + e.getMessage());
         }
-//        broker.run();
     }
 
     /**
@@ -111,41 +111,48 @@ public class Driver {
             logger.info("\n[Now Sending Actual data]");
             try (BufferedReader bufferedReader = Utility.fileReaderInitializer(configInformation.getFileName())) {
                 String eachLine = bufferedReader.readLine();
-                logger.info("\n[eachLine : " + eachLine + "]");
                 String topic = null;
                 int lineNo = 1;
-                while (eachLine != null) {
-                    if (configInformation.getFileName().equals("Apache.log")) {
-                        String[] messagePart = eachLine.split("] \\[");
-                        if (messagePart.length != 1) {
-                            if (messagePart[1].equals("error")) {
-                                topic = "Apache_error";
-                            } else {
-                                topic = "Apache_notice";
+                Scanner sc = new Scanner(System.in);
+                System.out.println("\nEnter Command: ");
+                String cmd = sc.nextLine();
+                while (!cmd.equals("exit")) {
+                    // Running the code until the input command is exit.
+                    if (cmd.length() == 0 && eachLine != null) {
+                        if (configInformation.getFileName().equals("Apache.log")) {
+                            String[] messagePart = eachLine.split("] \\[");
+                            if (messagePart.length != 1) {
+                                if (messagePart[1].equals("error")) {
+                                    topic = "Apache_error";
+                                } else {
+                                    topic = "Apache_notice";
+                                }
+                            }
+                        } else if (configInformation.getFileName().equals("Zookeeper.log")) {
+                            topic = "Zookeeper";
+                        } else if (configInformation.getFileName().equals("Hadoop.log")) {
+                            topic = "Hadoop";
+                        } else {
+                            topic = "Mac";
+                        }
+
+                        logger.info("\n[Now Sending Actual data] [Topic : " + topic + "]");
+                        producer.send(topic, eachLine.getBytes());    // send data
+
+                        if (configInformation.getFileName().equals("Apache.log")) {
+                            String[] messagePart = eachLine.split("] \\[");
+                            if (messagePart.length != 1) {
+                                topic = "Apache";
+                                logger.info("produced : " + producer.send(topic, eachLine.getBytes()));  // send data
                             }
                         }
-                    } else if (configInformation.getFileName().equals("Zookeeper.log")) {
-                        topic = "Zookeeper";
-                    } else if (configInformation.getFileName().equals("Hadoop.log")) {
-                        topic = "Hadoop";
-                    } else {
-                        topic = "Mac";
+
+                        logger.info("LineNumber : " + lineNo);
+                        lineNo++;
+                        eachLine = bufferedReader.readLine();   // reading next line from the file
                     }
-
-                    logger.info("\n[Now Sending Actual data] [Topic : " + topic + "]");
-                    producer.send(topic, eachLine.getBytes());    // send data
-
-                    if (configInformation.getFileName().equals("Apache.log")) {
-                        String[] messagePart = eachLine.split("] \\[");
-                        if (messagePart.length != 1) {
-                            topic = "Apache";
-                            logger.info("produced : " + producer.send(topic, eachLine.getBytes()));  // send data
-                        }
-                    }
-
-                    logger.info("LineNumber : " + lineNo);
-                    lineNo++;
-                    eachLine = bufferedReader.readLine();   // reading next line from the file
+                    System.out.println("\nEnter Command: ");
+                    cmd = sc.nextLine();
                 }
             } catch (IOException e) {
                 logger.info("\nIOException occurred while initialising BufferedReader. Error Message : " + e.getMessage());
@@ -170,14 +177,14 @@ public class Driver {
         Consumer consumer = new Consumer(
                 configInformation.getName(),
                 configInformation.getType(),
-                "Load-Balancer",
-                configInformation.getBrokerIP(),
-                configInformation.getBrokerPort(),
+                configInformation.getLoadBalancerName(),
+                configInformation.getLoadBalancerIP(),
+                configInformation.getLoadBalancerPort(),
                 configInformation.getTopicName(),
                 0);
         try (FileOutputStream fileWriter = Utility.fileWriterInitializer(configInformation.getFileName())) {
             // Continue to pull messages...forever
-            while(consumer.connectedToBroker()) {
+            while(!consumer.isShutdown()) {
                 byte[] message = consumer.poll(Duration.ofMillis(100));
                 // writing data on file.
                 if (message != null) {
