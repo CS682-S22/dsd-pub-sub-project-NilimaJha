@@ -10,6 +10,7 @@ import util.Constants;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * Membership table keeps the information of all the broker members and also the leader.
@@ -89,10 +90,11 @@ public class MembershipTable {
             membershipInfo.remove(id);
         } else {
             membershipInfo.remove(id);
-            if (storedAt.equals(Constants.BROKER)) {
-                logger.info("\nAdding failed member into failedMemberIdList.");
-                failedMembersIdList.add(id);
-            }
+        }
+        if (storedAt.equals(Constants.BROKER)) {
+            logger.info("\nAdding failed member into failedMemberIdList.");
+            failedMembersIdList.add(id);
+            logger.info("\nFailedMemberIdList :" + failedMembersIdList);
         }
     }
 
@@ -182,11 +184,12 @@ public class MembershipTable {
         BrokerInfo brokerInfo = null;
         while (brokerInfo == null && membershipInfo.size() > 0) {
             logger.info("\n Inside the loop.");
-            int bound = membershipInfo.keySet().size() + 1;
-            int val = rand.nextInt(bound);
-            logger.info("\n bound is : " + bound + " val : " + val);
-            brokerInfo = membershipInfo.get(val);
-            if (brokerInfo != null && membershipInfo.size() > 1 && leaderId == brokerInfo.getBrokerId()) {
+            List<Integer> keyList = new ArrayList<>(membershipInfo.keySet());
+            int bound = keyList.size();
+            int index = rand.nextInt(bound);
+            logger.info("\n bound is : " + bound + " index : " + index);
+            brokerInfo = membershipInfo.get(keyList.get(index));
+            if (brokerInfo != null && keyList.size() > 1 && leaderId == brokerInfo.getBrokerId()) {
 
                 logger.info("\n brokerInfo : " + brokerInfo + " membershipInfoSize : " + membershipInfo.size() + " leaderId =" + leaderId + " brokerSelected brokerId : " + brokerInfo.getBrokerId());
 

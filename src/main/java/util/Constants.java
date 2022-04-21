@@ -26,10 +26,9 @@ public class Constants {
     public final static String TOPIC_NOT_AVAILABLE = "TOPIC_NOT_AVAILABLE";
     public final static int BROKER_THREAD_POOL_SIZE = 30;
     public final static int LOAD_BALANCER_THREAD_POOL_SIZE = 20;
-//    public final static String BROKEN_PIPE = "java.io.IOException: Broken pipe";
-    public final static int MAX_RETRIES = 5;
-    public final static int RETRIES_TIMEOUT = 30000;
-    public final static long TIMEOUT_NANOS = 60000000000L;//2000000L;//300000000000L; // 1 milli = 1000000 nano.
+    public final static int MAX_RETRIES = 2;
+    public final static int RETRIES_TIMEOUT = 15000;
+    public final static long TIMEOUT_NANOS = 60000000000L; // 1 milli = 1000000 nano.
     public final static int HEARTBEAT_CHECK_TIMER_TIMEOUT = 30000;
     public final static int HEARTBEAT_SEND_TIMER_TIMEOUT = 30000;
     public final static String HEARTBEAT_CONNECTION = "HEARTBEAT_CONNECTION";

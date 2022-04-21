@@ -93,11 +93,9 @@ public class LoadBalancerDataStore {
         ArrayList<BrokerInfo> activeBrokersInfo= new ArrayList<>();
         ConcurrentHashMap<Integer, BrokerInfo> allMembersInfo = membershipTable.getMembershipInfo();
         for (Map.Entry<Integer, BrokerInfo> eachEntry : allMembersInfo.entrySet()) {
-//            if (eachEntry.getValue().isActive()) {
                 activeBrokersInfo.add(eachEntry.getValue());
             logger.info("\nGetting Id : " + eachEntry.getValue().getBrokerId() + " name : " + eachEntry.getValue().getBrokerName() +
                     " IP : " + eachEntry.getValue().getBrokerIP() + " port : " + eachEntry.getValue().getBrokerPort());
-//            }
         }
         leaderInfoLock.readLock().unlock();
         return activeBrokersInfo;

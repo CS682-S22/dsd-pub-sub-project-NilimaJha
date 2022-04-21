@@ -34,7 +34,7 @@ public class HeartBeatModule {
     private int loadBalancerPort;
 
     /**
-     * Constructor
+     * private Constructor
      */
     private HeartBeatModule(BrokerInfo thisBrokerInfo, String loadBalancerIp, int loadBalancerPort) {
         this.thisBrokerInfo = thisBrokerInfo;
@@ -45,8 +45,8 @@ public class HeartBeatModule {
     }
 
     /**
-     *
-     * @return
+     * method make sure only one instance of this class is created.
+     * @return heartBeatModule
      */
     synchronized static HeartBeatModule getHeartBeatModule(BrokerInfo thisBrokerInfo, String loadBalancerIp, int loadBalancerPort) {
         if (heartBeatModule == null) {
@@ -116,7 +116,8 @@ public class HeartBeatModule {
     }
 
     /**
-     *
+     * leader uses this method to send failed Member List to the Load balancer
+     * to update the memberShipList maintained at LoadBalancer.
      */
     public void sendFailedMembersListToLB() {
         List<Integer> failedMembersIdList = membershipTable.getFailedMembersIdList();
@@ -170,7 +171,7 @@ public class HeartBeatModule {
     }
 
     /**
-     *
+     * method calls markMemberFailed method of the MembershipTable to mark a member in the membership table as failed.
      * @param brokerId
      */
     public void markMemberFailed(int brokerId) {
@@ -178,7 +179,7 @@ public class HeartBeatModule {
     }
 
     /**
-     *
+     * update heartbeat received time in heartbeatReceiveTimes map for the member of given memberId..
      * @param memberId
      */
     public void updateHeartBeat(int memberId) {

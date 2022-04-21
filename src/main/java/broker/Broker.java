@@ -14,7 +14,6 @@ import org.apache.logging.log4j.Logger;
 import proto.InitialMessage;
 import proto.InitialSetupDone;
 import proto.MembersInfo;
-import proto.UpdateLeaderInfo;
 import util.Utility;
 
 import java.io.IOException;
@@ -28,7 +27,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
- * broker.Broker class that keeps a serverSocket open to
+ * Broker class that keeps a serverSocket open to
  * listen for new connection request from producer and consumer.
  * Creates new broker.RequestProcessor object for each incoming request.
  * @author nilimajha
@@ -52,36 +51,6 @@ public class Broker extends Node implements Runnable {
         this.membershipTable = MembershipTable.getMembershipTable(Constants.BROKER);
         this.heartBeatModule = HeartBeatModule.getHeartBeatModule(thisBrokerInfo, loadBalancerIP, loadBalancerPort);
 
-    }
-
-    /**
-     *
-     */
-    public void sendUpdateLeaderMessageToLB() {
-        int messageId = 0;
-        Any updateLeaderMessage = Any.pack(UpdateLeaderInfo.UpdateLeaderInfoDetails.newBuilder()
-                .setMessageId(messageId)
-                .setRequestSenderType(Constants.BROKER)
-                .setBrokerName(name)
-                .setBrokerId(thisBrokerInfo.getBrokerId())
-                .build());
-        boolean leaderUpdated = false;
-        while (!leaderUpdated) {
-            try {
-                loadBalancerConnection.send(updateLeaderMessage.toByteArray());
-                byte[] receivedUpdateResponse = loadBalancerConnection.receive();
-                if (receivedUpdateResponse != null) {
-                    leaderBrokerName = thisBrokerInfo.getBrokerName();
-                    leaderBrokerIP = thisBrokerInfo.getBrokerIP();
-                    leaderBrokerPort = thisBrokerInfo.getBrokerPort();
-                    leaderBrokerId = thisBrokerInfo.getBrokerId();
-                    leaderUpdated = true;
-                }
-            } catch (ConnectionClosedException e) {
-                logger.info(e.getMessage());
-                loadBalancerConnection.closeConnection();
-            }
-        }
     }
 
     /**
@@ -265,7 +234,11 @@ public class Broker extends Node implements Runnable {
                 //registering itself as Leader at loadBalancer.LoadBalancer
                 logger.info("\nSetting this Broker Is Up-to-date.");
                 thisBrokerInfo.setCatchupMode(false);
-                sendUpdateLeaderMessageToLB();
+                Utility.sendUpdateLeaderMessageToLB(loadBalancerConnection, name, thisBrokerInfo.getBrokerId());
+                leaderBrokerName = thisBrokerInfo.getBrokerName();
+                leaderBrokerIP = thisBrokerInfo.getBrokerIP();
+                leaderBrokerPort = thisBrokerInfo.getBrokerPort();
+                leaderBrokerId = thisBrokerInfo.getBrokerId();
                 membershipTable.updateLeader(thisBrokerInfo.getBrokerId());
                 thisBrokerInfo.setLeader(true);
             }

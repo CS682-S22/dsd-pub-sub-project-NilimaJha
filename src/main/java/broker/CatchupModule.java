@@ -10,7 +10,6 @@ import org.apache.logging.log4j.Logger;
 import proto.CatchupPullRequest;
 import proto.ReplicateMessage;
 import util.Constants;
-import util.Utility;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +17,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * Class contains method for Leader Catchup Follower.
+ * After each election syncUp process will be done with the help of this class.
+ * @author nilimajha
+ */
 public class CatchupModule implements Runnable {
     private static final Logger logger = LogManager.getLogger(CatchupModule.class);
     private String brokerName;
@@ -58,7 +62,7 @@ public class CatchupModule implements Runnable {
     }
 
     /**
-     *
+     * Constructor
      * @param brokerName
      * @param thisBrokerInfo
      * @param loadBalancerIp
@@ -77,7 +81,7 @@ public class CatchupModule implements Runnable {
     }
 
     /**
-     *
+     * Constructor
      * @param brokerName
      * @param thisBrokerInfo
      * @param loadBalancerIp
@@ -96,7 +100,8 @@ public class CatchupModule implements Runnable {
     }
 
     /**
-     * 
+     * this method is called by leaderBroker after election and
+     * at it will bring the new leader upToDate.
      */
     public void doSyncUpNewLeader() {
         for (Map.Entry<Integer, DBSnapshot> eachMemberSnapshot : membersSnapshotMap.entrySet()) {
@@ -161,7 +166,7 @@ public class CatchupModule implements Runnable {
     }
 
     /**
-     *
+     * this method is called by all the follower broker after getting startSyncProcess message by the newLeader.
      */
     public void doSyncUpFollower() {
         catchupTopics = new ArrayList<>(dbSnapshot.getTopicSnapshotMap().keySet());
@@ -217,6 +222,9 @@ public class CatchupModule implements Runnable {
         }
     }
 
+    /**
+     * run method is used in the beginning when new broker joins to sync up with the leader.
+     */
     @Override
     public void run() {
         if (brokerConnectionType.equals(Constants.CATCHUP_CONNECTION)) {
@@ -227,7 +235,7 @@ public class CatchupModule implements Runnable {
     }
 
     /**
-     *
+     * method returns byte array form of proto object which will be sent to pull data from another broker.
      * @param topic
      * @return
      */
@@ -240,8 +248,7 @@ public class CatchupModule implements Runnable {
     }
 
     /**
-     *
-     *
+     * this method is called when a new broker joins to catchup with the leader by pulling data from offset 0.
      */
     public void pullDataFromLeaderToCatchup() {
         for (String catchupTopic : catchupTopics) {

@@ -23,14 +23,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
- * Parent class for producer.Producer and consumer.Consumer class.
+ * Parent class for Producer and Consumer class.
  * @author nilimajha
  */
 public class Node {
     private static final Logger logger = LogManager.getLogger(Node.class);
     protected String name;
     protected String nodeType;
-    protected BrokerInfo leaderInfo;
     protected BrokerInfo thisBrokerInfo;
     protected String loadBalancerName;
     protected String loadBalancerIP;
@@ -64,7 +63,8 @@ public class Node {
      * @param loadBalancerIP loadBalancer.LoadBalancer IP
      * @param loadBalancerPort loadBalancer.LoadBalancer port
      */
-    public Node (String name, String nodeType, String thisBrokerIP, int thisBrokerPort, String loadBalancerName, String loadBalancerIP, int loadBalancerPort) {
+    public Node (String name, String nodeType, String thisBrokerIP, int thisBrokerPort, String loadBalancerName,
+                 String loadBalancerIP, int loadBalancerPort) {
         this.name = name;
         this.nodeType = nodeType;
         this.thisBrokerInfo = new BrokerInfo(name, thisBrokerIP, thisBrokerPort);
@@ -112,7 +112,7 @@ public class Node {
                 logger.info("\n[Connected to Load Balancer]");
                 loadBalancerConnection = new Connection(clientSocket); //connection established with the load balancer.
             }  catch (InterruptedException | ExecutionException e) {
-                logger.error("\nException occurred while connecting to broker. Error Message : " + e.getMessage() + " e.cause : " + e.getCause());
+                logger.error("\nException occurred while connecting to LoadBalancer. Error Message : " + e.getMessage() + " e.cause : " + e.getCause());
                 throw new ConnectionClosedException("No Host running on the given IP & port!!!");
             }
         } catch (IOException e) {

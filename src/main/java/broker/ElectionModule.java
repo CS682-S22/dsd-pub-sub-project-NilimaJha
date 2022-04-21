@@ -58,6 +58,11 @@ public class ElectionModule {
         return electionModule;
     }
 
+    /**
+     * method sends request for the current Snapshot from all the member broker from the
+     * MembershipList over the DataConnection with that member..
+     * @return true;
+     */
     public boolean getEachMemberSnapshot() {
         logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Inside getEachMemberSnapshot method.");
         Any snapshotRequest = Any.pack(SnapshotRequest.SnapshotRequestDetails.newBuilder().setMemberId(thisBrokerInfo.getBrokerId()).build());
@@ -96,7 +101,7 @@ public class ElectionModule {
     }
 
     /**
-     *
+     * using this method leader broker sends StartSyncUpMessage to all the follower over the DataConnection.
      */
     public boolean sendStartSyncUpMessage() {
         logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Inside sendStartSyncMessage.");
@@ -172,35 +177,37 @@ public class ElectionModule {
                     loadBalancerConnection = Utility.establishConnection(loadBalancerIp, loadBalancerPort);
                 } catch (ConnectionClosedException e) {
                     logger.info(e.getMessage());
-                    loadBalancerConnection.closeConnection();
                 }
                 if (loadBalancerConnection != null) {
                     logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Connected to loadBalancer.");
                     //sending victory message to the loadBalancer.
-                    int messageId = 0;
-                    Any updateLeaderMessage = Any.pack(UpdateLeaderInfo.UpdateLeaderInfoDetails.newBuilder()
-                            .setMessageId(messageId)
-                            .setRequestSenderType(Constants.BROKER)
-                            .setBrokerName(thisBrokerInfo.getBrokerName())
-                            .setBrokerId(thisBrokerInfo.getBrokerId())
-                            .build());
-                    boolean leaderUpdated = false;
-                    while(!leaderUpdated) {
-                        try {
-                            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Sending updateLeader to the LoadBalancer.");
-                            loadBalancerConnection.send(updateLeaderMessage.toByteArray());
-                            byte[] receivedUpdateResponse = loadBalancerConnection.receive();
-                            if (receivedUpdateResponse != null) {
-                                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Received updateLeader to the LoadBalancer.");
-                                leaderUpdated = true;
-                            }
-                        } catch (ConnectionClosedException e) {
-                            logger.info(e.getMessage());
-                            loadBalancerConnection.closeConnection();
-                        }
-                    }
+                    boolean leaderUpdated = Utility.sendUpdateLeaderMessageToLB(loadBalancerConnection, thisBrokerInfo.getBrokerName(),
+                            thisBrokerInfo.getBrokerId());
                     loadBalancerConnection.closeConnection();
+//                    int messageId = 0;
+//                    Any updateLeaderMessage = Any.pack(UpdateLeaderInfo.UpdateLeaderInfoDetails.newBuilder()
+//                            .setMessageId(messageId)
+//                            .setRequestSenderType(Constants.BROKER)
+//                            .setBrokerName(thisBrokerInfo.getBrokerName())
+//                            .setBrokerId(thisBrokerInfo.getBrokerId())
+//                            .build());
+//                    boolean leaderUpdated = false;
+//                    while(!leaderUpdated) {
+//                        try {
+//                            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Sending updateLeader to the LoadBalancer.");
+//                            loadBalancerConnection.send(updateLeaderMessage.toByteArray());
+//                            byte[] receivedUpdateResponse = loadBalancerConnection.receive();
+//                            if (receivedUpdateResponse != null) {
+//                                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Received updateLeader to the LoadBalancer.");
+//                                leaderUpdated = true;
+//                            }
+//                        } catch (ConnectionClosedException e) {
+//                            logger.info(e.getMessage());
+//                            loadBalancerConnection.closeConnection();
+//                        }
                 }
+
+//                }
             } else {
                 //wait to receive election victory  message from the members to whom election message was sent.
                 if (!victoryMessageReceived) {
@@ -223,7 +230,8 @@ public class ElectionModule {
     }
 
     /**
-     *
+     * this method is used to notify the thread waiting for the receiving
+     * ElectionResponse message from the members with higher MemberId.
      */
     public void notifyElectionResponseReceived() {
         logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Notifying ElectionMessageResponse Received.");
@@ -235,7 +243,8 @@ public class ElectionModule {
     }
 
     /**
-     *
+     * this method is used to notify the thread waiting for the
+     * Victory Message from the members with higher MemberId.
      */
     public void notifyVictoryMessageReceived() {
         logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Notifying VictoryMessage Received.");

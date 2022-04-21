@@ -10,6 +10,7 @@ import model.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import proto.StartSyncUpMessage;
+import proto.UpdateLeaderInfo;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -278,6 +279,32 @@ public class Utility {
                     .build());
             return  startSyncMessage.toByteArray();
         }
+    }
 
+    /**
+     * sends the updateLeaderInfo message to the loadBalancer over the connection provided.
+     */
+    public static boolean sendUpdateLeaderMessageToLB(Connection loadBalancerConnection, String brokerName, int brokerId) {
+        int messageId = 0;
+        Any updateLeaderMessage = Any.pack(UpdateLeaderInfo.UpdateLeaderInfoDetails.newBuilder()
+                .setMessageId(messageId)
+                .setRequestSenderType(Constants.BROKER)
+                .setBrokerName(brokerName)
+                .setBrokerId(brokerId)
+                .build());
+        boolean leaderUpdated = false;
+        while (!leaderUpdated) {
+            try {
+                loadBalancerConnection.send(updateLeaderMessage.toByteArray());
+                byte[] receivedUpdateResponse = loadBalancerConnection.receive();
+                if (receivedUpdateResponse != null) {
+                    leaderUpdated = true;
+                }
+            } catch (ConnectionClosedException e) {
+                logger.info(e.getMessage());
+                loadBalancerConnection.closeConnection();
+            }
+        }
+        return leaderUpdated;
     }
 }

@@ -34,7 +34,6 @@ public class Consumer extends Node {
     private boolean shutdown = false;
     private Timer timer;
     private final Object connectBrokerWaitObj = new Object();
-    private int messageId = 0;
 
     /**
      * Constructor initialises the class attributes and
@@ -78,6 +77,11 @@ public class Consumer extends Node {
         while (!connected) {
             try {
                 connectToLoadBalancer();
+            } catch (ConnectionClosedException e) {
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] LoadBalancer Is not running on the given IP and port. Exiting the system.");
+                System.exit(0);
+            }
+            try {
                 getLeaderAndMembersInfo();
                 logger.info("\nTrying to connect to broker. Name :" + leaderBrokerName + " IP :" + leaderBrokerIP + " Port :" + leaderBrokerPort);
                 connectToBroker();
@@ -86,8 +90,7 @@ public class Consumer extends Node {
                     getInitialSetupDone();
                 }
             } catch (ConnectionClosedException e) {
-                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] LoadBalancer Is not running on the given IP and port. Exiting the system.");
-                System.exit(0);
+                logger.info("\nBroker is not available at given port. Getting broker info from LoadBalancer.");
             }
         }
     }
@@ -122,7 +125,7 @@ public class Consumer extends Node {
      */
     public boolean pullMessageFromBroker1() throws ConnectionClosedException {
         byte[] requestMessagePacket = createPullRequestMessagePacket();
-        logger.info("\n[SEND] Sending pull request to Broker " + leaderBrokerName + " for Offset " + offset.get() + " messageId : " + (messageId - 1));
+        logger.info("\n[SEND] Sending pull request to Broker " + leaderBrokerName + " for Offset " + offset.get());
         boolean success = false;
         try {
             connection.send(requestMessagePacket); // sending pull request to the broker
@@ -260,7 +263,6 @@ public class Consumer extends Node {
                 .setTopic(topic)
                 .setOffset(offset.get())
                 .build());
-        messageId++;
         return any.toByteArray();
     }
 
