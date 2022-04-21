@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * Class that holds all the info.
+ * Class that holds all the information at loadBalancer.
  * @author nilimajha
  */
 public class LoadBalancerDataStore {
@@ -21,15 +21,15 @@ public class LoadBalancerDataStore {
     private final ReentrantReadWriteLock leaderInfoLock = new ReentrantReadWriteLock();
 
     /**
-     *
+     * private constructor to make this class Singleton.
      */
     private LoadBalancerDataStore() {
         membershipTable = MembershipTable.getMembershipTable(Constants.LOAD_BALANCER);
     }
 
     /**
-     *
-     * @return
+     * make sure that onl one instance on this class is created.
+     * @return lodBalancerStore
      */
     public static LoadBalancerDataStore getLoadBalancerDataStore() {
         if (loadBalancerDataStore == null) {
@@ -104,15 +104,15 @@ public class LoadBalancerDataStore {
     }
 
     /**
-     *
-     * @return
+     * returns the random broker info from the memberShipList.
+     * @return brokerInfo
      */
     public BrokerInfo getRandomFollowerBrokerInfo() {
         return membershipTable.getRandomFollowerBrokerInfo();
     }
 
     /**
-     * mark the broker in the membership table with given id as inActive/failed.
+     * remove the member broker from the membership list.
      * @return true
      */
     public boolean markMemberDown(int failedMemberId) {

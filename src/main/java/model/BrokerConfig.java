@@ -1,7 +1,7 @@
 package model;
 
 /**
- * Class to keep all the information from model.BrokerConfig file.
+ * Class to store all the information from BrokerConfig file.
  * @author nilimajha
  */
 public class BrokerConfig {

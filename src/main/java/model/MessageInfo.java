@@ -53,14 +53,8 @@ public class MessageInfo {
         this.loadBalancerIp = loadBalancerIp;
         this.loadBalancerPort = loadBalancerPort;
         this.data = Data.getData(thisBrokerInfo, loadBalancerIp, loadBalancerPort);
-        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] CatchupMode : " + thisBrokerInfo.isInCatchupMode());
         if (thisBrokerInfo.isLeader() || !thisBrokerInfo.isInCatchupMode()) {
             this.upToDate = true;
-            if (thisBrokerInfo.isLeader()) {
-                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] This topic is created on the leader hence upToDate is " + upToDate);
-            } else {
-                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] This topic is created on the broker which is up-to-date hence upToDate is " + upToDate);
-            }
         }
         startTimer();
         fileWriterInitializer(this.topicSegmentFileName);
@@ -68,7 +62,7 @@ public class MessageInfo {
     }
 
     /**
-     *
+     * timer task which flushes the data on the file if needed at regular interval of time.
      */
     private void startTimer() {
         TimerTask timerTask = new TimerTask() {
@@ -136,7 +130,7 @@ public class MessageInfo {
     }
 
     /**
-     * writing inMemory data on the file using FileOutputStream named fileWriter.
+     * writing data directly on the file using FileOutputStream named fileWriter.
      */
     public void writeOnFile(byte[] message) {
         // acquire write lock on the file and flushedMessageOffset ArrayList
@@ -168,10 +162,11 @@ public class MessageInfo {
     }
 
     /**
-     *
+     * handles both type of message i.e. Catchup and Synchronous data.
+     * it decides where to shore it.
      * @param thisMessageOffset
      * @param message
-     * @return
+     * @return true
      */
     public boolean addMessage(String typeOfMessage, long thisMessageOffset, byte[] message) {
         if (!typeOfMessage.equals(Constants.CATCHUP)) {
@@ -190,7 +185,8 @@ public class MessageInfo {
 
     /**
      * appending new message published by publisher to the inMemory buffer ArrayList.
-     * and if after adding new message buffer ArrayList is full then
+     * Also replicate it on the follower.
+     * and if after adding new message in-memory buffer ArrayList is full then
      * flushing those inMemory message to the file on the disk and
      * making it available for the consumer.
      * @param message message to be added
@@ -223,7 +219,7 @@ public class MessageInfo {
     }
 
     /**
-     * reads 10 message from the offset given and returns it.
+     * reads 10 message that are flushed on the file, from the offset given and returns it.
      * @param offSet offset from where data is to be extracted.
      * @return messageBatch
      */
@@ -238,7 +234,6 @@ public class MessageInfo {
         logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Index : " + index);
         // offset is not available
         if (index == -1) {
-//        if (index == -1 && (flushedMessageOffset.size() == 0 || currentOffset.get() > flushedMessageOffset.get(flushedMessageOffset.size() - 1))) {
             logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Offset " + offSet + " is not yet available.");
             persistentStorageAccessLock.readLock().unlock();
             logger.info("\nReturning messageBatch -" + messageBatch);
@@ -289,7 +284,8 @@ public class MessageInfo {
     }
 
     /**
-     * reads 10 message from the offset given and returns it.
+     * reads 10 message from the offset given at first from file, if not enough message available then
+     * from in memory buffer ArrayList. and returns it.
      * @param offSet offset from where data is to be extracted.
      * @return messageBatch
      */
@@ -327,9 +323,8 @@ public class MessageInfo {
     }
 
     /**
-     * this method will keep running in a loop.
-     * inside the loop it will first sleep for timeout amount of time,
-     * then will wake up and flushes the in-memory data on to the file if needed.
+     * this method is called from a TimerTask thread.
+     * this method flushes the in-memory data on to the file if needed.
      */
     private void flushIfNeeded() {
         timer.cancel();
@@ -354,7 +349,7 @@ public class MessageInfo {
     }
 
     /**
-     *
+     * getter for attribute upToDate.
      * @return true/false
      */
     public boolean getIsUpToDate() {
@@ -362,7 +357,8 @@ public class MessageInfo {
     }
 
     /**
-     *
+     * setter for the attribute upToDate.
+     * @param upToDate
      */
     public void setUpToDate(boolean upToDate) {
         this.upToDate = upToDate;

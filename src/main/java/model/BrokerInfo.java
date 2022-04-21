@@ -12,7 +12,7 @@ import util.Constants;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * class keeps information of broker.
+ * Class keeps information of broker.
  * @author nilimajha
  */
 public class BrokerInfo {
@@ -160,6 +160,7 @@ public class BrokerInfo {
 
     /**
      * send message over the dataConnection
+     * mostly used for the replication purpose.
      */
     public void sendOverDataConnection(byte[] message, long expectedAckNumber) {
         dataConnectionLock.writeLock().lock();
@@ -204,6 +205,8 @@ public class BrokerInfo {
 
     /**
      * send message over the dataConnection
+     * used for sending election messages or sync pull requests etc.
+     * @param message
      */
     public void sendOverDataConnection(byte[] message) {
         dataConnectionLock.writeLock().lock();
@@ -220,7 +223,7 @@ public class BrokerInfo {
     }
 
     /**
-     * receives data over connection and returns the message.
+     * receives data over connection and returns the receivedMessage.
      * if connection is closed or null or connection gets closed in between then return null.
      * @return byte[] message / null
      */
@@ -248,8 +251,8 @@ public class BrokerInfo {
     }
 
     /**
-     *
-     * @return
+     * method returns the status of the dataConnection between two broker.
+     * @return true/false
      */
     public boolean isDataConnectionConnected() {
         return (dataConnection != null && dataConnection.isConnected());

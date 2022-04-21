@@ -38,7 +38,8 @@ public class ConfigInformation {
      * @param BrokerIP
      * @param BrokerPort
      */
-    public ConfigInformation(String Name, String Type, ArrayList<String> ConnectTo, String FileName, String TopicName, String BrokerIP, int BrokerPort) {
+    public ConfigInformation(String Name, String Type, ArrayList<String> ConnectTo, String FileName,
+                             String TopicName, String BrokerIP, int BrokerPort) {
         this.Name = Name;
         this.Type = Type;
         this.ConnectTo = ConnectTo;
@@ -59,7 +60,8 @@ public class ConfigInformation {
      * @param LoadBalancerIP
      * @param LoadBalancerPort
      */
-    public ConfigInformation(String Name, String Type, ArrayList<String> ConnectTo, String FileName, String TopicName, String LoadBalancerName, String LoadBalancerIP, int LoadBalancerPort) {
+    public ConfigInformation(String Name, String Type, ArrayList<String> ConnectTo, String FileName,
+                             String TopicName, String LoadBalancerName, String LoadBalancerIP, int LoadBalancerPort) {
         this.Name = Name;
         this.Type = Type;
         this.ConnectTo = ConnectTo;

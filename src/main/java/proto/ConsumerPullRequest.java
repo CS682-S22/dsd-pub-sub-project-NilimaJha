@@ -35,12 +35,6 @@ public final class ConsumerPullRequest {
      * @return The offset.
      */
     long getOffset();
-
-    /**
-     * <code>uint32 messageId = 3;</code>
-     * @return The messageId.
-     */
-    int getMessageId();
   }
   /**
    * Protobuf type {@code tutorial.ConsumerPullRequestDetails}
@@ -97,11 +91,6 @@ public final class ConsumerPullRequest {
             case 16: {
 
               offset_ = input.readUInt64();
-              break;
-            }
-            case 24: {
-
-              messageId_ = input.readUInt32();
               break;
             }
             default: {
@@ -185,17 +174,6 @@ public final class ConsumerPullRequest {
       return offset_;
     }
 
-    public static final int MESSAGEID_FIELD_NUMBER = 3;
-    private int messageId_;
-    /**
-     * <code>uint32 messageId = 3;</code>
-     * @return The messageId.
-     */
-    @java.lang.Override
-    public int getMessageId() {
-      return messageId_;
-    }
-
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -216,9 +194,6 @@ public final class ConsumerPullRequest {
       if (offset_ != 0L) {
         output.writeUInt64(2, offset_);
       }
-      if (messageId_ != 0) {
-        output.writeUInt32(3, messageId_);
-      }
       unknownFields.writeTo(output);
     }
 
@@ -234,10 +209,6 @@ public final class ConsumerPullRequest {
       if (offset_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
           .computeUInt64Size(2, offset_);
-      }
-      if (messageId_ != 0) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(3, messageId_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -258,8 +229,6 @@ public final class ConsumerPullRequest {
           .equals(other.getTopic())) return false;
       if (getOffset()
           != other.getOffset()) return false;
-      if (getMessageId()
-          != other.getMessageId()) return false;
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -276,8 +245,6 @@ public final class ConsumerPullRequest {
       hash = (37 * hash) + OFFSET_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getOffset());
-      hash = (37 * hash) + MESSAGEID_FIELD_NUMBER;
-      hash = (53 * hash) + getMessageId();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -415,8 +382,6 @@ public final class ConsumerPullRequest {
 
         offset_ = 0L;
 
-        messageId_ = 0;
-
         return this;
       }
 
@@ -445,7 +410,6 @@ public final class ConsumerPullRequest {
         proto.ConsumerPullRequest.ConsumerPullRequestDetails result = new proto.ConsumerPullRequest.ConsumerPullRequestDetails(this);
         result.topic_ = topic_;
         result.offset_ = offset_;
-        result.messageId_ = messageId_;
         onBuilt();
         return result;
       }
@@ -500,9 +464,6 @@ public final class ConsumerPullRequest {
         }
         if (other.getOffset() != 0L) {
           setOffset(other.getOffset());
-        }
-        if (other.getMessageId() != 0) {
-          setMessageId(other.getMessageId());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -639,37 +600,6 @@ public final class ConsumerPullRequest {
         onChanged();
         return this;
       }
-
-      private int messageId_ ;
-      /**
-       * <code>uint32 messageId = 3;</code>
-       * @return The messageId.
-       */
-      @java.lang.Override
-      public int getMessageId() {
-        return messageId_;
-      }
-      /**
-       * <code>uint32 messageId = 3;</code>
-       * @param value The messageId to set.
-       * @return This builder for chaining.
-       */
-      public Builder setMessageId(int value) {
-        
-        messageId_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>uint32 messageId = 3;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearMessageId() {
-        
-        messageId_ = 0;
-        onChanged();
-        return this;
-      }
       @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
@@ -737,10 +667,10 @@ public final class ConsumerPullRequest {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\031ConsumerPullRequest.proto\022\010tutorial\"N\n" +
+      "\n\031ConsumerPullRequest.proto\022\010tutorial\";\n" +
       "\032ConsumerPullRequestDetails\022\r\n\005topic\030\001 \001" +
-      "(\t\022\016\n\006offset\030\002 \001(\004\022\021\n\tmessageId\030\003 \001(\rB\034\n" +
-      "\005protoB\023ConsumerPullRequestb\006proto3"
+      "(\t\022\016\n\006offset\030\002 \001(\004B\034\n\005protoB\023ConsumerPul" +
+      "lRequestb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -751,7 +681,7 @@ public final class ConsumerPullRequest {
     internal_static_tutorial_ConsumerPullRequestDetails_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tutorial_ConsumerPullRequestDetails_descriptor,
-        new java.lang.String[] { "Topic", "Offset", "MessageId", });
+        new java.lang.String[] { "Topic", "Offset", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

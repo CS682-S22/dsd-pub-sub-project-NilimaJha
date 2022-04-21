@@ -3,7 +3,7 @@ package model;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- *
+ * object to hold snapshot of topic.
  * @author nilimajha
  */
 public class TopicSnapshot {
@@ -11,7 +11,7 @@ public class TopicSnapshot {
     private AtomicLong offset;
 
     /**
-     *
+     * Constructor
      * @param topic
      * @param offset
      */

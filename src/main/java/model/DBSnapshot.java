@@ -2,6 +2,10 @@ package model;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Class is used to store the snapshot of the DB.
+ * @author nilimajha
+ */
 public class DBSnapshot {
     private int memberId;
     private ConcurrentHashMap<String, TopicSnapshot> topicSnapshotMap = new ConcurrentHashMap<>();
@@ -15,23 +19,23 @@ public class DBSnapshot {
     }
 
     /**
-     *
-     * @return
+     * getter for the attribute memberId.
+     * @return memberId
      */
     public int getMemberId() {
         return memberId;
     }
 
     /**
-     *
-     * @return
+     * getter for the attribute topicSnapshotMap.
+     * @return topicSnapshotMap
      */
     public ConcurrentHashMap<String, TopicSnapshot> getTopicSnapshotMap() {
         return topicSnapshotMap;
     }
 
     /**
-     * add new snapshot of a topic.
+     * add new topic snapshot.
      * @param topic
      * @param topicSnapshot
      */

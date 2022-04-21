@@ -10,5 +10,4 @@ message MessageFromBrokerDetails {
   string topic = 2;
   uint64 totalMessage = 3;
   repeated bytes actualMessage = 4;
-  uint32 messageId = 5;
 }

@@ -1,9 +1,14 @@
 package model;
 
+/**
+ * Class to store loadBalancer Information from config file.
+ * @author nilimajha
+ */
 public class LoadBalancerConfig {
     private String Name;
     private String LoadBalancerIP;
     private int LoadBalancerPort;
+
     /**
      * Constructor to initialise class attributes
      * @param Name

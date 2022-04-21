@@ -8,5 +8,4 @@ option java_outer_classname = "ConsumerPullRequest";
 message ConsumerPullRequestDetails {
   string topic = 1;
   uint64 offset = 2;
-  uint32 messageId = 3;
 }

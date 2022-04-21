@@ -153,7 +153,7 @@ public class Consumer extends Node {
                     if (messageFromBrokerDetails.getType().equals(Constants.MESSAGE)) {
                         logger.info("\nmessageReceived.5a");
                         logger.info("\n[RECEIVE] Total message received from broker in one response = "
-                                + messageFromBrokerDetails.getActualMessageCount() + " messageId : " + messageFromBrokerDetails.getMessageId());
+                                + messageFromBrokerDetails.getActualMessageCount());
                         for (int index = 0; index < messageFromBrokerDetails.getActualMessageCount(); index++) {
                             byte[] actualMessageBytes = messageFromBrokerDetails.getActualMessage(index).toByteArray();
                             try {
@@ -170,7 +170,7 @@ public class Consumer extends Node {
                         success = true;
                     } else {
                         logger.info("\nmessageReceived.5b");
-                        logger.info("\n[Received] message type : " + messageFromBrokerDetails.getType() + " messageId : " + messageFromBrokerDetails.getMessageId());
+                        logger.info("\n[Received] message type : " + messageFromBrokerDetails.getType());
                     }
                 }
             } catch (InvalidProtocolBufferException e) {
@@ -333,7 +333,6 @@ public class Consumer extends Node {
                 .ConsumerPullRequestDetails.newBuilder()
                 .setTopic(topic)
                 .setOffset(offset.get())
-                .setMessageId(messageId)
                 .build());
         messageId++;
         return any.toByteArray();
@@ -464,11 +463,4 @@ public class Consumer extends Node {
     public boolean isShutdown() {
         return shutdown;
     }
-
-//    /**
-//     *
-//     */
-//    public void shutdown() {
-//        this.shutdown = true;
-//    }
 }

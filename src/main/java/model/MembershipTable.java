@@ -12,7 +12,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Membership table keeps the information of all the broker members.
+ * Membership table keeps the information of all the broker members and also the leader.
+ * It is a singleton class.
  * @author nilimajha
  */
 public class MembershipTable {
@@ -64,14 +65,16 @@ public class MembershipTable {
     }
 
     /**
-     *
+     * add the dataConnection connection fot the member with given memberId.
+     * @param memberId
+     * @param dataConnection
      */
     public void addDataConnectionToMember(int memberId, Connection dataConnection) {
         membershipInfo.get(memberId).setDataConnection(dataConnection);
     }
 
     /**
-     * sets the isActive attribute of the brokerInfo associated with the given id as false.
+     * remove the member from the membershipList.
      * @param id ID of broker.Broker
      */
     public void markMemberFailed(int id) {
@@ -113,7 +116,7 @@ public class MembershipTable {
 
     /**
      * returns the current leader information from the membershipTable.
-     * @return model.BrokerInfo leader broker info.
+     * @return BrokerInfo leader broker info.
      */
     public BrokerInfo getLeaderInfo() {
         logger.info("\nSize : " + membershipInfo.size() + " LeaderId : " + leaderId);
@@ -170,8 +173,9 @@ public class MembershipTable {
     }
 
     /**
-     *
-     * @return
+     * used at loadBalancer to return one of the follower broker information
+     * to the consumer, To facilitate read from follower.
+     * @return BrokerInfo
      */
     public BrokerInfo getRandomFollowerBrokerInfo() {
         Random rand = new Random();
