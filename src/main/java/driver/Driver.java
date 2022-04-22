@@ -116,45 +116,43 @@ public class Driver {
             logger.info("\n[Now Sending Actual data]");
             try (BufferedReader bufferedReader = Utility.fileReaderInitializer(configInformation.getFileName())) {
                 String eachLine = bufferedReader.readLine();
-                String topic = null;
+//                String topic = null;
                 int lineNo = 1;
                 Scanner sc = new Scanner(System.in);
                 System.out.println("\nEnter Command: ");
                 String cmd = sc.nextLine();
                 while (!cmd.equals("exit")) {
-                    // Running the code until the input command is exit.
+//                     Running the code until the input command is exit.
                     if (cmd.length() == 0 && eachLine != null) {
-                        if (configInformation.getFileName().equals("Apache.log")) {
-                            String[] messagePart = eachLine.split("] \\[");
-                            if (messagePart.length != 1) {
-                                if (messagePart[1].equals("error")) {
-                                    topic = "Apache_error";
-                                } else {
-                                    topic = "Apache_notice";
-                                }
-                            }
-                        } else if (configInformation.getFileName().equals("Zookeeper.log")) {
-                            topic = "Zookeeper";
-                        } else if (configInformation.getFileName().equals("Hadoop.log")) {
-                            topic = "Hadoop";
-                        } else {
-                            topic = "Mac";
-                        }
+                        produceEachMessage(configInformation, producer, eachLine, lineNo);
 
-                        logger.info("\n[Now Sending Actual data] [Topic : " + topic + "]");
-                        producer.send(topic, eachLine.getBytes());    // send data
-
-                        if (configInformation.getFileName().equals("Apache.log")) {
-                            String[] messagePart = eachLine.split("] \\[");
-                            if (messagePart.length != 1) {
-                                topic = "Apache";
-                                logger.info("produced : " + producer.send(topic, eachLine.getBytes()));  // send data
-                            }
-                        }
-
-                        logger.info("LineNumber : " + lineNo);
-                        lineNo++;
+//                        if (configInformation.getFileName().equals("Zookeeper.log")) {
+//                            topic = "Zookeeper";
+//                        } else if (configInformation.getFileName().equals("Hadoop.log")) {
+//                            topic = "Hadoop";
+//                        } else {
+//                            topic = "Mac";
+//                        }
+//
+//                        logger.info("\n[Now Sending Actual data] [Topic : " + topic + "]");
+//                        producer.send(topic, eachLine.getBytes());    // send data
+//
+////                        if (configInformation.getFileName().equals("Apache.log")) {
+////                            String[] messagePart = eachLine.split("] \\[");
+////                            if (messagePart.length != 1) {
+////                                topic = "Apache";
+////                                logger.info("produced : " + producer.send(topic, eachLine.getBytes()));  // send data
+////                            }
+////                        }
+//
+//                        logger.info("LineNumber : " + lineNo);
+//                        lineNo++;
                         eachLine = bufferedReader.readLine();   // reading next line from the file
+                    } else if (cmd.equals("start")){
+                        while (eachLine != null) {
+                            produceEachMessage(configInformation, producer, eachLine, lineNo);
+                            eachLine = bufferedReader.readLine();
+                        }
                     }
                     System.out.println("\nEnter Command: ");
                     cmd = sc.nextLine();
@@ -169,6 +167,35 @@ public class Driver {
             }
         }
         producer.close();
+    }
+
+    /**
+     *
+     */
+    public static void produceEachMessage(ConfigInformation configInformation, Producer producer, String eachLine, long lineNo) {
+        String topic;
+        if (configInformation.getFileName().equals("Zookeeper.log")) {
+            topic = "Zookeeper";
+        } else if (configInformation.getFileName().equals("Hadoop.log")) {
+            topic = "Hadoop";
+        } else {
+            topic = "Mac";
+        }
+        logger.info("\n[Now Sending Actual data] [Topic : " + topic + "]");
+        producer.send(topic, eachLine.getBytes());    // send data
+
+//                        if (configInformation.getFileName().equals("Apache.log")) {
+//                            String[] messagePart = eachLine.split("] \\[");
+//                            if (messagePart.length != 1) {
+//                                topic = "Apache";
+//                                logger.info("produced : " + producer.send(topic, eachLine.getBytes()));  // send data
+//                            }
+//                        }
+
+        logger.info("LineNumber : " + lineNo);
+        lineNo++;
+//        eachLine = bufferedReader.readLine();   // reading next line from the file
+//        }
     }
 
     /**

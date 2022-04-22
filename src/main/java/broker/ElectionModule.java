@@ -36,7 +36,6 @@ public class ElectionModule {
     private static ElectionModule electionModule = null;
     private final Object electionResponseWaitObj = new Object();
     private final Object victoryMessageWaitObj = new Object();
-    private final Object snapshotWaitObj = new Object();
 
     /**
      * private Constructor as this class is singleton.
@@ -64,15 +63,15 @@ public class ElectionModule {
      * @return true;
      */
     public boolean getEachMemberSnapshot() {
-        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Inside getEachMemberSnapshot method.");
+//        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Inside getEachMemberSnapshot method.");
         Any snapshotRequest = Any.pack(SnapshotRequest.SnapshotRequestDetails.newBuilder().setMemberId(thisBrokerInfo.getBrokerId()).build());
 
         for (Map.Entry<Integer, BrokerInfo> eachMember : membershipTable.getMembershipInfo().entrySet()) {
-            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Sending Snapshot request over data connection to member with Id :" + eachMember.getKey());
+            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Sending Snapshot request over Data-Connection to member with Id :" + eachMember.getKey());
             eachMember.getValue().sendOverDataConnection(snapshotRequest.toByteArray());
             byte[] receivedMessage = eachMember.getValue().receiveOverDataConnection();
             if (receivedMessage != null) {
-                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Received DBSnapshot over DataConnection");
+                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Received DBSnapshot from member with Id : " + eachMember.getKey());
                 Any any = null;
                 try {
                     any = Any.parseFrom(receivedMessage);
@@ -104,13 +103,13 @@ public class ElectionModule {
      * using this method leader broker sends StartSyncUpMessage to all the follower over the DataConnection.
      */
     public boolean sendStartSyncUpMessage() {
-        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Inside sendStartSyncMessage.");
+//        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Inside sendStartSyncMessage.");
         Data data = Data.getData(thisBrokerInfo, loadBalancerIp, loadBalancerPort);
         DBSnapshot myDBSnapshot = data.getSnapshot(); // thisBrokerDataSnapshot.
         byte[] startSyncUpMessage = Utility.getDBSnapshotMessageBytes(myDBSnapshot, thisBrokerInfo.getBrokerId(), Constants.START_SYNC);
-        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] MemberList : " + membersSnapshotMap.entrySet().size());
+//        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] MemberList : " + membersSnapshotMap.entrySet().size());
         for (Map.Entry<Integer, DBSnapshot> eachMemberSnapshot : membersSnapshotMap.entrySet()) {
-            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Sending StartSyncMessage to Member : " + eachMemberSnapshot.getKey());
+            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Sending Start Sync-Up Message to Member with Id : " + eachMemberSnapshot.getKey());
             membershipTable.getMembershipInfo().get(eachMemberSnapshot.getKey()).sendOverDataConnection(startSyncUpMessage);
         }
         return true;
@@ -129,7 +128,7 @@ public class ElectionModule {
             for (Map.Entry<Integer, BrokerInfo> eachMember : membershipTable.getMembershipInfo().entrySet()) {
                 if (eachMember.getKey() < thisBrokerInfo.getBrokerId()) {
                     // send the election message
-                    logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Sending ElectionMessage to Member whose Id is " + eachMember.getKey());
+                    logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Sending ElectionMessage to Member with Id " + eachMember.getKey());
                    eachMember.getValue().sendOverHeartbeatConnection(any.toByteArray());
                 }
             }
@@ -137,14 +136,14 @@ public class ElectionModule {
             //wait to receive election response message from the members to whom election message was sent.
             synchronized (electionResponseWaitObj) {
                 try {
-                    logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " waiting for ElectionResponse from Member.");
+                    logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Waiting for Election Response Message from Member.");
                     electionResponseWaitObj.wait(60000);
                 } catch (InterruptedException e) {
-                    logger.error("\n[ThreadId: " + Thread.currentThread().getId() + " InterruptedException occurred. Error Message : " + e.getMessage());
+                    logger.error("\n[ThreadId: " + Thread.currentThread().getId() + "] InterruptedException occurred. Error Message : " + e.getMessage());
                 }
             }
             if (!electionResponseReceived && !victoryMessageReceived) {
-                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " No response received for the election message. Declaring itself as leader.");
+//                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] No Victory Message or Response Message for the Election message is received. Declaring itself as leader.");
                 // no response received. send victory message
                 Any victoryMessage = Any.pack(VictoryMessage.VictoryMessageDetails.newBuilder()
                         .setNewLeaderId(thisBrokerInfo.getBrokerId())
@@ -155,15 +154,15 @@ public class ElectionModule {
 
                 membershipTable.updateLeader(thisBrokerInfo.getBrokerId());
                 thisBrokerInfo.setLeader(true);
-                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Sending victory message to all the members.");
+                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] No Victory Message or Response Message for the Election message is received. Sending Victory message to all the members.");
                 for (Map.Entry<Integer, BrokerInfo> eachMember : membershipTable.getMembershipInfo().entrySet()) {
                     eachMember.getValue().sendOverHeartbeatConnection(victoryMessage.toByteArray());
                 }
 
                 // starting syncUpProcess.
-                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Starting catchup. setting catchup true.");
+                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Starting Catchup Process. Setting Catchup status true.");
                 thisBrokerInfo.setCatchupMode(true);
-                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Calling getEachMemberSnapshot method.");
+//                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Calling getEachMemberSnapshot method.");
                 getEachMemberSnapshot(); // getting eachMember's current snapshot.
                 CatchupModule catchupModule = new CatchupModule(thisBrokerInfo.getBrokerName(), thisBrokerInfo, loadBalancerIp,
                 loadBalancerPort, membersSnapshotMap);
@@ -171,7 +170,7 @@ public class ElectionModule {
                 thisBrokerInfo.setCatchupMode(false);
                 sendStartSyncUpMessage(); // sending each member message saying sync done.
 
-                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Connecting to loadBalancer.");
+//                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Connecting to Load Balancer.");
                 Connection loadBalancerConnection = null;
                 try {
                     loadBalancerConnection = Utility.establishConnection(loadBalancerIp, loadBalancerPort);
@@ -179,50 +178,26 @@ public class ElectionModule {
                     logger.info(e.getMessage());
                 }
                 if (loadBalancerConnection != null) {
-                    logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Connected to loadBalancer.");
+//                    logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Connected to loadBalancer.");
                     //sending victory message to the loadBalancer.
                     boolean leaderUpdated = Utility.sendUpdateLeaderMessageToLB(loadBalancerConnection, thisBrokerInfo.getBrokerName(),
                             thisBrokerInfo.getBrokerId());
-                    logger.info("\n");
                     loadBalancerConnection.closeConnection();
-//                    int messageId = 0;
-//                    Any updateLeaderMessage = Any.pack(UpdateLeaderInfo.UpdateLeaderInfoDetails.newBuilder()
-//                            .setMessageId(messageId)
-//                            .setRequestSenderType(Constants.BROKER)
-//                            .setBrokerName(thisBrokerInfo.getBrokerName())
-//                            .setBrokerId(thisBrokerInfo.getBrokerId())
-//                            .build());
-//                    boolean leaderUpdated = false;
-//                    while(!leaderUpdated) {
-//                        try {
-//                            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Sending updateLeader to the LoadBalancer.");
-//                            loadBalancerConnection.send(updateLeaderMessage.toByteArray());
-//                            byte[] receivedUpdateResponse = loadBalancerConnection.receive();
-//                            if (receivedUpdateResponse != null) {
-//                                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Received updateLeader to the LoadBalancer.");
-//                                leaderUpdated = true;
-//                            }
-//                        } catch (ConnectionClosedException e) {
-//                            logger.info(e.getMessage());
-//                            loadBalancerConnection.closeConnection();
-//                        }
                 }
-
-//                }
             } else {
                 //wait to receive election victory  message from the members to whom election message was sent.
                 if (!victoryMessageReceived) {
                     synchronized (victoryMessageWaitObj) {
                         try {
-                            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " waiting for VictoryMessage from new leader.");
+                            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Waiting for VictoryMessage from New Leader.");
                             victoryMessageWaitObj.wait(60000);
                         } catch (InterruptedException e) {
-                            logger.error("\n[ThreadId: " + Thread.currentThread().getId() + " InterruptedException occurred. Error Message : " + e.getMessage());
+                            logger.error("\n[ThreadId: " + Thread.currentThread().getId() + "] InterruptedException occurred. Error Message : " + e.getMessage());
                         }
                     }
                 }
                 if (!victoryMessageReceived) {
-                    logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " No Victory message received. Means No leader elected. Starting election.");
+                    logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] No Victory message received. Restarting the election.");
                     startElection();
                 }
             }
@@ -235,11 +210,11 @@ public class ElectionModule {
      * ElectionResponse message from the members with higher MemberId.
      */
     public void notifyElectionResponseReceived() {
-        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Notifying ElectionMessageResponse Received.");
+//        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Notifying ElectionMessageResponse Received.");
         synchronized (electionResponseWaitObj) {
+            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Notifying thread waiting for ElectionMessageResponse.");
             //logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] Notifying the thread about timeout.");
             electionResponseWaitObj.notify();
-            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Notified ElectionMessageResponse Received.");
         }
     }
 
@@ -248,15 +223,13 @@ public class ElectionModule {
      * Victory Message from the members with higher MemberId.
      */
     public void notifyVictoryMessageReceived() {
-        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Notifying VictoryMessage Received.");
         synchronized (victoryMessageWaitObj) {
-            //logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] Notifying the thread about timeout.");
+            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Notifying thread waiting for VictoryMessage.");
             victoryMessageWaitObj.notify();
-            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Notified VictoryMessage Received to thread waiting for victory message.");
         }
         synchronized (electionResponseWaitObj) {
+            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Notifying thread waiting for ElectionMessageResponse as Victory message received.");
             electionResponseWaitObj.notify();
-            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Notified VictoryMessage Received to the thread waiting for response message.");
         }
     }
 
@@ -265,7 +238,7 @@ public class ElectionModule {
      * @param electionStatus true/false
      */
     public void setElectionStatus(boolean electionStatus) {
-        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Setting election status to be " + electionStatus);
+        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Setting election status to be " + electionStatus);
         this.electionStatus = electionStatus;
     }
 
@@ -274,7 +247,7 @@ public class ElectionModule {
      * @param electionResponseReceived true/false
      */
     public void setElectionResponseReceived(boolean electionResponseReceived) {
-        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Setting election status to be " + electionStatus);
+//        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Setting election status to be " + electionStatus);
         this.electionResponseReceived = electionResponseReceived;
     }
 
@@ -283,7 +256,7 @@ public class ElectionModule {
      * @param victoryMessageReceived true/false
      */
     public void setVictoryMessageReceived(boolean victoryMessageReceived) {
-        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Setting Victory Message Received status to be : " + victoryMessageReceived);
+//        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Setting Victory Message Received status to be : " + victoryMessageReceived);
         this.victoryMessageReceived = victoryMessageReceived;
     }
 
@@ -309,7 +282,7 @@ public class ElectionModule {
      * @return electionStatus true/false
      */
     public boolean getElectionStatus() {
-        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + " Returning election status which is " + electionStatus);
+        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Returning election status which is " + electionStatus);
         return electionStatus;
     }
 }

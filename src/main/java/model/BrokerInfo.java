@@ -167,9 +167,9 @@ public class BrokerInfo {
         if (dataConnection != null && dataConnection.isConnected()) {
             int retries = 0;
             boolean sentSuccessful = false;
+            logger.info("[ThreadId : " + Thread.currentThread().getId() + "] Sending data to broker with Id " + brokerId + " over DataConnection.");
             while (!sentSuccessful && retries < Constants.MAX_RETRIES) {
                 try {
-                    logger.info("[ThreadId : " + Thread.currentThread().getId() + "] sending data using DataConnection. retries : " + retries);
                     dataConnection.send(message);
                     // receive ack
                     byte[] receivedACK = dataConnection.receive();
@@ -178,24 +178,24 @@ public class BrokerInfo {
                         if (any.is(ReplicateSuccessACK.ReplicateSuccessACKDetails.class)) {
                             ReplicateSuccessACK.ReplicateSuccessACKDetails replicateSuccessACK =
                                     any.unpack(ReplicateSuccessACK.ReplicateSuccessACKDetails.class);
-                            logger.info("[ThreadId : " + Thread.currentThread().getId() + "] Received replicated ack.");
+//                            logger.info("[ThreadId : " + Thread.currentThread().getId() + "] Received replicated ack.");
                             if (replicateSuccessACK.getAckNum() == expectedAckNumber) {
                                 sentSuccessful = true;
-                                logger.info("[ThreadId : " + Thread.currentThread().getId() + "] received ack was correct.");
+//                                logger.info("[ThreadId : " + Thread.currentThread().getId() + "] received ack was correct.");
                                 break;
                             }
                             retries++;
                         }
                     } else {
                         retries++;
-                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] incremented retries -> " + retries);
+//                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] incremented retries -> " + retries);
                     }
                 } catch (ConnectionClosedException e) {
-                    logger.info("\n=====>" + e.getMessage());
+                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] " + e.getMessage());
                     dataConnection.closeConnection();
                     retries++;
                 } catch (InvalidProtocolBufferException e) {
-                    logger.error("\nInvalidProtocolBufferException occurred while decoding receivedAck for replication message. Error Message : " + e.getMessage());
+                    logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] InvalidProtocolBufferException occurred while decoding receivedAck for replication message. Error Message : " + e.getMessage());
                 }
             }
 
@@ -212,10 +212,10 @@ public class BrokerInfo {
         dataConnectionLock.writeLock().lock();
         if (dataConnection != null && dataConnection.isConnected()) {
             try {
-                logger.info("\n->Sending Data now over dataConnection.");
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Sending data to broker with Id " + brokerId + " over DataConnection.");
                 dataConnection.send(message);
             } catch (ConnectionClosedException e) {
-                logger.info("\n" + e.getMessage());
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] " + e.getMessage());
                 dataConnection.closeConnection();
             }
         }
@@ -229,7 +229,7 @@ public class BrokerInfo {
      */
     public byte[] receiveOverDataConnection() {
         dataConnectionLock.writeLock().lock();
-        logger.info("\n->Inside ReceiveOverDataConnection.");
+//        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Inside ReceiveOverDataConnection.");
         byte[] receivedMessage = null;
         if (dataConnection != null && dataConnection.isConnected()) {
             boolean dataReceived = false;
@@ -237,12 +237,12 @@ public class BrokerInfo {
                 while (!dataReceived) {
                     receivedMessage = dataConnection.receive();
                     if (receivedMessage != null) {
-                        logger.info("\nReceived Data now over dataConnection.");
+                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Received Data from broker with Id " + brokerId + " over DataConnection.");
                         dataReceived = true;
                     }
                 }
             } catch (ConnectionClosedException e) {
-                logger.info("\n" + e.getMessage());
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] " + e.getMessage());
                 dataConnection.closeConnection();
             }
         }

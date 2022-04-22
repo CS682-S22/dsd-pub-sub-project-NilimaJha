@@ -55,9 +55,9 @@ public class LoadBalancerDataStore {
      */
     public void addNewMemberIntoMembershipTable(int memberId, String memberName, String memberIP, int memberPort) {
         BrokerInfo brokerInfo = new BrokerInfo(memberName, memberId, memberIP, memberPort);
-        logger.info("\nAdding new broker into the memberShipList. model.LoadBalancerDataStore.");
-        logger.info("\nAdded Id : " + brokerInfo.getBrokerId() + " name : " + brokerInfo.getBrokerName() +
-                " IP : " + brokerInfo.getBrokerIP() + " port : " + brokerInfo.getBrokerPort());
+//        logger.info("\nAdding new broker into the memberShipList. model.LoadBalancerDataStore.");
+//        logger.info("\nAdded Id : " + brokerInfo.getBrokerId() + " name : " + brokerInfo.getBrokerName() +
+//                " IP : " + brokerInfo.getBrokerIP() + " port : " + brokerInfo.getBrokerPort());
         membershipTable.addMember(memberId, brokerInfo);
     }
 
@@ -94,8 +94,8 @@ public class LoadBalancerDataStore {
         ConcurrentHashMap<Integer, BrokerInfo> allMembersInfo = membershipTable.getMembershipInfo();
         for (Map.Entry<Integer, BrokerInfo> eachEntry : allMembersInfo.entrySet()) {
                 activeBrokersInfo.add(eachEntry.getValue());
-            logger.info("\nGetting Id : " + eachEntry.getValue().getBrokerId() + " name : " + eachEntry.getValue().getBrokerName() +
-                    " IP : " + eachEntry.getValue().getBrokerIP() + " port : " + eachEntry.getValue().getBrokerPort());
+//            logger.info("\nGetting Id : " + eachEntry.getValue().getBrokerId() + " name : " + eachEntry.getValue().getBrokerName() +
+//                    " IP : " + eachEntry.getValue().getBrokerIP() + " port : " + eachEntry.getValue().getBrokerPort());
         }
         leaderInfoLock.readLock().unlock();
         return activeBrokersInfo;

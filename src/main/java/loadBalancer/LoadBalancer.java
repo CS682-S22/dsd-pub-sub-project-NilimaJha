@@ -48,16 +48,13 @@ public class LoadBalancer {
      */
     public void startLoadBalancer() {
         AsynchronousServerSocketChannel serverSocket = null;
-        System.out.println("Inside Start loadBalancer...");
+//        System.out.println("Inside Start loadBalancer...");
         try {
             serverSocket = AsynchronousServerSocketChannel.open();
             serverSocket.bind(new InetSocketAddress(loadBalancerIP, loadBalancerPort));
             // keeps on running when shutdown is false
             while (!shutdown) {
-                logger.info("\n[Thread Id : " + Thread.currentThread().getId() +
-                        " [loadBalancer.LoadBalancer : " + loadBalancerName +
-                        " LoadBalancerServer is listening on IP : " + loadBalancerIP +
-                        " & Port : " + loadBalancerPort);
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] [INFO] " + loadBalancerName + " Server is listening on IP : " + loadBalancerIP + " & Port : " + loadBalancerPort);
                 Future<AsynchronousSocketChannel> acceptFuture = serverSocket.accept();
                 AsynchronousSocketChannel socketChannel = null;
                 try {
@@ -66,7 +63,7 @@ public class LoadBalancer {
                         return;
                     }
                 } catch (InterruptedException | ExecutionException e) {
-                    logger.error("\nException while establishing connection. Error Message : " + e.getMessage());
+                    logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] Exception while establishing connection. Error Message : " + e.getMessage());
                 }
 
                 //checking if the socketChannel is valid.
@@ -74,14 +71,13 @@ public class LoadBalancer {
                     Connection connection = null;
                     connection = new Connection(socketChannel);
                     // give this connection to handler
-                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " New connection established.");
+                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] New connection established.");
                     LBHandler handler = new LBHandler(connection, loadBalancerName, loadBalancerDataStore);
-                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " New connection established.1");
                     threadPool.execute(handler);
                 }
             }
         } catch (IOException e) {
-            logger.error("\nIOException while opening serverSocket connection. Error Message : " + e.getMessage());
+            logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] IOException while opening serverSocket connection. Error Message : " + e.getMessage());
         }
     }
 }

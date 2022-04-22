@@ -174,7 +174,7 @@ public class Producer extends Node {
     public boolean send (String topic, byte[] data) {
         boolean sent = false;
         while (!sent) {
-            logger.info("\nHere1");
+//            logger.info("\nHere1");
             if (connected) {
                 logger.info("\n[SEND] Publishing Message on Topic " + topic);
             } else {
@@ -194,7 +194,7 @@ public class Producer extends Node {
      * @return
      */
     private boolean sendEachMessage(String topic, byte[] data) {
-        logger.info("\nHere4");
+//        logger.info("\nHere4");
         boolean sentSuccess = false;
         while (!sentSuccess) {
             logger.info("\nConnection : " + connection + " connected : " + connected);

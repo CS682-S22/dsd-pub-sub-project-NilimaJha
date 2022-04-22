@@ -33,7 +33,7 @@ public class Consumer extends Node {
     private boolean initialSetupDone;
     private boolean shutdown = false;
     private Timer timer;
-    private final Object connectBrokerWaitObj = new Object();
+    private final Object getBrokerInfoFromLBWaitObj = new Object();
 
     /**
      * Constructor initialises the class attributes and
@@ -63,7 +63,7 @@ public class Consumer extends Node {
     private void startTimer() {
         TimerTask timerTask = new TimerTask() {
             public void run() {
-                method();
+                startPullingData();
             }
         };
         timer = new Timer();
@@ -76,21 +76,32 @@ public class Consumer extends Node {
     public void setUpBrokerConnection() {
         while (!connected) {
             try {
-                connectToLoadBalancer();
+                if (loadBalancerConnection == null || !loadBalancerConnection.isConnected()) {
+                    connectToLoadBalancer();
+                }
             } catch (ConnectionClosedException e) {
                 logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] LoadBalancer Is not running on the given IP and port. Exiting the system.");
                 System.exit(0);
             }
             try {
                 getLeaderAndMembersInfo();
-                logger.info("\nTrying to connect to broker. Name :" + leaderBrokerName + " IP :" + leaderBrokerIP + " Port :" + leaderBrokerPort);
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Trying to connect to broker. Name :" + leaderBrokerName + " IP :" + leaderBrokerIP + " Port :" + leaderBrokerPort);
                 connectToBroker();
                 if (connected) {
-                    logger.info("\nSending InitialSetupMessage.");
+                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Sending InitialSetupMessage.");
                     getInitialSetupDone();
+                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Closing loadBalancerConnection.");
+                    loadBalancerConnection.closeConnection();
                 }
             } catch (ConnectionClosedException e) {
-                logger.info("\nBroker is not available at given port. Getting broker info from LoadBalancer.");
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Broker is not available at given port. Waiting for some time then Getting broker info from LoadBalancer.");
+                synchronized (getBrokerInfoFromLBWaitObj) {
+                    try {
+                        getBrokerInfoFromLBWaitObj.wait(Constants.RETRIES_TIMEOUT);
+                    } catch (InterruptedException ex) {
+                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] InterruptedException occurred. Error Message : " + e.getMessage());
+                    }
+                }
             }
         }
     }
@@ -98,7 +109,7 @@ public class Consumer extends Node {
     /**
      * this method pulls data from broker if connected else sets up the connection.
      */
-    public void method() {
+    public void startPullingData() {
         timer.cancel();
         while (!shutdown) {
             if (connected) {
@@ -109,7 +120,7 @@ public class Consumer extends Node {
                         break;
                     }
                 } catch (ConnectionClosedException e) {
-                    logger.info("\n" + e.getMessage());
+                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "]" + e.getMessage());
                 }
             } else  {
                 setUpBrokerConnection();
@@ -125,21 +136,21 @@ public class Consumer extends Node {
      */
     public boolean pullMessageFromBroker1() throws ConnectionClosedException {
         byte[] requestMessagePacket = createPullRequestMessagePacket();
-        logger.info("\n[SEND] Sending pull request to Broker " + leaderBrokerName + " for Offset " + offset.get());
+        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] [SEND] Sending pull request to Broker " + leaderBrokerName + " for Offset " + offset.get());
         boolean success = false;
         try {
             connection.send(requestMessagePacket); // sending pull request to the broker
             byte[] messageReceived = null;
             while (messageReceived == null) {
                 messageReceived = connection.receive();
-                logger.info("\nWaiting on receive.");
+//                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Waiting to receive response");
                 if (messageReceived != null) {
-                    logger.info("\nReceived something... Extracting message.");
+                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Received response...");
                     success = extractDataFromBrokerResponse1(messageReceived);
                 }
             }
         } catch (ConnectionClosedException e) {
-            logger.error(e.getMessage());
+//            logger.error(e.getMessage());
             connection.closeConnection();
             connected = false;
             throw new ConnectionClosedException("\nConnection with broker is closed.");
@@ -155,42 +166,42 @@ public class Consumer extends Node {
      */
     public boolean extractDataFromBrokerResponse1(byte[] messageReceived) {
         boolean success = false;
-        logger.info("\nmessageReceived.");
+//        logger.info("\nmessageReceived.");
         if (messageReceived != null) {
             try {
-                logger.info("\nmessageReceived2.");
+//                logger.info("\nmessageReceived2.");
                 Any any = Any.parseFrom(messageReceived);
-                logger.info("\nany is of type InitialSetupDone? " + any.is(InitialSetupDone.InitialSetupDoneDetails.class));
+//                logger.info("\nany is of type InitialSetupDone? " + any.is(InitialSetupDone.InitialSetupDoneDetails.class));
                 if (any.is(MessageFromBroker.MessageFromBrokerDetails.class)) {
-                    logger.info("\nmessageReceived.3");
+//                    logger.info("\nmessageReceived.3");
                     MessageFromBroker.MessageFromBrokerDetails messageFromBrokerDetails =
                             any.unpack(MessageFromBroker.MessageFromBrokerDetails.class);
-                    logger.info("\nmessageReceived.4");
+//                    logger.info("\nmessageReceived.4");
                     if (messageFromBrokerDetails.getType().equals(Constants.MESSAGE)) {
-                        logger.info("\nmessageReceived.5a");
-                        logger.info("\n[RECEIVE] Total message received from broker in one response = "
+//                        logger.info("\nmessageReceived.5a");
+                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Total message received from broker in one response = "
                                 + messageFromBrokerDetails.getActualMessageCount());
                         for (int index = 0; index < messageFromBrokerDetails.getActualMessageCount(); index++) {
                             byte[] actualMessageBytes = messageFromBrokerDetails.getActualMessage(index).toByteArray();
                             try {
                                 messageFromBroker.put(actualMessageBytes);
                             } catch (InterruptedException e) {
-                                logger.error("\nInterruptedException occurred while trying to put new message into list. Error Message : " + e.getMessage());
+                                logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] InterruptedException occurred while trying to put new message into list. Error Message : " + e.getMessage());
                             }
                             if (consumerType.equals(Constants.CONSUMER_PULL)) {
-                                logger.info("\nPullConsumer incrementing offset. size : " + actualMessageBytes.length);
+                                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] PullConsumer incrementing offset by : " + actualMessageBytes.length);
                                 offset.addAndGet(actualMessageBytes.length); // incrementing offset value to the next message offset
-                                logger.info("\nIncremented offset : " + offset.get());
+                                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Incremented offset : " + offset.get());
                             }
                         }
                         success = true;
                     } else {
-                        logger.info("\nmessageReceived.5b");
-                        logger.info("\n[Received] message type : " + messageFromBrokerDetails.getType());
+//                        logger.info("\nmessageReceived.5b");
+                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Message type : " + messageFromBrokerDetails.getType());
                     }
                 }
             } catch (InvalidProtocolBufferException e) {
-                logger.info("\nInvalidProtocolBufferException occurred while decoding message from broker.Broker. Error Message : " + e.getMessage());
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] InvalidProtocolBufferException occurred while decoding message from broker.Broker. Error Message : " + e.getMessage());
             }
         }
         return success;
@@ -203,7 +214,7 @@ public class Consumer extends Node {
         boolean initialSetupDone = false;
         //send initial message
         byte[] initialMessagePacket = createInitialMessagePacket();
-        logger.info("\n[Sending Initial packet].");
+        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] [Sending Initial packet].");
         //sending initial packet
         try {
             connection.send(initialMessagePacket);
@@ -224,7 +235,7 @@ public class Consumer extends Node {
             connected = false;
             return false;
         } catch (InvalidProtocolBufferException e) {
-            logger.info("\nInvalidProtocolBufferException Occurred. Error Message : " + e.getMessage());
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] InvalidProtocolBufferException Occurred. Error Message : " + e.getMessage());
         }
         return initialSetupDone;
     }
@@ -276,7 +287,7 @@ public class Consumer extends Node {
         try {
             message = messageFromBroker.poll(duration.toMillis(), MILLISECONDS);
         } catch (InterruptedException e) {
-            logger.error("\nInterruptedException occurred while trying to poll message from consumer. Error Message : " + e.getMessage());
+            logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] InterruptedException occurred while trying to poll message from consumer. Error Message : " + e.getMessage());
         }
         return message;
     }

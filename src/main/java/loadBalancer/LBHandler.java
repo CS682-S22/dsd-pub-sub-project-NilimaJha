@@ -35,7 +35,6 @@ public class LBHandler implements Runnable {
         this.connection = connection;
         this.loadBalancerName = loadBalancerName;
         this.loadBalancerDataStore = loadBalancerDataStore;
-        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Inside Handler Constructor.2");
     }
 
     /**
@@ -44,65 +43,60 @@ public class LBHandler implements Runnable {
      * and closes the connection.
      */
     public void start() {
-        logger.info("\nConnection.isConnected :" + connection.isConnected());
         while (connection.isConnected()) {
             try {
-                logger.info("\nOn receiving.");
+//                logger.info("\nOn receiving.");
                 byte[] receivedRequest = connection.receive();
                 if (receivedRequest != null) {
-                    logger.info("\nReceived something : " + receivedRequest);
+//                    logger.info("\nReceived something : " + receivedRequest);
                     try {
                         Any any = Any.parseFrom(receivedRequest);
                         if (any.is(RequestLeaderAndMembersInfo.RequestLeaderAndMembersInfoDetails.class)) {
                             RequestLeaderAndMembersInfo.RequestLeaderAndMembersInfoDetails requestMessage =
                                     any.unpack(RequestLeaderAndMembersInfo.RequestLeaderAndMembersInfoDetails.class);
                             connectionWith = requestMessage.getRequestSenderType();
-                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " Received request from " + connectionWith + " of type RequestLeaderAndMembersInfo.");
-                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " Sending Leader's info with Membership table info in Response...");
+                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Received request from " + connectionWith + " of type RequestLeaderAndMembersInfo.");
+//                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " Sending Leader's info with Membership table info in Response...");
                             connection.send(getResponseLeaderInfoMessage(requestMessage));
                         } else if (any.is(UpdateLeaderInfo.UpdateLeaderInfoDetails.class)) {
                             UpdateLeaderInfo.UpdateLeaderInfoDetails updateRequestMessage =
                                     any.unpack(UpdateLeaderInfo.UpdateLeaderInfoDetails.class);
                             connectionWith = updateRequestMessage.getRequestSenderType();
-                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " Received request from " + connectionWith + " of type UpdateLeaderInfo.");
-                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " Sending Update successful Response...");
+                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Received request from " + connectionWith + " to update Leader info.");
+//                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " Sending Update successful Response...");
                             connection.send(getLeaderUpdatedResponseMessage(updateRequestMessage));
-                            logger.info("[ThreadId : " + Thread.currentThread().getId() + " Current Leader : " + loadBalancerDataStore.getLeaderInfo().getBrokerName());
+//                            logger.info("[ThreadId : " + Thread.currentThread().getId() + " Current Leader : " + loadBalancerDataStore.getLeaderInfo().getBrokerName());
                         } else if (any.is(FailedMemberInfo.FailedMemberInfoDetails.class)) {
                             FailedMemberInfo.FailedMemberInfoDetails failedMemberInfoDetails =
                                     any.unpack(FailedMemberInfo.FailedMemberInfoDetails.class);
                             connectionWith = failedMemberInfoDetails.getRequestSenderType();
-                            logger.info("\nConnectionWith :" + connectionWith);
-                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " Received request from " + connectionWith + " of type failedMemberInfoDetails.");
-                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " Sending Update successful Response...");
+//                            logger.info("\nConnectionWith :" + connectionWith);
+                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Received request from " + connectionWith + " to update membership Information at load-balancer");
+//                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " Sending Update successful Response...");
                             List<Integer> failedMembers = failedMemberInfoDetails.getFailedBrokerIdList();
-                            logger.info("\nfailedMember : " + failedMembers);
+//                            logger.info("\nfailedMember : " + failedMembers);
                             if (connectionWith.equals(Constants.BROKER)) {
                                 for (int failedMemberId : failedMembers) {
                                     loadBalancerDataStore.markMemberDown(failedMemberId);
                                 }
                                 connection.send(getMembershipTableUpdatedResponseMessage(failedMemberInfoDetails));
-                                logger.info("[ThreadId : " + Thread.currentThread().getId() + " Current Leader : " + loadBalancerDataStore.getLeaderInfo().getBrokerName());
+                                logger.info("[ThreadId : " + Thread.currentThread().getId() + "] Current Leader : " + loadBalancerDataStore.getLeaderInfo().getBrokerName());
                                 logger.info("\nmembers size : " + loadBalancerDataStore.getMembershipInfo().size());
                             }
                         } else if (any.is(RequestBrokerInfo.RequestBrokerInfoDetails.class)) {
                             RequestBrokerInfo.RequestBrokerInfoDetails requestBrokerInfoDetails =
                                     any.unpack(RequestBrokerInfo.RequestBrokerInfoDetails.class);
                             connectionWith = requestBrokerInfoDetails.getRequestSenderType();
-                            logger.info("\nConnectionWith :" + connectionWith);
-                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " Received request from "
-                                    + connectionWith + " of type RequestBrokerInfo.");
-                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " Sending RandomBrokerInfo Response...");
+                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " Received request from " + connectionWith + " of type RequestBrokerInfo.");
                             connection.send(getResponseRandomBrokerInfoMessage(requestBrokerInfoDetails));
                         }
                     } catch (InvalidProtocolBufferException e) {
-                        logger.error("\nInvalidProtocolBufferException occurred decoding message received at loadBalancer. Error Message : "
+                        logger.error("\n[ThreadId : " + Thread.currentThread().getId() + " InvalidProtocolBufferException occurred decoding message received at loadBalancer. Error Message : "
                                 + e.getMessage());
                     }
                 }
             } catch (ConnectionClosedException e) {
-                logger.info("\nCatch.");
-                logger.info(e.getMessage());
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Closing the connection");
                 connection.closeConnection();
             }
         }
@@ -118,7 +112,7 @@ public class LBHandler implements Runnable {
         Any any;
         boolean isAvailable = false;
         if (currentLeaderInfo != null) {
-            logger.info("\nleader is not null");
+//            logger.info("\nleader is not null");
             isAvailable = true;
             if (connectionWith.equals(Constants.BROKER) && requestMessage.getAssignBrokerId()) {
                 ArrayList<ByteString> membersInfoBytesList = getMembersBytesList();
@@ -133,13 +127,13 @@ public class LBHandler implements Runnable {
                         .setBrokerId(memberId)
                         .addAllMembers(membersInfoBytesList)
                         .build());
-                logger.info("\n Leader Info : " + loadBalancerDataStore.getLeaderInfo().getBrokerId());
-                logger.info("\nAdding new broker into the memberShipList.");
+//                logger.info("\n Leader Info : " + loadBalancerDataStore.getLeaderInfo().getBrokerId());
+//                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Adding new broker into the memberShipList.");
                 // adding this new member in the membership table.
                 loadBalancerDataStore.addNewMemberIntoMembershipTable(memberId, requestMessage.getRequestSenderName(),
                         requestMessage.getBrokerIP(), requestMessage.getBrokerPort());
-                logger.info("\nAdded Id : " + memberId + " name : " + requestMessage.getRequestSenderName() +
-                        " IP : " + requestMessage.getBrokerIP() + " port : " + requestMessage.getBrokerPort());
+//                logger.info("\nAdded Id : " + memberId + " name : " + requestMessage.getRequestSenderName() +
+//                        " IP : " + requestMessage.getBrokerIP() + " port : " + requestMessage.getBrokerPort());
             } else {
                 any = Any.pack(ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails.newBuilder()
                         .setMessageId(requestMessage.getMessageId())
@@ -148,11 +142,11 @@ public class LBHandler implements Runnable {
                         .setLeaderIP(currentLeaderInfo.getBrokerIP())
                         .setLeaderPort(currentLeaderInfo.getBrokerPort())
                         .build());
-                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " leader is available.");
-                logger.info("\n Leader Info : " + loadBalancerDataStore.getLeaderInfo().getBrokerId() + "/ " + currentLeaderInfo.getBrokerId() + " leaderName : " + currentLeaderInfo.getBrokerName());
+//                logger.info("\n Leader Info : " + loadBalancerDataStore.getLeaderInfo().getBrokerId() + "/ " + currentLeaderInfo.getBrokerId() + " leaderName : " + currentLeaderInfo.getBrokerName());
             }
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Leader is available. Leader Info : " + loadBalancerDataStore.getLeaderInfo().getBrokerId());
         } else {
-            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " leader is null");
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Leader is null");
             if (connectionWith.equals(Constants.BROKER) && requestMessage.getAssignBrokerId()) {
                 ArrayList<ByteString> membersInfoBytesList = getMembersBytesList();
                 int memberId = loadBalancerDataStore.getId();
@@ -162,7 +156,7 @@ public class LBHandler implements Runnable {
                         .setBrokerId(memberId)
                         .addAllMembers(membersInfoBytesList)
                         .build());
-                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " Adding new broker into the memberShipList. 1st broker.");
+//                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + " Adding new broker into the memberShipList. 1st broker.");
                 // adding this new member in the membership table.
                 loadBalancerDataStore.addNewMemberIntoMembershipTable(memberId, requestMessage.getRequestSenderName(),
                         requestMessage.getBrokerIP(), requestMessage.getBrokerPort());
@@ -185,7 +179,7 @@ public class LBHandler implements Runnable {
         BrokerInfo randomBrokerInfo = loadBalancerDataStore.getRandomFollowerBrokerInfo();
         Any any;
         if (randomBrokerInfo != null) {
-            logger.info("\nBroker Available for read.");
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Broker Available for read.");
             any = Any.pack(ResponseRandomBrokerInfo.ResponseRandomBrokerInfoDetails.newBuilder()
                     .setInfoAvailable(true)
                     .setMessageId(requestMessage.getMessageId())
@@ -194,6 +188,7 @@ public class LBHandler implements Runnable {
                     .setBrokerName(randomBrokerInfo.getBrokerName())
                     .build());
         } else {
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Broker is not Available for read.");
             any = Any.pack(ResponseRandomBrokerInfo.ResponseRandomBrokerInfoDetails.newBuilder()
                     .setInfoAvailable(false)
                     .setMessageId(requestMessage.getMessageId())
@@ -203,7 +198,7 @@ public class LBHandler implements Runnable {
     }
 
     /**
-     * method creates MemberInfo protobuff of each model.BrokerInfo obj in membership table
+     * method creates MemberInfo protobuff of each BrokerInfo obj in membership table
      * and converts them into byte array and returns the list of it.
      * @return membersInfoBytesList
      */
@@ -211,7 +206,7 @@ public class LBHandler implements Runnable {
         ArrayList<ByteString> membersInfoBytesList = new ArrayList<>();
         ArrayList<BrokerInfo> membersInfoList = loadBalancerDataStore.getMembershipInfo();
         for (BrokerInfo eachMember : membersInfoList) {
-            logger.info("\nEach memberId : " + eachMember.getBrokerName() +
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Each memberId : " + eachMember.getBrokerName() +
                     " Each memberName : " + eachMember.getBrokerName() +
                     " Each memberIP : " + eachMember.getBrokerIP() +
                     " Each memberPort : " + eachMember.getBrokerPort());
@@ -235,7 +230,7 @@ public class LBHandler implements Runnable {
     public byte[] getLeaderUpdatedResponseMessage (UpdateLeaderInfo.UpdateLeaderInfoDetails updateRequestMessage) {
         boolean updateSuccessful = false;
         if (updateRequestMessage.getRequestSenderType().equals(Constants.BROKER)) {
-            logger.info("\nUpdating leader info. new Leader Id : " + updateRequestMessage.getBrokerId());
+//            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Updating leader info. new Leader Id : " + updateRequestMessage.getBrokerId());
             updateSuccessful = loadBalancerDataStore.updateLeaderInfo(updateRequestMessage.getBrokerId());
         }
         Any any = Any.pack(LeaderUpdatedResponse.LeaderUpdatedResponseDetails.newBuilder()

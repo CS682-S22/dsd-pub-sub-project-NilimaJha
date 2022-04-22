@@ -62,6 +62,7 @@ public class HeartBeatModule {
         TimerTask timerTask = new TimerTask() {
             public void run() {
                 heartbeatCheckTimer.cancel();
+                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Checking the heartbeat of the members.");
                 heartbeatCheck();
                 logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] starting the HB Check timer.");
                 startHeartbeatCheckTimer();
@@ -78,6 +79,7 @@ public class HeartBeatModule {
         TimerTask timerTask = new TimerTask() {
             public void run() {
                 heartbeatSendTimer.cancel();
+                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Sending HB to all the member.");
                 heartbeatSend();
                 logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] starting the HB Send timer.");
                 startHeartbeatSendTimer();
@@ -96,15 +98,17 @@ public class HeartBeatModule {
             long lastHeartbeatReceivedTime = heartbeatReceiveTimes.get(set.getKey());
             long timeSinceLastHeartbeat = now - lastHeartbeatReceivedTime;
             if (timeSinceLastHeartbeat >= Constants.TIMEOUT_NANOS) {
-                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "]  timeSinceLastHeartbeat = " + timeSinceLastHeartbeat + " Constants.TIMEOUT_NANOS = " + Constants.TIMEOUT_NANOS);
+                logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "]  Member with ID-" + set.getKey() + " detected failed. Time_Since_Last_Heartbeat = " + timeSinceLastHeartbeat + " Timeout = " + Constants.TIMEOUT_NANOS);
                 markMemberFailed(set.getKey());
                 heartbeatReceiveTimes.remove(set.getKey());
                 if (membershipTable.getLeaderId() == -1) {
-                    logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Leader Failed. Election will happen.");
                     ElectionModule electionModule = ElectionModule.getElectionModule(thisBrokerInfo, loadBalancerIp, loadBalancerPort);
                     if (!electionModule.getElectionStatus()) {
+                        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Leader Failed Detected. Starting the election.");
                         electionModule.setElectionStatus(true);
                         electionModule.startElection();
+                    } else {
+                        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Leader Failed Detected. Election is already going on.");
                     }
                 }
             }
@@ -121,10 +125,10 @@ public class HeartBeatModule {
      */
     public void sendFailedMembersListToLB() {
         List<Integer> failedMembersIdList = membershipTable.getFailedMembersIdList();
-        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] failedMemberList: " + failedMembersIdList);
+//        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Failed Member List: " + failedMembersIdList);
         if (thisBrokerInfo.getBrokerId() == membershipTable.getLeaderId() && !failedMembersIdList.isEmpty()) {
             Connection loadBalancerConnection = null;
-            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Establishing new connection with loadBalancer.");
+            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Establishing new connection with loadBalancer to send the Failed Member information.");
             try {
                 loadBalancerConnection = Utility.establishConnection(loadBalancerIp, loadBalancerPort);
             } catch (ConnectionClosedException e) {
@@ -139,11 +143,11 @@ public class HeartBeatModule {
                 boolean memberStatusUpdated = false;
                 while(!memberStatusUpdated) {
                     try {
-                        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Sending failedMemberList. " + failedMembersIdList);
+                        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Sending Failed Member information to the Load Balancer List.");
                         loadBalancerConnection.send(failedMemberInfo.toByteArray());
                         byte[] receivedUpdateResponse = loadBalancerConnection.receive();
                         if (receivedUpdateResponse != null) {
-                            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] received Response. of failedMemberUpdate from loadBalancer.");
+//                            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Received Response for Failed Member Updated from Load Balancer.");
                             memberStatusUpdated = true;
                         }
                     } catch (ConnectionClosedException e) {

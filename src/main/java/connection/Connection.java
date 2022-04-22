@@ -45,7 +45,7 @@ public class Connection {
      * @return byte[] message
      */
     public byte[] receive() throws ConnectionClosedException {
-        logger.info("\nInside Connection. receive method.");
+//        logger.info("\nInside Connection. receive method.");
         if (!messageQueue.isEmpty()) {
             return messageQueue.poll();
         }
@@ -80,7 +80,7 @@ public class Connection {
                         }
                     }
                 } else {
-                    logger.info("ReadIsDone :" + readIsDone + " readHaseSomething : " + readHaveSomething);
+//                    logger.info("ReadIsDone :" + readIsDone + " readHaseSomething : " + readHaveSomething);
                     if (readHaveSomething == -1) {
                         closeConnection();
                     }
@@ -88,14 +88,14 @@ public class Connection {
             } catch (TimeoutException e) {
                 return messageQueue.poll();
             } catch (InterruptedException e) {
-                logger.error("\nInterruptedException while establishing connection. Error Message : " + e.getMessage());
+                logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] InterruptedException while establishing connection. Error Message : " + e.getMessage());
             } catch (ExecutionException e) {
-                logger.info("\nException exception exception " + e.getCause());
+//                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Exception exception exception " + e.getCause());
                 closeConnection();
                 throw new ConnectionClosedException("connection.Connection is closed by other host!!!");
             }
         } else {
-            logger.info("\nElse as connection is not connected.");
+//            logger.info("\nElse as connection is not connected.");
             throw new ConnectionClosedException("connection.Connection is closed by other host!!!");
         }
         return messageQueue.poll();
@@ -108,32 +108,32 @@ public class Connection {
      * @return true/false
      */
     public boolean send(byte[] message) throws ConnectionClosedException {
-        logger.info("\nentered Send Method.");
+//        logger.info("\nentered Send Method.");
         if (isConnected && connectionSocket.isOpen()) {
-            logger.info("\nConnection is open.");
+//            logger.info("\nConnection is open.");
             ByteBuffer buffer = ByteBuffer.allocate(message.length + 10);
             buffer.putInt(message.length); //size of the next message.
             buffer.put(message); //actual message
             buffer.flip();
 
-            logger.info("\nInside Connection.send writing on buffer.");
+//            logger.info("\nInside Connection.send writing on buffer.");
             Future result = connectionSocket.write(buffer);
             try {
-                logger.info("\nBefore get.");
+//                logger.info("\nBefore get.");
                 result.get();
             } catch (InterruptedException e) {
-                logger.error("\nInterruptedException while writing on the connectionSocket. Error Message : "
+                logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] InterruptedException while writing on the connectionSocket. Error Message : "
                         + e.getMessage());
                 return false;
             } catch (ExecutionException e) {
-                logger.info("\nsetting isConnected as false. and throwing ConnectionCloseException. e.cause : " + e.getCause());
+//                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] setting isConnected as false. and throwing ConnectionCloseException. e.cause : " + e.getCause());
                 isConnected = false;
                 throw new ConnectionClosedException("Connection is closed by other host!!!");
             }
             buffer.clear();
             return true;
         } else {
-            logger.info("Connection is not connected............");
+//            logger.info("Connection is not connected............");
         }
         return false;
     }
@@ -143,7 +143,7 @@ public class Connection {
      * @return true/false
      */
     public boolean connectionIsOpen() {
-        logger.info("ConnectionSocket status : " + connectionSocket.isOpen() + " isConnected status : " + isConnected);
+//        logger.info("ConnectionSocket status : " + connectionSocket.isOpen() + " isConnected status : " + isConnected);
         return connectionSocket.isOpen();
     }
 
@@ -153,11 +153,11 @@ public class Connection {
      */
     public boolean closeConnection() {
         try {
-            logger.info("Closing the connection.");
+//            logger.info("Closing the connection.");
             isConnected = false;
             connectionSocket.close();
         } catch (IOException e) {
-            logger.info("\nIOException occurred while closing the connectionSocket. Error Message : " + e.getMessage());
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] IOException occurred while closing the connectionSocket. Error Message : " + e.getMessage());
             return false;
         }
         return true;

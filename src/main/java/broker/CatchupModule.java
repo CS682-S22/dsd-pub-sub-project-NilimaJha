@@ -48,7 +48,6 @@ public class CatchupModule implements Runnable {
     public CatchupModule(String brokerName, Connection connection, BrokerInfo thisBrokerInfo, String loadBalancerIp,
                          int loadBalancerPort, String connectionWith, BrokerInfo connectionBrokerInfo,
                          String brokerConnectionType, List<String> catchupTopics) {
-        logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] broker.RequestProcessor for connection of type : " + brokerConnectionType);
         this.brokerName = brokerName;
         this.thisBrokerInfo = thisBrokerInfo;
         this.connection = connection;
@@ -71,7 +70,6 @@ public class CatchupModule implements Runnable {
      */
     public CatchupModule(String brokerName, BrokerInfo thisBrokerInfo, String loadBalancerIp,
                          int loadBalancerPort, DBSnapshot leaderDbSnapshot) {
-        logger.info("\nInside Catchup module.");
         this.brokerName = brokerName;
         this.thisBrokerInfo = thisBrokerInfo;
         this.dbSnapshot = leaderDbSnapshot;
@@ -90,7 +88,6 @@ public class CatchupModule implements Runnable {
      */
     public CatchupModule(String brokerName, BrokerInfo thisBrokerInfo, String loadBalancerIp,
                          int loadBalancerPort, ConcurrentHashMap<Integer, DBSnapshot> membersSnapshotMap) {
-        logger.info("\nInside Catchup module.");
         this.brokerName = brokerName;
         this.thisBrokerInfo = thisBrokerInfo;
         this.membersSnapshotMap = membersSnapshotMap;
@@ -108,11 +105,10 @@ public class CatchupModule implements Runnable {
             DBSnapshot myDBSnapshot = data.getSnapshot(); // thisBrokerDataSnapshot.
             logger.info("\nLeader with Id-" + thisBrokerInfo.getBrokerId() + " is Syncing up with the Broker with Id-" + eachMemberSnapshot.getKey());
             for (Map.Entry<String, TopicSnapshot> eachTopicSnapshot : eachMemberSnapshot.getValue().getTopicSnapshotMap().entrySet()) {
-                logger.info("\nLeader with Id-" + thisBrokerInfo.getBrokerId() + " is Syncing up with the Broker with Id-" + eachMemberSnapshot.getKey() + " on topic " + eachTopicSnapshot.getKey());
                 if (!myDBSnapshot.getTopicSnapshotMap().containsKey(eachTopicSnapshot.getKey()) ||
                         eachTopicSnapshot.getValue().getOffset() > myDBSnapshot.getTopicSnapshotMap()
                                 .get(eachTopicSnapshot.getKey()).getOffset()) {
-                    logger.info("\n Sync up is needed.");
+                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Leader Catching up with broker " + eachMemberSnapshot.getKey() + " for the Topic '" + eachTopicSnapshot.getKey() + "'");
                     // pulling data on currentTopic
                     long offset = 0;
                     if (myDBSnapshot.getTopicSnapshotMap().containsKey(eachTopicSnapshot.getKey())) {
@@ -132,18 +128,18 @@ public class CatchupModule implements Runnable {
                                     if (any.is(ReplicateMessage.ReplicateMessageDetails.class)) {
                                         ReplicateMessage.ReplicateMessageDetails replicateMessageDetails =
                                                 any.unpack(ReplicateMessage.ReplicateMessageDetails.class);
-                                        logger.info("\n received message. Total message : " + replicateMessageDetails.getTotalMessage());
+                                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Received message. Total message Received : " + replicateMessageDetails.getTotalMessage());
                                         if (replicateMessageDetails.getTotalMessage() == 0) {
-                                            logger.info("\n Total message : " + replicateMessageDetails.getTotalMessage() + " setting up-to-date true for this topic");
+                                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Total message : " + replicateMessageDetails.getTotalMessage() + " setting up-to-date true for this topic");
                                             data.getMessageInfoForTheTopic(eachTopicSnapshot.getKey()).setUpToDate(true);
                                             upToDateOnThisTopic = true;
                                             break;
                                         } else {
                                             for (int index = 0; index < replicateMessageDetails.getTotalMessage(); index++) {
                                                 byte[] actualMessageBytes = replicateMessageDetails.getMessageBatch(index).toByteArray();
-                                                logger.info("\n checking if this message is needed to be added catchup message on topic : " + replicateMessageDetails.getTopic());
+                                                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] checking if this message is needed to be added catchup message on topic : " + replicateMessageDetails.getTopic());
                                                 if (!data.getMessageInfoForTheTopic(eachTopicSnapshot.getKey()).getIsUpToDate()) {
-                                                    logger.info("\n Adding catchup message on topic : " + replicateMessageDetails.getTopic());
+                                                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Adding catchup message on topic : " + replicateMessageDetails.getTopic());
                                                     data.addMessageToTopic(Constants.CATCHUP, eachTopicSnapshot.getKey(), actualMessageBytes, offset);
                                                     offset += actualMessageBytes.length;
                                                 } else {
@@ -154,11 +150,13 @@ public class CatchupModule implements Runnable {
                                         }
                                     }
                                 } catch (InvalidProtocolBufferException e) {
-                                    logger.error("\nInvalidProtocolBufferException occurred while decoding the message. Error Message : " + e.getMessage());
+                                    logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] InvalidProtocolBufferException occurred while decoding the message. Error Message : " + e.getMessage());
                                 }
                             }
                         }
                     }
+                } else {
+                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Leader is Already UpToDate with broker " + eachMemberSnapshot.getKey() + " for the Topic '" + eachTopicSnapshot.getKey() + "'");
                 }
             }
         }
@@ -176,15 +174,15 @@ public class CatchupModule implements Runnable {
             if (data.getTopicToMessageMap().containsKey(catchupTopic)) {
                 offset = new AtomicLong(data.getTopicToMessageMap().get(catchupTopic).getLastOffSet());
             }
-            logger.info("\nPulling data on topic : " + catchupTopic + ". currentTopic.getUptodate : "
-                    + currentTopicMessageInfo.getIsUpToDate());
-            logger.info("\n LeaderId after election : " + membershipTable.getLeaderId());
+//            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Pulling data on topic : " + catchupTopic + ". currentTopic.getUptodate : "
+//                    + currentTopicMessageInfo.getIsUpToDate());
+//            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] LeaderId after election : " + membershipTable.getLeaderId());
             while (!currentTopicMessageInfo.getIsUpToDate() && membershipTable.getMembershipInfo().get(membershipTable.getLeaderId()).isDataConnectionConnected()) {
                 byte[] pullRequest = createPullRequestForData(catchupTopic, offset.get());
                 boolean responseReceived = false;
                 while (!responseReceived) {
                     try {
-                        logger.info("\n pulling data from leader. about topic : " + catchupTopic + " offset : " + offset.get());
+                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Pulling data from leader on topic : " + catchupTopic + " from offset : " + offset.get());
                         membershipTable.getMembershipInfo().get(membershipTable.getLeaderId()).sendOverDataConnection(pullRequest);
                         byte[] response = membershipTable.getMembershipInfo().get(membershipTable.getLeaderId()).receiveOverDataConnection();
                         if (response != null) {
@@ -193,17 +191,17 @@ public class CatchupModule implements Runnable {
                                 ReplicateMessage.ReplicateMessageDetails replicateMessageDetails =
                                         any.unpack(ReplicateMessage.ReplicateMessageDetails.class);
                                 responseReceived = true;
-                                logger.info("\n received message. Total message : " + replicateMessageDetails.getTotalMessage());
+                                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] received message. Total message : " + replicateMessageDetails.getTotalMessage());
                                 if (replicateMessageDetails.getTotalMessage() == 0) {
-                                    logger.info("\n Total message : " + replicateMessageDetails.getTotalMessage() + " setting up-to-date true for this topic");
+                                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Total message : " + replicateMessageDetails.getTotalMessage() + " setting up-to-date true for this topic");
                                     currentTopicMessageInfo.setUpToDate(true);
                                     break;
                                 } else {
                                     for (int index = 0; index < replicateMessageDetails.getTotalMessage(); index++) {
                                         byte[] actualMessageBytes = replicateMessageDetails.getMessageBatch(index).toByteArray();
-                                        logger.info("\n checking if this message is needed to be added catchup message on topic : " + replicateMessageDetails.getTopic());
+                                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Checking if this message is needed to be added catchup message on topic : " + replicateMessageDetails.getTopic());
                                         if (!currentTopicMessageInfo.getIsUpToDate()) {
-                                            logger.info("\n Adding catchup message on topic : " + replicateMessageDetails.getTopic());
+                                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Adding catchup message on topic : " + replicateMessageDetails.getTopic());
                                             data.addMessageToTopic(Constants.CATCHUP, catchupTopic, actualMessageBytes, offset.get());
                                             offset.addAndGet(actualMessageBytes.length);
                                         } else {
@@ -228,9 +226,9 @@ public class CatchupModule implements Runnable {
     @Override
     public void run() {
         if (brokerConnectionType.equals(Constants.CATCHUP_CONNECTION)) {
-            logger.info("\n pulling data from leader.");
-            pullDataFromLeaderToCatchup();
-            logger.info("\n pulling data done.");
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Pulling data from leader.");
+            pullDataFromLeaderToCatchupAtJoining();
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] New member is Up-To-Date with leader.");
         }
     }
 
@@ -250,18 +248,18 @@ public class CatchupModule implements Runnable {
     /**
      * this method is called when a new broker joins to catchup with the leader by pulling data from offset 0.
      */
-    public void pullDataFromLeaderToCatchup() {
+    public void pullDataFromLeaderToCatchupAtJoining() {
         for (String catchupTopic : catchupTopics) {
             MessageInfo currentTopicMessageInfo = data.getMessageInfoForTheTopic(catchupTopic);
             AtomicLong offset = new AtomicLong(0);
-            logger.info("\nPulling data from topic : " + catchupTopic + ". currentTopic.getUptodate : "
-                    + currentTopicMessageInfo.getIsUpToDate());
             while (!currentTopicMessageInfo.getIsUpToDate() && connection.connectionIsOpen()) {
                 byte[] pullRequest = createPullRequestForData(catchupTopic, offset.get());
                 boolean responseReceived = false;
                 while (!responseReceived) {
                     try {
-                        logger.info("\n pulling data from leader. about topic : " + catchupTopic + " offset : " + offset.get());
+//                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Pulling data from topic : " + catchupTopic + ". Get Up-To-Date : "
+//                                + currentTopicMessageInfo.getIsUpToDate());
+                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Pulling data from leader. about topic : " + catchupTopic + " offset : " + offset.get());
                         connection.send(pullRequest);
                         byte[] response = connection.receive();
                         if (response != null) {
@@ -270,17 +268,17 @@ public class CatchupModule implements Runnable {
                                 ReplicateMessage.ReplicateMessageDetails replicateMessageDetails =
                                         any.unpack(ReplicateMessage.ReplicateMessageDetails.class);
                                 responseReceived = true;
-                                logger.info("\n received message. Total message : " + replicateMessageDetails.getTotalMessage());
+                                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Received message. Total message : " + replicateMessageDetails.getTotalMessage());
                                 if (replicateMessageDetails.getTotalMessage() == 0) {
-                                    logger.info("\n Total message : " + replicateMessageDetails.getTotalMessage() + " setting up-to-date true for this topic");
+                                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Total message : " + replicateMessageDetails.getTotalMessage() + " setting up-to-date true for this topic");
                                     currentTopicMessageInfo.setUpToDate(true);
                                     break;
                                 } else {
                                     for (int index = 0; index < replicateMessageDetails.getTotalMessage(); index++) {
                                         byte[] actualMessageBytes = replicateMessageDetails.getMessageBatch(index).toByteArray();
-                                        logger.info("\n checking if this message is needed to be added catchup message on topic : " + replicateMessageDetails.getTopic());
+                                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Checking if this message is needed to be added catchup message on topic : " + replicateMessageDetails.getTopic());
                                         if (!currentTopicMessageInfo.getIsUpToDate()) {
-                                            logger.info("\n Adding catchup message on topic : " + replicateMessageDetails.getTopic());
+                                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Adding catchup message on topic : " + replicateMessageDetails.getTopic());
                                             data.addMessageToTopic(Constants.CATCHUP, catchupTopic, actualMessageBytes, offset.get());
                                             offset.addAndGet(actualMessageBytes.length);
                                         } else {
@@ -294,7 +292,7 @@ public class CatchupModule implements Runnable {
                         logger.info(e.getMessage());
                         connection.closeConnection();
                     } catch (InvalidProtocolBufferException e) {
-                        logger.error(e.getMessage());
+                        logger.error("\nInvalidProtocolBufferException occurred. Error Message : " + e.getMessage());
                     }
 
                 }

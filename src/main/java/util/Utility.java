@@ -293,6 +293,7 @@ public class Utility {
                 .setBrokerId(brokerId)
                 .build());
         boolean leaderUpdated = false;
+        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Sending Update Leader info Message to Load Balancer.");
         while (!leaderUpdated) {
             try {
                 loadBalancerConnection.send(updateLeaderMessage.toByteArray());
