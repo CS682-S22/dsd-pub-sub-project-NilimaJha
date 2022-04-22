@@ -183,6 +183,7 @@ public class ElectionModule {
                     //sending victory message to the loadBalancer.
                     boolean leaderUpdated = Utility.sendUpdateLeaderMessageToLB(loadBalancerConnection, thisBrokerInfo.getBrokerName(),
                             thisBrokerInfo.getBrokerId());
+                    logger.info("\n");
                     loadBalancerConnection.closeConnection();
 //                    int messageId = 0;
 //                    Any updateLeaderMessage = Any.pack(UpdateLeaderInfo.UpdateLeaderInfoDetails.newBuilder()

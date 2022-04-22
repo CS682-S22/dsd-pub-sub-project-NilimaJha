@@ -28,9 +28,9 @@ public class Constants {
     public final static int LOAD_BALANCER_THREAD_POOL_SIZE = 20;
     public final static int MAX_RETRIES = 2;
     public final static int RETRIES_TIMEOUT = 15000;
-    public final static long TIMEOUT_NANOS = 60000000000L; // 1 milli = 1000000 nano.
-    public final static int HEARTBEAT_CHECK_TIMER_TIMEOUT = 30000;
-    public final static int HEARTBEAT_SEND_TIMER_TIMEOUT = 30000;
+    public final static long TIMEOUT_NANOS = 30000000000L; // 1 milli = 1000000 nano.
+    public final static int HEARTBEAT_CHECK_TIMER_TIMEOUT = 15000;
+    public final static int HEARTBEAT_SEND_TIMER_TIMEOUT = 15000;
     public final static String HEARTBEAT_CONNECTION = "HEARTBEAT_CONNECTION";
     public final static String DATA_CONNECTION = "DATA_CONNECTION";
     public final static String SYNCHRONOUS = "SYNCHRONOUS";

@@ -197,6 +197,7 @@ public class Producer extends Node {
         logger.info("\nHere4");
         boolean sentSuccess = false;
         while (!sentSuccess) {
+            logger.info("\nConnection : " + connection + " connected : " + connected);
             if (connection != null && connected && connection.connectionIsOpen()) {
                 try {
                     logger.info("\n[SEND] Publishing Message on Topic " + topic);
@@ -229,6 +230,7 @@ public class Producer extends Node {
                 }
             } else {
                 logger.info("\nInside Send each message. And starting setting up connection with LB then Leader.");
+                connected = false;
                 setupConnectionWithLeaderBroker();
             }
         }
