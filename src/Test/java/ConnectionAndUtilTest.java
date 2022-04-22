@@ -1,8 +1,17 @@
+import broker.HeartBeatModule;
+import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
+import connection.Connection;
 import customeException.ConnectionClosedException;
-import model.Constants;
+import model.BrokerInfo;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import producer.Producer;
+import proto.ElectionResponseMessage;
+import proto.InitialMessage;
+import proto.InitialSetupDone;
+import proto.PublisherPublishMessage;
+import util.Utility;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -14,7 +23,6 @@ import java.util.concurrent.Future;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ConnectionAndUtilTest {
-
     public static AsynchronousServerSocketChannel serverSocket = null;
     public static AsynchronousSocketChannel server = null;
     public static AsynchronousSocketChannel client = null;
@@ -141,6 +149,15 @@ public class ConnectionAndUtilTest {
     }
 
     /**
+     * test for typeIsValid Method.
+     */
+    @Test
+    public void testTypeIsValid7() {
+        String type = "LOAD-BALANCER";
+        assertTrue(Utility.typeIsValid(type));
+    }
+
+    /**
      * test for fileNameIsValid Method.
      */
     @Test
@@ -210,6 +227,56 @@ public class ConnectionAndUtilTest {
     public void testGetConfigFilename() {
         String[] args = {"-type", "BROKER", "-name", "BROKER-1", "-configFile", "BrokerConfig.json"};
         assertEquals(args[5], Utility.getConfigFilename(args));
+    }
+
+    @Test
+    public void createInitialMessagePacketTest() {
+        Producer producer = new Producer("PRODUCER-1", "LOAD-BALANCER-TEST", "localhost", 9090, "TEST");
+        byte[] message = producer.createInitialMessagePacket1(0);
+        try {
+            Any any = Any.parseFrom(message);
+            assertTrue(any.is(InitialMessage.InitialMessageDetails.class));
+        } catch (InvalidProtocolBufferException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void createInitialMessagePacketTest2() {
+        Producer producer = new Producer("PRODUCER-1", "LOAD-BALANCER-TEST", "localhost", 9090, "TEST");
+        byte[] message = producer.createInitialMessagePacket1(0);
+        try {
+            Any any = Any.parseFrom(message);
+            assertFalse(any.is(InitialSetupDone.InitialSetupDoneDetails.class));
+        } catch (InvalidProtocolBufferException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void createPublishMessagePacket1() {
+        Producer producer = new Producer("PRODUCER-1", "LOAD-BALANCER-TEST", "localhost", 9090, "TEST");
+        byte[] data = "Test Data".getBytes();
+        byte[] message = producer.createPublishMessagePacket("Test", data);
+        try {
+            Any any = Any.parseFrom(message);
+            assertTrue(any.is(PublisherPublishMessage.PublisherPublishMessageDetails.class));
+        } catch (InvalidProtocolBufferException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void createPublishMessagePacket2() {
+        Producer producer = new Producer("PRODUCER-1", "LOAD-BALANCER-TEST", "localhost", 9090, "TEST");
+        byte[] data = "Test Data".getBytes();
+        byte[] message = producer.createPublishMessagePacket("Test", data);
+        try {
+            Any any = Any.parseFrom(message);
+            assertFalse(any.is(ElectionResponseMessage.ElectionResponseMessageDetails.class));
+        } catch (InvalidProtocolBufferException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -460,13 +527,13 @@ public class ConnectionAndUtilTest {
                         e.printStackTrace();
                     }
                     if (newMessage != null) {
-//                        try {
-////                            Packet.PacketDetails newPacket = Packet.PacketDetails.parseFrom(newMessage);
-////                            Assertions.assertEquals(Constants.INITIAL_SETUP, newPacket.getType());
-//                            break;
-//                        } catch (InvalidProtocolBufferException e) {
-//                            e.printStackTrace();
-//                        }
+                        try {
+                            Any any = Any.parseFrom(newMessage);
+                            Assertions.assertTrue(any.is(InitialMessage.InitialMessageDetails.class));
+                            break;
+                        } catch (InvalidProtocolBufferException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
@@ -497,7 +564,7 @@ public class ConnectionAndUtilTest {
             e.printStackTrace();
         }
 
-        Producer producer = new Producer("PRODUCER-1", "LB-1", "localhost", 8007);
+        Producer producer = new Producer("PRODUCER-1", "LOAD-BALANCER", "localhost", 8007);
         byte[] initialMessagePacket = producer.createInitialMessagePacket1(0);
         try {
             newConnectionClientSide.send(initialMessagePacket);

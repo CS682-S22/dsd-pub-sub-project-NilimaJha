@@ -504,7 +504,6 @@ public class RequestProcessor implements Runnable {
             try {
                 byte[] message = connection.receive();
                 if (message != null) {
-//                    logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Received Message from " + connectionBrokerInfo.getBrokerName());
                     try {
                         Any any = Any.parseFrom(message);
                         if (any.is(HeartBeatMessage.HeartBeatMessageDetails.class)
@@ -612,7 +611,6 @@ public class RequestProcessor implements Runnable {
                             StartSyncUpMessage.StartSyncUpMessageDetails startSyncUpMessageDetails =
                                     any.unpack(StartSyncUpMessage.StartSyncUpMessageDetails.class);
                             List<ByteString> topicSnapshotByteString = startSyncUpMessageDetails.getTopicSnapshotList();
-//                            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] topics list size : " + topicSnapshotByteString.size());
                             DBSnapshot leaderSnapshot = new DBSnapshot(startSyncUpMessageDetails.getMemberId());
                             for (ByteString eachTopicSnapshot : topicSnapshotByteString) {
                                 Any eachTopicSnapshotAny = Any.parseFrom(eachTopicSnapshot);

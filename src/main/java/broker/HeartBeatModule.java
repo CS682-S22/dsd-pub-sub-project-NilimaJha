@@ -48,7 +48,7 @@ public class HeartBeatModule {
      * method make sure only one instance of this class is created.
      * @return heartBeatModule
      */
-    synchronized static HeartBeatModule getHeartBeatModule(BrokerInfo thisBrokerInfo, String loadBalancerIp, int loadBalancerPort) {
+    public synchronized static HeartBeatModule getHeartBeatModule(BrokerInfo thisBrokerInfo, String loadBalancerIp, int loadBalancerPort) {
         if (heartBeatModule == null) {
             heartBeatModule = new HeartBeatModule(thisBrokerInfo, loadBalancerIp, loadBalancerPort);
         }
@@ -125,7 +125,6 @@ public class HeartBeatModule {
      */
     public void sendFailedMembersListToLB() {
         List<Integer> failedMembersIdList = membershipTable.getFailedMembersIdList();
-//        logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Failed Member List: " + failedMembersIdList);
         if (thisBrokerInfo.getBrokerId() == membershipTable.getLeaderId() && !failedMembersIdList.isEmpty()) {
             Connection loadBalancerConnection = null;
             logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Establishing new connection with loadBalancer to send the Failed Member information.");
@@ -147,7 +146,6 @@ public class HeartBeatModule {
                         loadBalancerConnection.send(failedMemberInfo.toByteArray());
                         byte[] receivedUpdateResponse = loadBalancerConnection.receive();
                         if (receivedUpdateResponse != null) {
-//                            logger.info("\n[ThreadId: " + Thread.currentThread().getId() + "] Received Response for Failed Member Updated from Load Balancer.");
                             memberStatusUpdated = true;
                         }
                     } catch (ConnectionClosedException e) {
@@ -178,15 +176,17 @@ public class HeartBeatModule {
      * method calls markMemberFailed method of the MembershipTable to mark a member in the membership table as failed.
      * @param brokerId
      */
-    public void markMemberFailed(int brokerId) {
+    public boolean markMemberFailed(int brokerId) {
         membershipTable.markMemberFailed(brokerId);
+        return true;
     }
 
     /**
      * update heartbeat received time in heartbeatReceiveTimes map for the member of given memberId..
      * @param memberId
      */
-    public void updateHeartBeat(int memberId) {
+    public boolean updateHeartBeat(int memberId) {
         heartbeatReceiveTimes.put(memberId, System.nanoTime());
+        return true;
     }
 }

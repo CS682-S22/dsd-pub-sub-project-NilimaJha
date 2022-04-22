@@ -32,15 +32,27 @@ public class Producer extends Node {
     }
 
     /**
+     * constructor mainly for test for producer class attributes
+     * @param producerName
+     * @param loadBalancerName
+     * @param loadBalancerIP
+     * @param loadBalancerPort
+     * @param test
+     */
+    public Producer(String producerName, String loadBalancerName, String loadBalancerIP, int loadBalancerPort, String test) {
+        super(producerName, Constants.PRODUCER, loadBalancerName, loadBalancerIP, loadBalancerPort);
+    }
+
+    /**
      * method connects with the loadBalance and gets the leader broker information
      * and sets up connection with leader broker.
      */
     public void setupConnectionWithLeaderBroker() {
-        logger.info("\nInside startProducer : connected : " + connected);
+        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Inside startProducer : connected : " + connected);
         while (!connected) {
             resetLeaderBrokerInfo();
             resetMessageId();
-            logger.info("\nNot Connected with broker.");
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Not Connected with broker.");
             connectBroker();
         }
     }
@@ -53,24 +65,23 @@ public class Producer extends Node {
         int retries = 0;
         while (!connected && retries < Constants.MAX_RETRIES) {
             try {
-                logger.info("\nTrying to connect leader broker. Name :" + leaderBrokerName + " IP :" + leaderBrokerIP + " Port :" + leaderBrokerPort);
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Trying to connect leader broker. Name :" + leaderBrokerName + " IP :" + leaderBrokerIP + " Port :" + leaderBrokerPort);
                 connectToBroker();
             } catch (ConnectionClosedException e) {
                 retries++;
                 logger.info(e.getMessage());
                 synchronized (connectBrokerWaitObj) {
-                    logger.info("\nWaiting for sometime before retrying.");
+                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Waiting for sometime before retrying.");
                     try {
                         connectBrokerWaitObj.wait(Constants.RETRIES_TIMEOUT);
                     } catch (InterruptedException ex) {
-                        logger.info("\nInterruptedException occurred while waiting before reconnecting to broker. Error Message : " + e.getMessage());
+                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] InterruptedException occurred while waiting before reconnecting to broker. Error Message : " + e.getMessage());
                     }
                 }
             }
         }
-        logger.info("\n Connected : " + connected + " Retries : " + retries);
         if (connected) {
-            logger.info("\nSending InitialSetupMessage.");
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Sending InitialSetupMessage.");
             sendInitialSetupMessage();
             return true;
         }
@@ -85,13 +96,12 @@ public class Producer extends Node {
             resetLeaderBrokerInfo();
             connectToLoadBalancer();
             while (leaderBrokerIP == null) {
-                logger.info("\nleaderIp = " + leaderBrokerIP + " leaderPort: " + leaderBrokerPort);
                 getLeaderAndMembersInfo();
             }
-            logger.info("->LeaderBrokerIp : " + leaderBrokerIP + "leaderPort: " + leaderBrokerPort);
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] LeaderBrokerIp : " + leaderBrokerIP + "leaderPort: " + leaderBrokerPort);
             closeLoadBalancerConnection();
         } catch (ConnectionClosedException e) {
-            logger.info("\nException occurred while connecting to loadBalancer.LoadBalancer. Error Message : " + e.getMessage());
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Exception occurred while connecting to loadBalancer.LoadBalancer. Error Message : " + e.getMessage());
             System.exit(0);
         }
 
@@ -107,7 +117,7 @@ public class Producer extends Node {
         while (!initialSetupDone) {
             try {
                 //send initial message
-                logger.info("\n[Sending Initial packet]");
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] [Sending Initial packet]");
                 connection.send(initialMessagePacket); //sending initial packet
                 byte[] receivedMessage = connection.receive();
                 if (receivedMessage != null) {
@@ -119,7 +129,7 @@ public class Producer extends Node {
                             initialSetupDone = true;
                         }
                     } catch (InvalidProtocolBufferException e) {
-                        logger.info("\nInvalidProtocolBufferException while decoding Ack for InitialSetupMessage.");
+                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] InvalidProtocolBufferException while decoding Ack for InitialSetupMessage.");
                     }
                 }
             } catch (ConnectionClosedException e) {
@@ -128,7 +138,7 @@ public class Producer extends Node {
                 connection = null;
                 return false;
             }
-            logger.info("\nInitialSetupDone : " + initialSetupDone);
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] InitialSetupDone : " + initialSetupDone);
         }
         return true;
     }
@@ -174,9 +184,8 @@ public class Producer extends Node {
     public boolean send (String topic, byte[] data) {
         boolean sent = false;
         while (!sent) {
-//            logger.info("\nHere1");
             if (connected) {
-                logger.info("\n[SEND] Publishing Message on Topic " + topic);
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] [SEND] Publishing Message on Topic " + topic);
             } else {
                 setupConnectionWithLeaderBroker();
             }
@@ -194,15 +203,13 @@ public class Producer extends Node {
      * @return
      */
     private boolean sendEachMessage(String topic, byte[] data) {
-//        logger.info("\nHere4");
+
         boolean sentSuccess = false;
         while (!sentSuccess) {
-            logger.info("\nConnection : " + connection + " connected : " + connected);
             if (connection != null && connected && connection.connectionIsOpen()) {
                 try {
-                    logger.info("\n[SEND] Publishing Message on Topic " + topic);
+                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] [SEND] Publishing Message on Topic " + topic);
                     connection.send(createPublishMessagePacket(topic, data));
-                    logger.info("\nWaiting on connection.receive");
                     byte[] receivedAck = connection.receive();
                     if (receivedAck != null) {
                         try {
@@ -210,26 +217,23 @@ public class Producer extends Node {
                             if (any.is(PublishedMessageACK.PublishedMessageACKDetails.class)) {
                                 PublishedMessageACK.PublishedMessageACKDetails publishedMessageACKDetails =
                                         any.unpack(PublishedMessageACK.PublishedMessageACKDetails.class);
-                                logger.info("\nMessageId : " + publishedMessageACKDetails.getACKnum());
+                                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] MessageId : " + publishedMessageACKDetails.getACKnum());
                                 if (publishedMessageACKDetails.getACKnum() == messageId + 1) {
                                     sentSuccess = true;
                                     break;
                                 }
                             }
                         } catch (InvalidProtocolBufferException e) {
-                            logger.error("\nInvalidProtocolBufferException occurred while decoding Ack message for Published message. Error Message : " + e.getMessage());
+                            logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] InvalidProtocolBufferException occurred while decoding Ack message for Published message. Error Message : " + e.getMessage());
                         }
                     }
                 } catch (ConnectionClosedException e) {
-                    logger.info("\n->" + e.getMessage());
+                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] " + e.getMessage());
                     connection.closeConnection();
                     connected = false;
-                    logger.info("\nClosing the connection.");
-                    logger.info("\ncalling startProducer.");
                     setupConnectionWithLeaderBroker();
                 }
             } else {
-                logger.info("\nInside Send each message. And starting setting up connection with LB then Leader.");
                 connected = false;
                 setupConnectionWithLeaderBroker();
             }
@@ -254,5 +258,13 @@ public class Producer extends Node {
     public boolean resetMessageId() {
         messageId = 0;
         return true;
+    }
+
+    /**
+     * return the status of the connection with broker.
+     * @return
+     */
+    public boolean isConnected() {
+        return connected;
     }
 }

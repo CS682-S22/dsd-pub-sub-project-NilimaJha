@@ -174,9 +174,6 @@ public class CatchupModule implements Runnable {
             if (data.getTopicToMessageMap().containsKey(catchupTopic)) {
                 offset = new AtomicLong(data.getTopicToMessageMap().get(catchupTopic).getLastOffSet());
             }
-//            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Pulling data on topic : " + catchupTopic + ". currentTopic.getUptodate : "
-//                    + currentTopicMessageInfo.getIsUpToDate());
-//            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] LeaderId after election : " + membershipTable.getLeaderId());
             while (!currentTopicMessageInfo.getIsUpToDate() && membershipTable.getMembershipInfo().get(membershipTable.getLeaderId()).isDataConnectionConnected()) {
                 byte[] pullRequest = createPullRequestForData(catchupTopic, offset.get());
                 boolean responseReceived = false;
@@ -257,8 +254,6 @@ public class CatchupModule implements Runnable {
                 boolean responseReceived = false;
                 while (!responseReceived) {
                     try {
-//                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Pulling data from topic : " + catchupTopic + ". Get Up-To-Date : "
-//                                + currentTopicMessageInfo.getIsUpToDate());
                         logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Pulling data from leader. about topic : " + catchupTopic + " offset : " + offset.get());
                         connection.send(pullRequest);
                         byte[] response = connection.receive();

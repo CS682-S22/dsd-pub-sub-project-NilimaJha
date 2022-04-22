@@ -81,7 +81,6 @@ public class MembershipTable {
     public void markMemberFailed(int id) {
         logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Membership List before Update : " + membershipInfo.keySet());
         if (storedAt.equals(Constants.BROKER) && leaderId == id) {
-            //election will happen
             //remove current leader info
             leaderId = -1;
             membershipInfo.remove(id);
@@ -92,9 +91,7 @@ public class MembershipTable {
             membershipInfo.remove(id);
         }
         if (storedAt.equals(Constants.BROKER)) {
-//            logger.info("\nAdding failed member into failedMemberIdList.");
             failedMembersIdList.add(id);
-//            logger.info("\nFailedMemberIdList :" + failedMembersIdList);
         }
         logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Membership list after Update : " + membershipInfo.keySet());
     }
@@ -103,7 +100,6 @@ public class MembershipTable {
      * removes all the entries from the failedMemberList.
      */
     public void resetFailedMembersList() {
-//        logger.info("\nReSetting failedMemberList.");
         failedMembersIdList.clear();
     }
 
@@ -122,7 +118,6 @@ public class MembershipTable {
      * @return BrokerInfo leader broker info.
      */
     public BrokerInfo getLeaderInfo() {
-//        logger.info("\nSize : " + membershipInfo.size() + " LeaderId : " + leaderId);
         return membershipInfo.get(leaderId);
     }
 
@@ -184,24 +179,16 @@ public class MembershipTable {
         Random rand = new Random();
         BrokerInfo brokerInfo = null;
         while (brokerInfo == null && membershipInfo.size() > 0) {
-//            logger.info("\n Inside the loop.");
             List<Integer> keyList = new ArrayList<>(membershipInfo.keySet());
             int bound = keyList.size();
             int index = rand.nextInt(bound);
-//            logger.info("\n bound is : " + bound + " index : " + index);
             brokerInfo = membershipInfo.get(keyList.get(index));
             if (brokerInfo != null && keyList.size() > 1 && leaderId == brokerInfo.getBrokerId()) {
-
-//                logger.info("\n brokerInfo : " + brokerInfo + " membershipInfoSize : " + membershipInfo.size() + " leaderId =" + leaderId + " brokerSelected brokerId : " + brokerInfo.getBrokerId());
                 brokerInfo = null;
-//                logger.info("\nSetting broker null as leader was selected. ");
             } else if (brokerInfo != null){
                 break;
             }
         }
-//        if (brokerInfo != null) {
-//            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Broker selected for read is " + brokerInfo.getBrokerId());
-//        }
         return brokerInfo;
     }
 }

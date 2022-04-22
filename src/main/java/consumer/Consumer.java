@@ -143,14 +143,12 @@ public class Consumer extends Node {
             byte[] messageReceived = null;
             while (messageReceived == null) {
                 messageReceived = connection.receive();
-//                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Waiting to receive response");
                 if (messageReceived != null) {
                     logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Received response...");
                     success = extractDataFromBrokerResponse1(messageReceived);
                 }
             }
         } catch (ConnectionClosedException e) {
-//            logger.error(e.getMessage());
             connection.closeConnection();
             connected = false;
             throw new ConnectionClosedException("\nConnection with broker is closed.");
@@ -166,19 +164,13 @@ public class Consumer extends Node {
      */
     public boolean extractDataFromBrokerResponse1(byte[] messageReceived) {
         boolean success = false;
-//        logger.info("\nmessageReceived.");
         if (messageReceived != null) {
             try {
-//                logger.info("\nmessageReceived2.");
                 Any any = Any.parseFrom(messageReceived);
-//                logger.info("\nany is of type InitialSetupDone? " + any.is(InitialSetupDone.InitialSetupDoneDetails.class));
                 if (any.is(MessageFromBroker.MessageFromBrokerDetails.class)) {
-//                    logger.info("\nmessageReceived.3");
                     MessageFromBroker.MessageFromBrokerDetails messageFromBrokerDetails =
                             any.unpack(MessageFromBroker.MessageFromBrokerDetails.class);
-//                    logger.info("\nmessageReceived.4");
                     if (messageFromBrokerDetails.getType().equals(Constants.MESSAGE)) {
-//                        logger.info("\nmessageReceived.5a");
                         logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Total message received from broker in one response = "
                                 + messageFromBrokerDetails.getActualMessageCount());
                         for (int index = 0; index < messageFromBrokerDetails.getActualMessageCount(); index++) {
@@ -196,7 +188,6 @@ public class Consumer extends Node {
                         }
                         success = true;
                     } else {
-//                        logger.info("\nmessageReceived.5b");
                         logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Message type : " + messageFromBrokerDetails.getType());
                     }
                 }
@@ -313,5 +304,13 @@ public class Consumer extends Node {
      */
     public boolean isShutdown() {
         return shutdown;
+    }
+
+    /**
+     * returns the status of the connection of consumer with broker.
+     * @return
+     */
+    public boolean isConnected() {
+        return connected;
     }
 }

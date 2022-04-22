@@ -50,7 +50,7 @@ public class ElectionModule {
      * method that make sure that during entire run only one instance of this class is created.
      * @return electionModule
      */
-    synchronized static ElectionModule getElectionModule(BrokerInfo thisBrokerInfo, String loadBalancerIp, int loadBalancerPort) {
+    public synchronized static ElectionModule getElectionModule(BrokerInfo thisBrokerInfo, String loadBalancerIp, int loadBalancerPort) {
         if (electionModule == null) {
             electionModule = new ElectionModule(thisBrokerInfo, loadBalancerIp, loadBalancerPort);
         }

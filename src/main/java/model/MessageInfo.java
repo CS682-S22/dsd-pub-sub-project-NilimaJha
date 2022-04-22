@@ -135,14 +135,12 @@ public class MessageInfo {
     public void writeOnFile(byte[] message) {
         // acquire write lock on the file and flushedMessageOffset ArrayList
         persistentStorageAccessLock.writeLock().lock();
-//        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Inside writeOnFile method.");
         //flushing data on the file on file
         if (!upToDate) {
             logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] UpToDate is " + upToDate + " Hence inside writeOnFile.");
             try {
                 fileWriter.write(message);
                 flushedMessageOffset.add(catchupOffset.get());
-//                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] write on file successful.");
                 catchupOffset.addAndGet(message.length);
                 logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Next CatchupOffset num : " + catchupOffset.get());
                 if (lastOffSet.get() < catchupOffset.get()) {
@@ -225,25 +223,21 @@ public class MessageInfo {
      */
     public ArrayList<byte[]> getMessage(long offSet) {
         persistentStorageAccessLock.readLock().lock();
-//        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] RequestedOffset: " + offSet + "   => total message offsets : " + flushedMessageOffset);
         ArrayList<byte[]> messageBatch = null;
         int count = 0;
         AtomicLong currentOffset = new AtomicLong(offSet);
         // get the current offset index in the flushedMessageOffset ArrayList
         int index = flushedMessageOffset.indexOf(offSet);
-//        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Index : " + index);
         // offset is not available
         if (index == -1) {
             logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Offset " + offSet + " is not yet available.");
             persistentStorageAccessLock.readLock().unlock();
-//            logger.info("\nReturning messageBatch -" + messageBatch);
             return messageBatch;
         } else {
             logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Offset " + offSet + "is available.");
             messageBatch = new ArrayList<>();
         }
         while (count < Constants.MESSAGE_BATCH_SIZE && currentOffset.get() <= flushedMessageOffset.get(flushedMessageOffset.size() - 1)) {
-//            logger.info("\ncount :" + count + " currentOffset : " + currentOffset + " lastOnFileOffset : " + flushedMessageOffset.get(flushedMessageOffset.size() - 1) + " messageBatch " + messageBatch);
             // read one message at a time and append it on the messageBatch arrayList
             // making this block of code synchronised so that at a time only one thread can use FileInputStream named fileReader
             synchronized (this) {

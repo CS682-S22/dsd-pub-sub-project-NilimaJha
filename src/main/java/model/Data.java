@@ -79,13 +79,10 @@ public class Data {
         ArrayList<byte[]> messageBatch = null;
         if (isTopicAvailable(topic)) {
             if (!requester.equals(Constants.BROKER)) {
-//                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] pull request from Consumer from offset : " + offsetNumber);
                 messageBatch = topicToMessageMap.get(topic).getMessage(offsetNumber);
             } else {
-//                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] pull request from Broker from offset : " + offsetNumber);
                 messageBatch = topicToMessageMap.get(topic).getMessage(offsetNumber);
                 if (messageBatch == null || messageBatch.size() == 0) {
-//                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] persistant storage message is sent now checking inmemory for broker MessageIsSent ");
                     messageBatch = topicToMessageMap.get(topic).getMessageForBroker(offsetNumber);
                 }
             }
@@ -111,7 +108,6 @@ public class Data {
         if (!topicToMessageMap.containsKey(topic)) {
             logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Adding New Topic '" + topic + "'");
             topicToMessageMap.putIfAbsent(topic, new MessageInfo(topic, thisBrokerInfo, loadBalancerIP, loadBalancerPort));
-//            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Topic : " + topic + " isUpToDate : " + topicToMessageMap.get(topic).getIsUpToDate());
         }
         return topicToMessageMap.get(topic);
     }

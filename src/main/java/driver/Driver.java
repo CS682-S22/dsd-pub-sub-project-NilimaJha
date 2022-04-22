@@ -71,7 +71,7 @@ public class Driver {
                 brokerConfig.getLoadBalancerIP(),
                 brokerConfig.getLoadBalancerPort());
 
-        logger.info("\nbroker.Broker name : " + broker.getName() + "broker.Broker IP : " );
+        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Broker name : " + broker.getName() + " Broker IP : " );
 
         Thread thread = new Thread(broker);
         thread.start();
@@ -79,7 +79,7 @@ public class Driver {
         try {
             thread.join();
         } catch (InterruptedException e) {
-            logger.error("\nInterruptedException occurred while waiting for broker thread to join. Error Message : " + e.getMessage());
+            logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] InterruptedException occurred while waiting for broker thread to join. Error Message : " + e.getMessage());
         }
     }
 
@@ -89,13 +89,13 @@ public class Driver {
      * @param loadBalancerName loadBalancer name
      */
     public static void createAndStartLoadBalancer (String configFileName, String loadBalancerName) {
-        System.out.println("LOAD-BALANCER");
+        System.out.println("\n[ThreadId : " + Thread.currentThread().getId() + "] LOAD-BALANCER");
         LoadBalancerConfig loadBalancerConfig = Utility.extractLoadBalancerInfo(configFileName, loadBalancerName);
         LoadBalancer loadBalancer = new LoadBalancer(
                 loadBalancerConfig.getName(),
                 loadBalancerConfig.getLoadBalancerIP(),
                 loadBalancerConfig.getLoadBalancerPort());
-        System.out.println("Starting Load Balancer.....");
+        System.out.println("\n[ThreadId : " + Thread.currentThread().getId() + "] Starting Load Balancer.....");
         loadBalancer.startLoadBalancer();
     }
 
@@ -113,44 +113,23 @@ public class Driver {
                 configInformation.getLoadBalancerPort());
 
         if (producer.connectedToBroker()) {
-            logger.info("\n[Now Sending Actual data]");
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] [Now Sending Actual data]");
             try (BufferedReader bufferedReader = Utility.fileReaderInitializer(configInformation.getFileName())) {
                 String eachLine = bufferedReader.readLine();
-//                String topic = null;
                 int lineNo = 1;
                 Scanner sc = new Scanner(System.in);
                 System.out.println("\nEnter Command: ");
                 String cmd = sc.nextLine();
                 while (!cmd.equals("exit")) {
-//                     Running the code until the input command is exit.
+                    //Running the code until the input command is exit.
                     if (cmd.length() == 0 && eachLine != null) {
                         produceEachMessage(configInformation, producer, eachLine, lineNo);
-
-//                        if (configInformation.getFileName().equals("Zookeeper.log")) {
-//                            topic = "Zookeeper";
-//                        } else if (configInformation.getFileName().equals("Hadoop.log")) {
-//                            topic = "Hadoop";
-//                        } else {
-//                            topic = "Mac";
-//                        }
-//
-//                        logger.info("\n[Now Sending Actual data] [Topic : " + topic + "]");
-//                        producer.send(topic, eachLine.getBytes());    // send data
-//
-////                        if (configInformation.getFileName().equals("Apache.log")) {
-////                            String[] messagePart = eachLine.split("] \\[");
-////                            if (messagePart.length != 1) {
-////                                topic = "Apache";
-////                                logger.info("produced : " + producer.send(topic, eachLine.getBytes()));  // send data
-////                            }
-////                        }
-//
-//                        logger.info("LineNumber : " + lineNo);
-//                        lineNo++;
+                        lineNo++;
                         eachLine = bufferedReader.readLine();   // reading next line from the file
                     } else if (cmd.equals("start")){
                         while (eachLine != null) {
                             produceEachMessage(configInformation, producer, eachLine, lineNo);
+                            lineNo++;
                             eachLine = bufferedReader.readLine();
                         }
                     }
@@ -158,19 +137,19 @@ public class Driver {
                     cmd = sc.nextLine();
                 }
             } catch (IOException e) {
-                logger.info("\nIOException occurred while initialising BufferedReader. Error Message : " + e.getMessage());
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] IOException occurred while initialising BufferedReader. Error Message : " + e.getMessage());
             }
             try {
                 Thread.sleep(6000);
             } catch (InterruptedException e) {
-                logger.info("\nInterruptedException occurred with thread.sleep. Error Message : " + e.getMessage());
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] InterruptedException occurred with thread.sleep. Error Message : " + e.getMessage());
             }
         }
         producer.close();
     }
 
     /**
-     *
+     * produces one message at a time.
      */
     public static void produceEachMessage(ConfigInformation configInformation, Producer producer, String eachLine, long lineNo) {
         String topic;
@@ -183,19 +162,7 @@ public class Driver {
         }
         logger.info("\n[Now Sending Actual data] [Topic : " + topic + "]");
         producer.send(topic, eachLine.getBytes());    // send data
-
-//                        if (configInformation.getFileName().equals("Apache.log")) {
-//                            String[] messagePart = eachLine.split("] \\[");
-//                            if (messagePart.length != 1) {
-//                                topic = "Apache";
-//                                logger.info("produced : " + producer.send(topic, eachLine.getBytes()));  // send data
-//                            }
-//                        }
-
         logger.info("LineNumber : " + lineNo);
-        lineNo++;
-//        eachLine = bufferedReader.readLine();   // reading next line from the file
-//        }
     }
 
     /**
@@ -205,7 +172,7 @@ public class Driver {
      */
     public static void createAndStartConsumer (String configFileName, String consumerName) {
         ConfigInformation configInformation = Utility.extractConsumerOrPublisherConfigInfo(configFileName, consumerName);
-        logger.info("\nConsumer Started\n");
+        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Consumer Started\n");
         Consumer consumer = new Consumer(
                 configInformation.getName(),
                 configInformation.getType(),
@@ -225,7 +192,7 @@ public class Driver {
                 }
             }
         } catch (IOException e) {
-            logger.info("\nIOException occurred while initialising fileWriter. Error Message : " + e.getMessage());
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] IOException occurred while initialising fileWriter. Error Message : " + e.getMessage());
         }
     }
 }

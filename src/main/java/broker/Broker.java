@@ -125,7 +125,6 @@ public class Broker extends Node implements Runnable {
                             membershipTable.addDataConnectionToMember(eachMember.getBrokerId(), dataConnection);
                         }
                     }
-//                    logger.info("\n getBrokerId : " + eachMember.getBrokerId() + " LeaderId : " + membershipTable.getLeaderId());
                     if (eachMember.getBrokerId() == membershipTable.getLeaderId() && connection != null) {
                         //set up CatchUp Connection.
                         retries = 0;
@@ -145,13 +144,7 @@ public class Broker extends Node implements Runnable {
                             retries++;
                         }
                         if (catchupConnection != null) {
-//                            logger.info("\n [ThreadId : " + Thread.currentThread().getId() +
-//                                    "] Connecting to member with id : " + eachMember.getBrokerId() +
-//                                    " Connection Type : " + Constants.CATCHUP_CONNECTION);
                             sendInitialMessageToMember(catchupConnection, Constants.CATCHUP_CONNECTION);
-//                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() +
-//                                    "] Initial Setup done for connection type : " + Constants.CATCHUP_CONNECTION);
-//                            logger.info("\n catchupTopic details, : " + catchupTopics + ": catchupTopic.size : " + catchupTopics.size());
                             if (catchupTopics != null && catchupTopics.size() > 0) {
                                 CatchupModule catchup = new CatchupModule(thisBrokerInfo.getBrokerName(),
                                         catchupConnection, thisBrokerInfo,  loadBalancerIP, loadBalancerPort, eachMember.getBrokerName(), eachMember,
@@ -160,7 +153,6 @@ public class Broker extends Node implements Runnable {
                             } else {
                                 logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] this Broker Is UpToDate with leader.");
                                 thisBrokerInfo.setCatchupMode(false); // this broker is up-to-date.
-//                                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Closing the CatchupConnection.");
                                 catchupConnection.closeConnection();
 
                             }
@@ -190,9 +182,7 @@ public class Broker extends Node implements Runnable {
                 .setBrokerPort(thisBrokerInfo.getBrokerPort())
                 .setConnectionType(typeOfConnection)
                 .build());
-//        logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] Sending InitialMessage of type " + typeOfConnection);
         while (!initialSetupDone) {
-//            logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] Sending InitialSetup Message to the member.");
             try {
                 connection.send(any.toByteArray());
                 byte[] receivedMessage = connection.receive();
@@ -202,7 +192,6 @@ public class Broker extends Node implements Runnable {
                         if (any1.is(InitialSetupDone.InitialSetupDoneDetails.class)) {
                             InitialSetupDone.InitialSetupDoneDetails initialSetupDoneDetails =
                                     any1.unpack(InitialSetupDone.InitialSetupDoneDetails.class);
-//                            logger.info("\n[Thread Id : " + Thread.currentThread().getId() + "] Received InitialSetup Message ACK from the member. connection type : " + typeOfConnection);
                             if (typeOfConnection.equals(Constants.CATCHUP_CONNECTION)) {
                                 catchupTopics = initialSetupDoneDetails.getTopicsList();
                             }
@@ -230,9 +219,6 @@ public class Broker extends Node implements Runnable {
             getLeaderAndMembersInfo();
             membershipTable.updateLeader(leaderBrokerId);
             if (memberList.isEmpty() && leaderBrokerId == 0) {
-                // this broker is the first broker in the membershipTable.
-                //registering itself as Leader at loadBalancer.LoadBalancer
-//                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Setting this Broker Is Up-to-date.");
                 thisBrokerInfo.setCatchupMode(false);
                 Utility.sendUpdateLeaderMessageToLB(loadBalancerConnection, name, thisBrokerInfo.getBrokerId());
                 leaderBrokerName = thisBrokerInfo.getBrokerName();

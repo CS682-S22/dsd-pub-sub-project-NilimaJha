@@ -178,17 +178,14 @@ public class BrokerInfo {
                         if (any.is(ReplicateSuccessACK.ReplicateSuccessACKDetails.class)) {
                             ReplicateSuccessACK.ReplicateSuccessACKDetails replicateSuccessACK =
                                     any.unpack(ReplicateSuccessACK.ReplicateSuccessACKDetails.class);
-//                            logger.info("[ThreadId : " + Thread.currentThread().getId() + "] Received replicated ack.");
                             if (replicateSuccessACK.getAckNum() == expectedAckNumber) {
                                 sentSuccessful = true;
-//                                logger.info("[ThreadId : " + Thread.currentThread().getId() + "] received ack was correct.");
                                 break;
                             }
                             retries++;
                         }
                     } else {
                         retries++;
-//                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] incremented retries -> " + retries);
                     }
                 } catch (ConnectionClosedException e) {
                     logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] " + e.getMessage());
@@ -198,7 +195,6 @@ public class BrokerInfo {
                     logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] InvalidProtocolBufferException occurred while decoding receivedAck for replication message. Error Message : " + e.getMessage());
                 }
             }
-
         }
         dataConnectionLock.writeLock().unlock();
     }
@@ -229,7 +225,6 @@ public class BrokerInfo {
      */
     public byte[] receiveOverDataConnection() {
         dataConnectionLock.writeLock().lock();
-//        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Inside ReceiveOverDataConnection.");
         byte[] receivedMessage = null;
         if (dataConnection != null && dataConnection.isConnected()) {
             boolean dataReceived = false;

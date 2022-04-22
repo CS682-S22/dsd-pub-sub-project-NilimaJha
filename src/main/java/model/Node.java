@@ -105,7 +105,6 @@ public class Node {
         try {
             clientSocket = AsynchronousSocketChannel.open();
             InetSocketAddress brokerAddress = new InetSocketAddress(loadBalancerIP, loadBalancerPort);
-//            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Connecting To Load Balancer.");
             Future<Void> futureSocket = clientSocket.connect(brokerAddress);
             try {
                 futureSocket.get();
@@ -132,11 +131,9 @@ public class Node {
                 if (nodeType.equals(Constants.CONSUMER)) {
                     logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Requesting random broker info from the LoadBalancer.");
                     loadBalancerConnection.send(getRequestRandomBrokerInfoMessage(messageId));
-//                    logger.info("\nRequest sent for Leader info and Membership table.");
                 } else {
                     logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Requesting leader's info from the LoadBalancer.");
                     loadBalancerConnection.send(getRequestLeaderInfoMessage(messageId));
-//                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Request sent for Leader info and Membership table.");
                 }
 
                 byte[] receivedResponse = null;
@@ -213,10 +210,6 @@ public class Node {
                 }
             }
         }
-//        else {
-//            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Not connected with loadBalancer.");
-//            connectToLoadBalancer();
-//        }
 
     }
 
@@ -227,7 +220,6 @@ public class Node {
     public byte[] getRequestLeaderInfoMessage(int messageId) {
         boolean assignBrokerId = false;
         Any any;
-//        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] NodeType : " + nodeType);
         if (nodeType.equals(Constants.BROKER) && thisBrokerInfo.getBrokerId() == 0) {
             assignBrokerId = true;
             any = Any.pack(RequestLeaderAndMembersInfo.RequestLeaderAndMembersInfoDetails.newBuilder()
@@ -319,7 +311,7 @@ public class Node {
     }
 
     /**
-     *
+     * resets the leader information.
      * @return
      */
     public boolean resetLeaderBrokerInfo() {
@@ -329,5 +321,13 @@ public class Node {
         this.leaderBrokerPort = 0;
         this.leaderBrokerName = null;
         return true;
+    }
+
+    /**
+     * getter for attribute nodeType.
+     * @return
+     */
+    public String getNodeType() {
+        return nodeType;
     }
 }
