@@ -65,7 +65,8 @@ public class Producer extends Node {
         int retries = 0;
         while (!connected && retries < Constants.MAX_RETRIES) {
             try {
-                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Trying to connect leader broker. Name :" + leaderBrokerName + " IP :" + leaderBrokerIP + " Port :" + leaderBrokerPort);
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Trying to connect leader broker. Name :"
+                        + leaderBrokerName + " IP :" + leaderBrokerIP + " Port :" + leaderBrokerPort);
                 connectToBroker();
             } catch (ConnectionClosedException e) {
                 retries++;
@@ -75,7 +76,8 @@ public class Producer extends Node {
                     try {
                         connectBrokerWaitObj.wait(Constants.RETRIES_TIMEOUT);
                     } catch (InterruptedException ex) {
-                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] InterruptedException occurred while waiting before reconnecting to broker. Error Message : " + e.getMessage());
+                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] InterruptedException " +
+                                "occurred while waiting before reconnecting to broker. Error Message : " + e.getMessage());
                     }
                 }
             }
@@ -98,10 +100,12 @@ public class Producer extends Node {
             while (leaderBrokerIP == null) {
                 getLeaderAndMembersInfo();
             }
-            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] LeaderBrokerIp : " + leaderBrokerIP + "leaderPort: " + leaderBrokerPort);
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] LeaderBrokerIp : "
+                    + leaderBrokerIP + "leaderPort: " + leaderBrokerPort);
             closeLoadBalancerConnection();
         } catch (ConnectionClosedException e) {
-            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Exception occurred while connecting to loadBalancer.LoadBalancer. Error Message : " + e.getMessage());
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Exception occurred while connecting " +
+                    "to loadBalancer.LoadBalancer. Error Message : " + e.getMessage());
             System.exit(0);
         }
 
@@ -129,7 +133,8 @@ public class Producer extends Node {
                             initialSetupDone = true;
                         }
                     } catch (InvalidProtocolBufferException e) {
-                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] InvalidProtocolBufferException while decoding Ack for InitialSetupMessage.");
+                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() +
+                                "] InvalidProtocolBufferException while decoding Ack for InitialSetupMessage.");
                     }
                 }
             } catch (ConnectionClosedException e) {
@@ -185,7 +190,8 @@ public class Producer extends Node {
         boolean sent = false;
         while (!sent) {
             if (connected) {
-                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] [SEND] Publishing Message on Topic " + topic);
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] [SEND] Publishing Message on Topic "
+                        + topic);
             } else {
                 setupConnectionWithLeaderBroker();
             }
@@ -208,7 +214,8 @@ public class Producer extends Node {
         while (!sentSuccess) {
             if (connection != null && connected && connection.connectionIsOpen()) {
                 try {
-                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] [SEND] Publishing Message on Topic " + topic);
+                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] [SEND] Publishing Message on Topic "
+                            + topic);
                     connection.send(createPublishMessagePacket(topic, data));
                     byte[] receivedAck = connection.receive();
                     if (receivedAck != null) {
@@ -217,14 +224,17 @@ public class Producer extends Node {
                             if (any.is(PublishedMessageACK.PublishedMessageACKDetails.class)) {
                                 PublishedMessageACK.PublishedMessageACKDetails publishedMessageACKDetails =
                                         any.unpack(PublishedMessageACK.PublishedMessageACKDetails.class);
-                                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] MessageId : " + publishedMessageACKDetails.getACKnum());
+                                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] MessageId : "
+                                        + publishedMessageACKDetails.getACKnum());
                                 if (publishedMessageACKDetails.getACKnum() == messageId + 1) {
                                     sentSuccess = true;
                                     break;
                                 }
                             }
                         } catch (InvalidProtocolBufferException e) {
-                            logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] InvalidProtocolBufferException occurred while decoding Ack message for Published message. Error Message : " + e.getMessage());
+                            logger.error("\n[ThreadId : " + Thread.currentThread().getId() +
+                                    "] InvalidProtocolBufferException occurred while decoding Ack message for " +
+                                    "Published message. Error Message : " + e.getMessage());
                         }
                     }
                 } catch (ConnectionClosedException e) {

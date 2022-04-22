@@ -111,11 +111,13 @@ public class Node {
                 logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Connected to Load Balancer.");
                 loadBalancerConnection = new Connection(clientSocket); //connection established with the load balancer.
             }  catch (InterruptedException | ExecutionException e) {
-                logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] Exception occurred while connecting to LoadBalancer. Error Message : " + e.getMessage() + " e.cause : " + e.getCause());
+                logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] Exception occurred while " +
+                        "connecting to LoadBalancer. Error Message : " + e.getMessage() + " e.cause : " + e.getCause());
                 throw new ConnectionClosedException("No Host running on the given IP & port!!!");
             }
         } catch (IOException e) {
-            logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] IOException occurred while connecting to broker.Broker.");
+            logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] IOException occurred while connecting " +
+                    "to broker.Broker.");
         }
     }
 
@@ -129,10 +131,12 @@ public class Node {
             boolean responseReceived = false;
             while (!responseReceived) {
                 if (nodeType.equals(Constants.CONSUMER)) {
-                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Requesting random broker info from the LoadBalancer.");
+                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Requesting random broker info " +
+                            "from the LoadBalancer.");
                     loadBalancerConnection.send(getRequestRandomBrokerInfoMessage(messageId));
                 } else {
-                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Requesting leader's info from the LoadBalancer.");
+                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Requesting leader's info from " +
+                            "the LoadBalancer.");
                     loadBalancerConnection.send(getRequestLeaderInfoMessage(messageId));
                 }
 
@@ -147,7 +151,8 @@ public class Node {
                             if (any.is(ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails.class)) {
                                 ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails responseLeaderInfoDetails =
                                         any.unpack(ResponseLeaderInfo.ResponseLeaderAndMembersInfoDetails.class);
-                                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Response Received of Type ResponseLeaderInfo. Leader Info Available : "
+                                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Response Received " +
+                                        "of Type ResponseLeaderInfo. Leader Info Available : "
                                         + responseLeaderInfoDetails.getInfoAvailable());
                                 if (responseLeaderInfoDetails.getInfoAvailable()) {
                                     // getting all the info about current leader.
@@ -155,53 +160,69 @@ public class Node {
                                     leaderBrokerIP = responseLeaderInfoDetails.getLeaderIP();
                                     leaderBrokerPort = responseLeaderInfoDetails.getLeaderPort();
                                     leaderBrokerId = responseLeaderInfoDetails.getLeaderID();
-                                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] leaderBrokerId received from load balancer : " + leaderBrokerId + " leaderIp : " + leaderBrokerIP + " leaderPort : " + leaderBrokerPort + " leaderName : " + leaderBrokerName);
+                                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] leaderBrokerId " +
+                                            "received from load balancer : " + leaderBrokerId + " leaderIp : "
+                                            + leaderBrokerIP + " leaderPort : " + leaderBrokerPort + " leaderName : "
+                                            + leaderBrokerName);
                                 } else if (!nodeType.equals(Constants.BROKER)) {
                                     synchronized (waitObj) {
                                         startTimer();
                                         try {
-                                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Leader's info is not available at loadBalancer.LoadBalancer yet. Waiting for sometime...");
+                                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() +
+                                                    "] Leader's info is not available at loadBalancer.LoadBalancer yet. " +
+                                                    "Waiting for sometime...");
                                             waitObj.wait();
                                         } catch (InterruptedException e) {
-                                            logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] InterruptedException occurred. Error Message : " + e.getMessage());
+                                            logger.error("\n[ThreadId : " + Thread.currentThread().getId() +
+                                                    "] InterruptedException occurred. Error Message : " + e.getMessage());
                                         }
                                     }
                                 }
                                 if (nodeType.equals(Constants.BROKER)) {
                                     memberList = responseLeaderInfoDetails.getMembersList();
-                                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] MemberList size : " + memberList.size());
+                                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] MemberList size : "
+                                            + memberList.size());
                                     if (thisBrokerInfo.getBrokerId() == 0) {
                                         thisBrokerInfo.setBrokerId(responseLeaderInfoDetails.getBrokerId());
-                                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] This broker Id : " + thisBrokerInfo.getBrokerId());
+                                        logger.info("\n[ThreadId : " + Thread.currentThread().getId() +
+                                                "] This broker Id : " + thisBrokerInfo.getBrokerId());
                                     }
                                 }
                             } else if (any.is(ResponseRandomBrokerInfo.ResponseRandomBrokerInfoDetails.class)) {
                                 ResponseRandomBrokerInfo.ResponseRandomBrokerInfoDetails randomBrokerInfoDetails =
                                         any.unpack(ResponseRandomBrokerInfo.ResponseRandomBrokerInfoDetails.class);
-                                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Response Received of Type ResponseLeaderInfo. Leader Info Available : "
+                                logger.info("\n[ThreadId : " + Thread.currentThread().getId() +
+                                        "] Response Received of Type ResponseLeaderInfo. Leader Info Available : "
                                         + randomBrokerInfoDetails.getInfoAvailable());
                                 if (randomBrokerInfoDetails.getInfoAvailable()) {
                                     // getting all the info about the broker.
                                     leaderBrokerName = randomBrokerInfoDetails.getBrokerName();
                                     leaderBrokerIP = randomBrokerInfoDetails.getBrokerIP();
                                     leaderBrokerPort = randomBrokerInfoDetails.getBrokerPort();
-                                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] BrokerId received from load balancer : " + leaderBrokerId + " brokerIp : " + leaderBrokerIP + " brokerPort : " + leaderBrokerPort + " brokerName : " + leaderBrokerName);
+                                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() +
+                                            "] BrokerId received from load balancer : " + leaderBrokerId +
+                                            " brokerIp : " + leaderBrokerIP + " brokerPort : " + leaderBrokerPort +
+                                            " brokerName : " + leaderBrokerName);
                                 } else {
                                     responseReceived = false;
                                     synchronized (waitObj) {
                                         startTimer();
                                         try {
-                                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Broker info is not available at loadBalancer. Waiting for sometime...");
+                                            logger.info("\n[ThreadId : " + Thread.currentThread().getId() +
+                                                    "] Broker info is not available at loadBalancer. Waiting for sometime...");
                                             waitObj.wait();
                                         } catch (InterruptedException e) {
-                                            logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] InterruptedException occurred. Error Message : " + e.getMessage());
+                                            logger.error("\n[ThreadId : " + Thread.currentThread().getId() +
+                                                    "] InterruptedException occurred. Error Message : " + e.getMessage());
                                         }
                                     }
                                 }
 
                             }
                         } catch (InvalidProtocolBufferException e) {
-                            logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] InvalidProtocolBufferException occurred while decoding message send by loadBalancer.");
+                            logger.error("\n[ThreadId : " + Thread.currentThread().getId() +
+                                    "] InvalidProtocolBufferException occurred while decoding message send " +
+                                    "by loadBalancer.");
                         }
                     }
                 } catch (ConnectionClosedException e) {
@@ -247,7 +268,6 @@ public class Node {
      */
     public byte[] getRequestRandomBrokerInfoMessage(int messageId) {
         Any any;
-//        logger.info("\n NodeType : " + nodeType);
         any = Any.pack(RequestBrokerInfo.RequestBrokerInfoDetails.newBuilder()
                 .setMessageId(messageId)
                 .setRequestSenderType(nodeType)
@@ -265,7 +285,8 @@ public class Node {
         try {
             clientSocket = AsynchronousSocketChannel.open();
             InetSocketAddress brokerAddress = new InetSocketAddress(leaderBrokerIP, leaderBrokerPort);
-            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Connecting To Broker " + leaderBrokerIP + " " + leaderBrokerPort);
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Connecting To Broker " + leaderBrokerIP +
+                    " " + leaderBrokerPort);
             Future<Void> futureSocket = clientSocket.connect(brokerAddress);
             try {
                 futureSocket.get();
@@ -273,13 +294,15 @@ public class Node {
                 connection = new Connection(clientSocket);
                 connected = true;
             } catch (InterruptedException | ExecutionException e) {
-                logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] Exception occurred while connecting to broker. Error Message : " + e.getMessage());
+                logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] Exception occurred while " +
+                        "connecting to broker. Error Message : " + e.getMessage());
                 connected = false;
                 throw new ConnectionClosedException("No host is running on the given IP and Port.");
             }
         } catch (IOException e) {
             connected = false;
-            logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] IOException occurred while connecting to broker.Broker. Error Message : " + e.getMessage());
+            logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] IOException occurred while " +
+                    "connecting to broker.Broker. Error Message : " + e.getMessage());
         }
         return connected;
     }

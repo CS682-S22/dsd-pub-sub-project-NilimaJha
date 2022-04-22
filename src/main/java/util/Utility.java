@@ -221,7 +221,8 @@ public class Utility {
         try {
             bufferedReader = new BufferedReader(new FileReader(inputFileName));
         } catch (IOException e) {
-            logger.error("\nIOException occurred while initialising BufferedReader on file " + inputFileName + ". Error Message : " + e.getMessage());
+            logger.error("\nIOException occurred while initialising BufferedReader on file " + inputFileName +
+                    ". Error Message : " + e.getMessage());
         }
         return bufferedReader;
     }

@@ -88,7 +88,8 @@ public class MessageInfo {
         try {
             fileWriter = new FileOutputStream(fileName, true);
         } catch (FileNotFoundException e) {
-            logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] FileNotFoundException while Initialising fileWriter for segmentFile. Error Message : " +e.getMessage());
+            logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] FileNotFoundException while " +
+                    "Initialising fileWriter for segmentFile. Error Message : " +e.getMessage());
         }
     }
 
@@ -100,7 +101,8 @@ public class MessageInfo {
         try {
             fileReader = new FileInputStream(fileName);
         } catch (IOException e) {
-            logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] IOException while Initialising fileReader for segmentFile. Error Message : " + e.getMessage());
+            logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] IOException while Initialising " +
+                    "fileReader for segmentFile. Error Message : " + e.getMessage());
         }
     }
 
@@ -116,7 +118,8 @@ public class MessageInfo {
                 fileWriter.write(eachMessageByteArray);
             } catch (IOException e) {
                 persistentStorageAccessLock.writeLock().unlock();
-                logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] IOException while Writing on file. Error Message : " + e.getMessage());
+                logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] IOException while Writing " +
+                        "on file. Error Message : " + e.getMessage());
             }
         }
         flushedMessageOffset.addAll(this.inMemoryMessageOffset);
@@ -124,7 +127,8 @@ public class MessageInfo {
         inMemoryMessageOffset.clear();
         inMemoryMessage.clear();
 
-        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] [FLUSH] Flushed In-Memory message of topic " + topic + " on the file " + topicSegmentFileName);
+        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] [FLUSH] Flushed In-Memory" +
+                " message of topic " + topic + " on the file " + topicSegmentFileName);
         // realising write lock on the file and flushedMessageOffset ArrayList
         persistentStorageAccessLock.writeLock().unlock();
     }
@@ -137,12 +141,14 @@ public class MessageInfo {
         persistentStorageAccessLock.writeLock().lock();
         //flushing data on the file on file
         if (!upToDate) {
-            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] UpToDate is " + upToDate + " Hence inside writeOnFile.");
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] UpToDate is " + upToDate +
+                    " Hence inside writeOnFile.");
             try {
                 fileWriter.write(message);
                 flushedMessageOffset.add(catchupOffset.get());
                 catchupOffset.addAndGet(message.length);
-                logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Next CatchupOffset num : " + catchupOffset.get());
+                logger.info("\n[ThreadId : " + Thread.currentThread().getId() +
+                        "] Next CatchupOffset num : " + catchupOffset.get());
                 if (lastOffSet.get() < catchupOffset.get()) {
                     inMemoryDSLock.writeLock().lock();
                     lastOffSet.getAndSet(catchupOffset.get());
@@ -150,9 +156,11 @@ public class MessageInfo {
                 }
             } catch (IOException e) {
                 persistentStorageAccessLock.writeLock().unlock();
-                logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] IOException while Writing on file. Error Message : " + e.getMessage());
+                logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] IOException while Writing on file. " +
+                        "Error Message : " + e.getMessage());
             }
-            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Catchup message successfully written on the File. Topic : "
+            logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Catchup message successfully " +
+                    "written on the File. Topic : "
                     + topic + " fileName : " + topicSegmentFileName);
         }
         // realising write lock on the file and flushedMessageOffset ArrayList
@@ -200,11 +208,13 @@ public class MessageInfo {
         inMemoryMessage.add(message);
         if (membershipTable.getLeaderId() == thisBrokerInfo.getBrokerId() && !thisBrokerInfo.isInCatchupMode()) {
             logger.info("[ThreadId : " + Thread.currentThread().getId() + " Sending message to Follower.");
-            membershipTable.sendSynchronousData(lastOffSet.get(), topic, message, lastOffSet.addAndGet(message.length)); // replicating data on the followers.
+            // replicating data on the followers.
+            membershipTable.sendSynchronousData(lastOffSet.get(), topic, message, lastOffSet.addAndGet(message.length));
         } else {
             lastOffSet.addAndGet(message.length);
         }
-        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] [ADD] Added new message on Topic " + topic + ". [In-memory buffer size : "
+        logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] [ADD] Added new message on Topic " + topic +
+                ". [In-memory buffer size : "
                 + inMemoryMessageOffset.size() + "]");
         if (upToDate && inMemoryMessageOffset.size() == Constants.TOTAL_IN_MEMORY_MESSAGE_SIZE) {
             timer.cancel();
@@ -258,7 +268,6 @@ public class MessageInfo {
 
                 try {
                     fileReader.getChannel().position(currentOffset.get());
-//                    logger.info("\n[ThreadId : " + Thread.currentThread().getId() + "] Reading from offset : " + currentOffset.get());
                     fileReader.read(eachMessage);
                 } catch (IOException e) {
                     logger.error("\n[ThreadId : " + Thread.currentThread().getId() + "] IOException while reading from segmentFile. Error Message : " + e.getMessage());
@@ -301,7 +310,8 @@ public class MessageInfo {
         }
         while (count < Constants.MESSAGE_BATCH_SIZE && index < currentSizeOfTheInMemoryMessageLst) {
             // read one message at a time and append it on the messageBatch arrayList
-            // making this block of code synchronised so that at a time only one thread can use FileInputStream named fileReader
+            // making this block of code synchronised so that at a time only one thread can use
+            // FileInputStream named fileReader
             synchronized (this) {
                 byte[] eachMessage = new byte[0];
                 if (index < inMemoryMessageOffset.size()) {
